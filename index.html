@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QC & Measurement of Imprecision</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: #1a1a2e;
+color: #e0e0e0;
+min-height: 100vh;
+overflow-x: hidden;
+display: flex;
+flex-direction: column;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+.top-bar {
+background: #16213e;
+display: flex;
+align-items: center;
+padding: 8px 15px;
+gap: 10px;
+border-bottom: 2px solid #e74c3c;
+flex-wrap: wrap;
+min-height: 70px;
+}
+.fixed-action-bar {
+display: flex;
+gap: 5px;
+align-items: center;
+background: #16213e;
+padding: 4px 8px;
+border-radius: 6px;
+border: 1px solid #333;
+}
+.action-icon-btn {
+background: #0f3460;
+border: 1px solid #333;
+color: #e74c3c;
+cursor: pointer;
+border-radius: 4px;
+font-size: 11px;
+padding: 5px 9px;
+display: flex;
+align-items: center;
+gap: 4px;
+transition: all 0.2s;
+}
+.action-icon-btn:hover { background: #e74c3c; color: #fff; }
+.action-icon-btn .icon { font-size: 16px; }
+.logo-area {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-left: 10px;
+padding: 4px 10px;
+background: #0f3460;
+border-radius: 6px;
+border: 1px solid #333;
+min-height: 50px;
+}
+.custom-logo-img {
+max-height: 45px;
+max-width: 60px;
+object-fit: contain;
+border-radius: 4px;
+}
+.institution-name { font-size: 13px; font-weight: bold; color: #fff; line-height: 1.3; }
+.institution-sub { font-size: 10px; color: #aaa; }
+.date-selector {
+display: flex;
+align-items: center;
+gap: 5px;
+background: #0f3460;
+padding: 5px 10px;
+border-radius: 5px;
+}
+.month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; font-size: 11px; }
+.month-grid span { padding: 2px 5px; cursor: pointer; border-radius: 3px; text-align: center; }
+.month-grid span.active { background: #e74c3c; color: #fff; }
+.month-grid span.has-data { border: 1px solid #2ecc71; }
+.year-display { font-size: 22px; font-weight: bold; margin-left: 10px; display:flex; align-items:center; gap:8px; }
+.year-display .current-year { color: #e74c3c; }
+.year-btn {
+background: #e74c3c;
+border: none;
+color: #fff;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+cursor: pointer;
+font-size: 14px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.year-btn:hover { background: #c0392b; }
+.nav-btns { display: flex; gap: 5px; margin-left: 10px; }
+.nav-btn {
+padding: 5px 11px;
+background: #0f3460;
+border: 1px solid #333;
+color: #e0e0e0;
+cursor: pointer;
+border-radius: 4px;
+font-size: 12px;
+transition: all 0.3s;
+}
+.nav-btn:hover { background: #1a5276; }
+.nav-btn.active { background: #e74c3c; color: #fff; }
+.qc-info-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.qc-info-box {
+background: #0f3460;
+padding: 5px 9px;
+border-radius: 4px;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.3s;
+}
+.qc-info-box:hover { background: #1a5276; }
+.qc-info-box .label { color: #e74c3c; font-weight: bold; }
+.qc-info-box .value { color: #fff; }
+.analyte-bar { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.analyte-btn {
+padding: 4px 9px;
+background: #0f3460;
+border: 1px solid #333;
+color: #e0e0e0;
+cursor: pointer;
+border-radius: 3px;
+font-size: 11px;
+}
+.analyte-btn.active { background: #e74c3c; color: #fff; }
+.analyte-btn .lvl-badge {
+font-size: 9px;
+background: #333;
+padding: 1px 4px;
+border-radius: 3px;
+margin-left: 4px;
+color: #aaa;
+}
+.remove-test-btn {
+background: #e74c3c;
+color: #fff;
+border: none;
+padding: 4px 7px;
+border-radius: 3px;
+cursor: pointer;
+font-size: 10px;
+margin-left: 5px;
+}
+.remove-test-btn:hover { background: #c0392b; }
+.machine-info-bar {
+background: #0f3460;
+padding: 4px 10px;
+border-radius: 4px;
+font-size: 10px;
+display: flex;
+gap: 12px;
+align-items: center;
+flex-wrap: wrap;
+border: 1px solid #333;
+margin-left: 10px;
+height: 32px;
+flex-shrink: 0;
+}
+.machine-info-bar .info-item {
+display: flex;
+gap: 4px;
+align-items: center;
+white-space: nowrap;
+}
+.machine-info-bar .info-label {
+color: #e74c3c;
+font-weight: bold;
+font-size: 9px;
+text-transform: uppercase;
+}
+.machine-info-bar .info-value {
+color: #fff;
+font-size: 11px;
+font-weight: 600;
+}
+.main-layout {
+display: flex;
+flex: 1;
+min-height: 0;
+overflow: hidden;
+}
+.sidebar {
+width: 135px;
+background: #16213e;
+padding: 9px 5px;
+border-right: 1px solid #333;
+flex-shrink: 0;
+overflow-y: auto;
+height: 100%;
+align-self: stretch;
+}
+.sidebar-item {
+padding: 7px 9px;
+margin: 2px 0;
+cursor: pointer;
+border-radius: 4px;
+font-size: 11px;
+font-weight: bold;
+transition: all 0.3s;
+text-align: center;
+position: relative;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 4px;
+}
+.sidebar-item:hover { background: #0f3460; }
+.sidebar-item.active { background: #e74c3c; color: #fff; }
+.sidebar-item .device-name { flex: 1; cursor: pointer; }
+.sidebar-item .device-actions { display: flex; gap: 3px; opacity: 0; transition: opacity 0.2s; }
+.sidebar-item:hover .device-actions { opacity: 1; }
+.sidebar-item .action-btn {
+background: transparent;
+border: none;
+color: inherit;
+cursor: pointer;
+font-size: 12px;
+padding: 2px 4px;
+border-radius: 3px;
+}
+.sidebar-item .action-btn:hover { background: rgba(255,255,255,0.2); }
+.add-device-btn {
+margin-top: 10px;
+padding: 7px;
+background: #2ecc71;
+color: #fff;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-size: 11px;
+font-weight: bold;
+text-align: center;
+}
+.add-device-btn:hover { background: #27ae60; }
+.content-area {
+flex: 1;
+padding: 15px;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+min-height: 0;
+}
+.dashboard-grid {
+display: grid;
+grid-template-columns: fit-content(350px) fit-content(350px) 200px 220px 1fr;
+grid-template-rows: minmax(0, 1fr);
+gap: 12px;
+flex: 1;
+min-height: 0;
+overflow: hidden;
+}
+.auto-panel {
+position: relative;
+background: #16213e;
+border-radius: 8px;
+padding: 10px;
+overflow: hidden;
+min-height: 0;
+display: flex;
+flex-direction: column;
+}
+.qc-results-panel, .westgard-panel { overflow: hidden; }
+.qc-results-panel { grid-column: 1; }
+.westgard-panel { grid-column: 2; }
+.stats-panel { grid-column: 3; overflow-y: auto; overflow-x: hidden; }
+.sigma-qgi-combined-panel {
+grid-column: 4;
+display: flex;
+flex-direction: column;
+gap: 10px;
+overflow-y: auto;
+overflow-x: hidden;
+}
+.sigma-chart-section { min-height: 126px; flex-shrink: 0; }
+.sigma-qgi-content { flex: 1; overflow-y: auto; min-height: 0; }
+.lj-charts-panel {
+grid-column: 5;
+display: flex;
+flex-direction: column;
+gap: 12px;
+min-height: 0;
+overflow: hidden;
+}
+.lj-chart-box {
+flex: 1 1 0;
+min-height: 0;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+.panel-title {
+background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+color: #fff;
+font-size: 11px;
+font-weight: bold;
+padding: 5px 9px;
+border-radius: 4px;
+margin-bottom: 7px;
+text-align: center;
+letter-spacing: 0.4px;
+text-transform: uppercase;
+box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+flex-shrink: 0;
+}
+.qc-table, .westgard-table {
+width: 100%;
+font-size: 11px;
+border-collapse: collapse;
+flex: 1;
+min-height: 0;
+}
+.qc-table th, .westgard-table th {
+background: #0f3460;
+padding: 4px 5px;
+text-align: center;
+font-size: 10px;
+white-space: nowrap;
+}
+.qc-table td, .westgard-table td {
+padding: 3px 5px;
+border-bottom: 1px solid #222;
+text-align: center;
+white-space: nowrap;
+}
+.qc-table tr:hover { background: #1a3a5c; }
+.qc-table .red-val { color: #e74c3c; }
+.westgard-table .rule-a { color: #2ecc71; }
+.westgard-table .rule-w { color: #e74c3c; font-weight: bold; }
+.stats-panel-content { display: flex; flex-direction: column; gap: 4px; }
+.stat-box { background: #0f3460; border-radius: 4px; padding: 4px 7px; }
+.stat-box .stat-label { font-size: 8px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-box .stat-value { font-size: 16px; font-weight: bold; color: #fff; line-height: 1.1; }
+.stat-box .stat-sub { font-size: 8px; color: #aaa; margin-top: 1px; }
+.gauge-container { display: flex; align-items: center; gap: 5px; background: #0f3460; border-radius: 4px; padding: 4px 5px; }
+.gauge-canvas { width: 81px; height: 54px; }
+.gauge-info { font-size: 9px; }
+.gauge-info .gauge-title { color: #e74c3c; font-weight: bold; margin-bottom: 2px; font-size: 9px; }
+.gauge-info .gauge-detail { color: #aaa; font-size: 9px; line-height: 1.2; }
+.lj-chart-container { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.lj-chart-container canvas { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; }
+.sigma-chart-container { height: 117px; position: relative; overflow: hidden; }
+.sigma-chart-container canvas { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; }
+.interp-content { margin-left: 22px; }
+.interp-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 7px; margin: 3px 0; border-radius: 4px; font-size: 10px; border-left: 3px solid; }
+.interp-row.level-1 { background: rgba(52, 152, 219, 0.15); border-color: #3498db; }
+.interp-row.level-2 { background: rgba(155, 89, 182, 0.15); border-color: #9b59b6; }
+.interp-row.level-3 { background: rgba(230, 126, 34, 0.15); border-color: #e67e22; }
+.interp-label { color: #aaa; font-weight: bold; }
+.interp-value { font-weight: bold; }
+.interp-value.excellent { color: #2ecc71; }
+.interp-value.good { color: #3498db; }
+.interp-value.acceptable { color: #f39c12; }
+.interp-value.marginal { color: #e67e22; }
+.interp-value.unacceptable { color: #e74c3c; }
+.interp-header { font-size: 11px; font-weight: bold; color: #e74c3c; margin-bottom: 7px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+.interp-section-title { font-size: 10px; font-weight: bold; color: #fff; margin: 7px 0 4px 0; padding: 3px 5px; background: #0f3460; border-radius: 3px; border-left: 3px solid #e74c3c; }
+.interp-legend { margin-top: 7px; padding-top: 5px; border-top: 1px solid #333; font-size: 9px; color: #888; }
+.interp-legend div { margin: 2px 0; }
+.interp-legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.qgi-recommendation { margin-top: 5px; padding: 4px 5px; border-radius: 4px; font-size: 10px; font-weight: bold; text-align: center; }
+.qgi-recommendation.random-error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+.qgi-recommendation.combined-error { background: rgba(243, 156, 18, 0.2); color: #f39c12; border: 1px solid #f39c12; }
+.qgi-recommendation.systematic-error { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; }
+.qgi-recommendation.good { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+.bottom-bar { background: #16213e; padding: 10px 15px; display: flex; align-items: center; gap: 15px; border-top: 1px solid #333; flex-wrap: wrap; font-size: 11px; }
+.exit-btn { padding: 10px 25px; background: #e74c3c; color: #fff; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; }
+.dev-info { color: #aaa; }
+.dev-info strong { color: #fff; }
+.rules-info { background: #0f3460; padding: 5px 10px; border-radius: 4px; font-size: 10px; color: #aaa; line-height: 1.5; }
+.rules-info .sigma-level { font-weight: bold; margin-right: 4px; }
+.rules-info .sigma-world { color: #2ecc71; }
+.rules-info .sigma-excellent { color: #3498db; }
+.rules-info .sigma-good { color: #f39c12; }
+.rules-info .sigma-marginal { color: #e67e22; }
+.rules-info .sigma-unacceptable { color: #e74c3c; }
+.spreadsheet-view { display: none; }
+.spreadsheet-view.active { display: block; }
+.dashboard-view.active {
+display: flex;
+flex: 1;
+min-height: 0;
+}
+.dashboard-view { display: none; }
+.spreadsheet-table { width: 100%; border-collapse: collapse; font-size: 11px; background: #16213e; }
+.spreadsheet-table th { background: #0f3460; padding: 5px 8px; border: 1px solid #333; font-size: 10px; position: sticky; top: 0; }
+.spreadsheet-table td { padding: 4px 8px; border: 1px solid #222; text-align: center; }
+.spreadsheet-table input { background: transparent; border: none; color: #e0e0e0; width: 70px; text-align: center; font-size: 11px; padding: 2px; }
+.spreadsheet-table input:focus { background: #0f3460; outline: 1px solid #e74c3c; }
+.spreadsheet-table input.arrow-active { background: #e74c3c !important; color: #fff !important; outline: 2px solid #fff !important; }
+.spreadsheet-table input.excluded {
+background: rgba(231, 76, 60, 0.3) !important;
+color: #e74c3c !important;
+text-decoration: line-through;
+font-style: italic;
+border: 1px solid #e74c3c !important;
+}
+.spreadsheet-table input.excluded:focus {
+background: rgba(231, 76, 60, 0.5) !important;
+outline: 2px solid #e74c3c !important;
+}
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: #16213e; border-radius: 10px; padding: 25px; min-width: 400px; max-width: 700px; max-height: 90vh; overflow-y: auto; border: 1px solid #e74c3c; }
+.modal h3 { color: #e74c3c; margin-bottom: 15px; font-size: 18px; }
+.modal label { display: block; margin: 8px 0 4px; font-size: 12px; color: #aaa; }
+.modal input, .modal select { width: 100%; padding: 8px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-size: 13px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.modal-btn { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.modal-btn.primary { background: #e74c3c; color: #fff; }
+.modal-btn.secondary { background: #0f3460; color: #e0e0e0; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.settings-group { background: #0f3460; padding: 15px; border-radius: 6px; }
+.settings-group h4 { color: #e74c3c; margin-bottom: 10px; font-size: 14px; }
+.settings-group label { display: block; margin: 6px 0 3px; font-size: 11px; color: #aaa; }
+.settings-group input, .settings-group select { width: 100%; padding: 6px; background: #16213e; border: 1px solid #333; color: #e0e0e0; border-radius: 3px; font-size: 12px; }
+.logo-preview-box { margin-top: 10px; padding: 10px; background: #16213e; border-radius: 6px; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
+.logo-preview-box img { max-height: 60px; max-width: 100px; object-fit: contain; }
+.logo-preview-box .preview-text { font-size: 12px; color: #aaa; }
+.notification { position: fixed; top: 20px; right: 20px; background: #2ecc71; color: #fff; padding: 12px 20px; border-radius: 6px; font-size: 13px; z-index: 2000; display: none; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+.toolbar-btn { padding: 5px 11px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; cursor: pointer; border-radius: 4px; font-size: 12px; }
+.toolbar-btn:hover { background: #1a5276; }
+.toolbar-btn.primary { background: #e74c3c; }
+.imp-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+.imp-box { background: #0f3460; padding: 15px; border-radius: 6px; }
+.imp-box h4 { color: #e74c3c; margin-bottom: 10px; }
+.imp-box div { font-size: 12px; color: #aaa; margin: 3px 0; }
+.imp-box strong { color: #fff; }
+.current-period-badge { background: #e74c3c; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 10px; }
+.empty-chart-msg { display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 14px; font-style: italic; }
+.fullscreen-btn-group {
+display: flex;
+gap: 3px;
+margin-left: 5px;
+}
+.fullscreen-ctrl-btn {
+background: #0f3460;
+border: 1px solid #333;
+color: #e74c3c;
+cursor: pointer;
+border-radius: 4px;
+font-size: 14px;
+padding: 4px 8px;
+transition: all 0.2s;
+display: flex;
+align-items: center;
+justify-content: center;
+min-width: 32px;
+height: 32px;
+}
+.fullscreen-ctrl-btn:hover { background: #e74c3c; color: #fff; }
+.fullscreen-ctrl-btn.active { background: #e74c3c; color: #fff; }
+@media print {
+body { background: #fff; color: #000; }
+.sidebar, .top-bar, .bottom-bar, .exit-btn, .toolbar, .fixed-action-bar, .machine-info-bar, .fullscreen-btn-group { display: none !important; }
+.content-area { padding: 0; }
+.auto-panel { background: #fff; color: #000; border: 1px solid #ccc; }
+.stat-box { background: #f0f0f0; }
+.stat-box .stat-value { color: #000; }
+}
+@media (max-width: 1600px) {
+.dashboard-grid { grid-template-columns: fit-content(300px) fit-content(300px) 180px 200px 1fr; }
+}
+@media (max-width: 1400px) {
+.dashboard-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; height: auto; max-height: none; }
+.qc-results-panel { grid-column: 1; }
+.westgard-panel { grid-column: 2; }
+.stats-panel { grid-column: 1; }
+.sigma-qgi-combined-panel { grid-column: 2; }
+.lj-charts-panel { grid-column: 1 / -1; }
+}
+@media (max-width: 1200px) {
+.dashboard-grid { grid-template-columns: 1fr; }
+.qc-results-panel, .westgard-panel, .stats-panel, .sigma-qgi-combined-panel, .lj-charts-panel { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+<div class="notification" id="notification"></div>
+<div class="top-bar">
+<div class="fixed-action-bar">
+<button class="action-icon-btn" onclick="printCurrent()" title="Print Current Report"><span class="icon">🖨️</span><span>Print</span></button>
+<button class="action-icon-btn" onclick="printAll()" title="Print All Report"><span class="icon">📄</span><span>All</span></button>
+<button class="action-icon-btn" onclick="exportExcel()" title="Export Excel"><span class="icon">📊</span><span>Export</span></button>
+<button class="action-icon-btn" onclick="document.getElementById('importFile').click()" title="Import Excel"><span class="icon">📂</span><span>Import</span></button>
+<input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
+</div>
+<div class="logo-area" id="logoArea">
+<img id="customLogoImg" class="custom-logo-img" style="display:none" alt="Logo">
+<div>
+<div class="institution-name" id="institutionName">مراكز الدكتور تسمير عايش</div>
+<div class="institution-sub" id="institutionSub">Dr. Tameer Ayesh Centers</div>
+</div>
+</div>
+<div class="date-selector">
+<span style="font-size:24px">📅</span>
+<div class="month-grid" id="monthGrid"></div>
+<div class="year-display">
+<button class="year-btn" onclick="changeYear(-1)">◀</button>
+<div>
+<span id="yearPrev">2025</span><br>
+<span class="current-year" id="yearCurr">2026</span>
+</div>
+<button class="year-btn" onclick="changeYear(1)">▶</button>
+</div>
+<span class="current-period-badge" id="periodBadge">Aug 2026</span>
+</div>
+<div class="nav-btns">
+<button class="nav-btn active" data-view="dashboard">Dashboard</button>
+<button class="nav-btn" data-view="spreadsheet">Spreadsheet</button>
+</div>
+<div class="machine-info-bar" id="machineInfoBar">
+<div class="info-item">
+<span class="info-label">Analyzer:</span>
+<span class="info-value" id="topAnalyzer">-</span>
+</div>
+<div class="info-item">
+<span class="info-label">LOT-1:</span>
+<span class="info-value" id="topLot1">-</span>
+</div>
+<div class="info-item">
+<span class="info-label">EXP-1:</span>
+<span class="info-value" id="topExp1">-</span>
+</div>
+<div class="info-item">
+<span class="info-label">LOT-2:</span>
+<span class="info-value" id="topLot2">-</span>
+</div>
+<div class="info-item">
+<span class="info-label">EXP-2:</span>
+<span class="info-value" id="topExp2">-</span>
+</div>
+</div>
+<div class="qc-info-bar" id="qcInfoBar">
+<div class="qc-info-box" onclick="toggleMeanType(1)">
+<span class="label" id="labelL1">LAB Mean L1</span><br>
+<span class="value" id="qcL1Mean">-</span>
+</div>
+<div class="qc-info-box" onclick="toggleMeanType(2)">
+<span class="label" id="labelL2">LAB Mean L2</span><br>
+<span class="value" id="qcL2Mean">-</span>
+</div>
+<div class="qc-info-box" id="qcL3Box" style="display:none" onclick="toggleMeanType(3)">
+<span class="label" id="labelL3">LAB Mean L3</span><br>
+<span class="value" id="qcL3Mean">-</span>
+</div>
+</div>
+<div class="fullscreen-btn-group">
+<button class="fullscreen-ctrl-btn" id="fullscreenExpandBtn" onclick="toggleFullscreen()" title="Full Browser (F11)">⛶</button>
+</div>
+<button class="nav-btn" onclick="openSettings()" style="font-size:18px">⚙️</button>
+<div class="analyte-bar" id="analyteBar"></div>
+</div>
+<div class="main-layout">
+<div class="sidebar" id="sidebar"></div>
+<div class="content-area">
+<div class="dashboard-view active" id="dashboardView">
+<div class="dashboard-grid">
+<div class="auto-panel qc-results-panel">
+<div class="panel-title" id="qcResultsTitle">Quality Control Results</div>
+<table class="qc-table">
+<thead><tr><th>Date</th><th id="qcH1">L1</th><th id="qcH2">L2</th><th id="qcH3" style="display:none">L3</th></tr></thead>
+<tbody id="qcResultsBody"></tbody>
+</table>
+</div>
+<div class="auto-panel westgard-panel">
+<div class="panel-title">Westgard Multi Rules</div>
+<table class="westgard-table">
+<thead><tr><th></th><th>L1</th><th>L2</th><th id="wgH3" style="display:none">L3</th></tr></thead>
+<tbody id="westgardBody"></tbody>
+</table>
+</div>
+<div class="auto-panel stats-panel">
+<div class="panel-title">Statistics & CV</div>
+<div class="stats-panel-content" id="statsPanel">
+<div class="stat-box"><div class="stat-label">MEAN L1</div><div class="stat-value" id="meanL1">-</div></div>
+<div class="stat-box"><div class="stat-label">STDEV L1</div><div class="stat-value" id="stdevL1">-</div></div>
+<div class="stat-box">
+<div class="stat-label">BIAS L1</div>
+<div class="stat-sub">Accept.Bias: <span id="acceptBiasL1">-</span></div>
+<div class="stat-sub">Lab.Bias: <span id="labBiasL1">-</span></div>
+</div>
+<div class="gauge-container">
+<canvas class="gauge-canvas" id="gaugeL1"></canvas>
+<div class="gauge-info">
+<div class="gauge-title" id="gaugeTitleL1">CV Level 1</div>
+<div class="gauge-detail">Permissible CV: <span id="permCVL1">-</span></div>
+<div class="gauge-detail">Factory CV: <span id="factCVL1">-</span></div>
+<div class="gauge-detail">Laboratory CV: <span id="labCVL1">-</span></div>
+</div>
+</div>
+<div class="stat-box"><div class="stat-label">MEAN L2</div><div class="stat-value" id="meanL2">-</div></div>
+<div class="stat-box"><div class="stat-label">STDEV L2</div><div class="stat-value" id="stdevL2">-</div></div>
+<div class="stat-box">
+<div class="stat-label">BIAS L2</div>
+<div class="stat-sub">Accept.Bias: <span id="acceptBiasL2">-</span></div>
+<div class="stat-sub">Lab.Bias: <span id="labBiasL2">-</span></div>
+</div>
+<div class="gauge-container">
+<canvas class="gauge-canvas" id="gaugeL2"></canvas>
+<div class="gauge-info">
+<div class="gauge-title" id="gaugeTitleL2">CV Level 2</div>
+<div class="gauge-detail">Permissible CV: <span id="permCVL2">-</span></div>
+<div class="gauge-detail">Factory CV: <span id="factCVL2">-</span></div>
+<div class="gauge-detail">Laboratory CV: <span id="labCVL2">-</span></div>
+</div>
+</div>
+<div class="stat-box l3-stat" id="meanL3Box" style="display:none"><div class="stat-label">MEAN L3</div><div class="stat-value" id="meanL3">-</div></div>
+<div class="stat-box l3-stat" id="stdevL3Box" style="display:none"><div class="stat-label">STDEV L3</div><div class="stat-value" id="stdevL3">-</div></div>
+<div class="stat-box l3-stat" id="biasL3Box" style="display:none">
+<div class="stat-label">BIAS L3</div>
+<div class="stat-sub">Accept.Bias: <span id="acceptBiasL3">-</span></div>
+<div class="stat-sub">Lab.Bias: <span id="labBiasL3">-</span></div>
+</div>
+<div class="gauge-container l3-stat" id="gaugeL3Box" style="display:none">
+<canvas class="gauge-canvas" id="gaugeL3"></canvas>
+<div class="gauge-info">
+<div class="gauge-title" id="gaugeTitleL3">CV Level 3</div>
+<div class="gauge-detail">Permissible CV: <span id="permCVL3">-</span></div>
+<div class="gauge-detail">Factory CV: <span id="factCVL3">-</span></div>
+<div class="gauge-detail">Laboratory CV: <span id="labCVL3">-</span></div>
+</div>
+</div>
+</div>
+</div>
+<div class="auto-panel sigma-qgi-combined-panel">
+<div class="sigma-chart-section">
+<div class="panel-title">Sigma Scale</div>
+<div class="sigma-chart-container"><canvas id="sigmaChart"></canvas></div>
+</div>
+<div class="sigma-qgi-content">
+<div class="interp-content" id="sigmaQgiContent">
+<div class="interp-header">Sigma Performance & QGI</div>
+<div class="interp-section-title"> Sigma Performance</div>
+<div id="sigmaInterpRows"></div>
+<div class="interp-section-title">🎯 Quality Goal Index (QGI)</div>
+<div id="qgiRows"></div>
+<div class="interp-legend">
+<div><span class="dot" style="background:#2ecc71"></span>σ ≥ 6: World Class</div>
+<div><span class="dot" style="background:#3498db"></span>5 ≤ σ < 6: Excellent</div>
+<div><span class="dot" style="background:#f39c12"></span>4 ≤ σ < 5: Good</div>
+<div><span class="dot" style="background:#e67e22"></span>3 ≤ σ < 4: Marginal</div>
+<div><span class="dot" style="background:#e74c3c"></span>σ < 3: Unacceptable</div>
+<div style="margin-top:4px"><strong>QGI = |Bias| / (1.65 × CV)</strong></div>
+<div><span class="dot" style="background:#e74c3c"></span>QGI < 0.8: Random Error</div>
+<div><span class="dot" style="background:#f39c12"></span>0.8 ≤ QGI ≤ 1.2: Combined</div>
+<div><span class="dot" style="background:#3498db"></span>QGI > 1.2: Systematic Error</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lj-charts-panel">
+<div class="auto-panel lj-chart-box" id="ljBox1">
+<div class="panel-title" id="ljTitle1">LJ Chart Level 1</div>
+<div class="lj-chart-container" id="ljContainer1"><canvas id="ljChart1"></canvas></div>
+</div>
+<div class="auto-panel lj-chart-box" id="ljBox2">
+<div class="panel-title" id="ljTitle2">LJ Chart Level 2</div>
+<div class="lj-chart-container" id="ljContainer2"><canvas id="ljChart2"></canvas></div>
+</div>
+<div class="auto-panel lj-chart-box" id="ljBox3" style="display:none">
+<div class="panel-title" id="ljTitle3">LJ Chart Level 3</div>
+<div class="lj-chart-container" id="ljContainer3"><canvas id="ljChart3"></canvas></div>
+</div>
+</div>
+</div>
+</div>
+<div class="spreadsheet-view" id="spreadsheetView">
+<div class="toolbar">
+<button class="toolbar-btn primary" onclick="calcStats()">Calculate Stats</button>
+<button class="toolbar-btn" onclick="saveToStorage()">💾 Save Data</button>
+<button class="toolbar-btn" onclick="loadFromStorage()"> Load Data</button>
+<button class="toolbar-btn" onclick="clearCurrentData()">️ Clear Data</button>
+<button class="toolbar-btn" onclick="copyFromPreviousMonth()"> Copy from Previous Month</button>
+<button class="toolbar-btn" onclick="copyFromPreviousYear()">📋 Copy from Same Month Last Year</button>
+<button class="toolbar-btn" onclick="clearAllExclusions()">🔄 Clear All Exclusions</button>
+<select id="levelSelect" style="padding:6px; background:#0f3460; color:#e0e0e0; border:1px solid #333; border-radius:4px;">
+<option value="2">2 Levels</option>
+<option value="3">3 Levels</option>
+</select>
+<span style="color:#aaa; font-size:11px; margin-left:10px;">💡 Double-click a value to exclude it from calculations</span>
+</div>
+<div style="overflow-x:auto;">
+<table class="spreadsheet-table" id="spreadsheetTable">
+<thead id="spreadsheetHead"></thead>
+<tbody id="spreadsheetBody"></tbody>
+</table>
+</div>
+<div style="margin-top:15px; overflow-x:auto;">
+<table class="spreadsheet-table" id="statsSummaryTable">
+<thead id="statsSummaryHead"></thead>
+<tbody id="statsSummaryBody"></tbody>
+</table>
+</div>
+</div>
+<div class="spreadsheet-view" id="imprecisionView">
+<h3 style="color:#e74c3c; margin-bottom:15px;">Imprecision Analysis Spreadsheet</h3>
+<div class="toolbar">
+<button class="toolbar-btn primary" onclick="calcImprecision()">Calculate Imprecision</button>
+</div>
+<div style="overflow-x:auto;">
+<table class="spreadsheet-table" id="imprecisionTable">
+<thead>
+<tr><th>Run</th><th>Level 1</th><th>Level 2</th><th id="impH3" style="display:none">Level 3</th></tr>
+</thead>
+<tbody id="imprecisionBody"></tbody>
+</table>
+</div>
+<div class="imp-results" id="imprecisionResults"></div>
+</div>
+</div>
+</div>
+<div class="bottom-bar">
+<button class="exit-btn" onclick="exitApp()">EXIT</button>
+<div class="dev-info">
+<strong>Developer: Lab.SP Mohammed al Desoqy</strong><br>
+<strong>Email: M.i.y.d@hotmail.com</strong>
+</div>
+<div class="rules-info" id="rulesInfo">
+LEVEL 1: -<br>LEVEL 2: -
+</div>
+</div>
+<div class="modal-overlay" id="settingsModal">
+<div class="modal">
+<h3>⚙️ Settings</h3>
+<div class="settings-grid">
+<div class="settings-group">
+<h4>Institution & Logo</h4>
+<label>Institution Name (Arabic)</label>
+<input type="text" id="setInstNameAr" placeholder="مراكز الدكتور...">
+<label>Institution Name (English)</label>
+<input type="text" id="setInstNameEn" placeholder="Dr. ... Centers">
+<label>Upload Logo (Image)</label>
+<input type="file" id="setLogoFile" accept="image/*" onchange="previewLogo(event)">
+<div class="logo-preview-box" id="logoPreviewBox">
+<img id="logoPreviewImg" style="display:none" alt="Logo Preview">
+<span class="preview-text" id="logoPreviewText">No logo uploaded</span>
+</div>
+<button class="modal-btn secondary" onclick="removeLogo()" style="margin-top:8px; width:100%;">Remove Logo</button>
+</div>
+<div class="settings-group">
+<h4>Lab Information</h4>
+<label>Lab SP</label>
+<input type="text" id="setLabSP">
+<label>Designee</label>
+<input type="text" id="setDesignee">
+</div>
+<div class="settings-group">
+<h4>Branch & User</h4>
+<label>Branch Name</label>
+<input type="text" id="setBranch">
+<label>User Name</label>
+<input type="text" id="setUser">
+<label>Printer</label>
+<select id="setPrinter">
+<option>Default Printer</option>
+<option>HP LaserJet Pro</option>
+<option>Canon PIXMA</option>
+<option>Epson L3150</option>
+</select>
+</div>
+<div class="settings-group">
+<h4>QC Levels</h4>
+<label>Number of Levels</label>
+<select id="setNumLevels">
+<option value="2">2 Levels</option>
+<option value="3">3 Levels</option>
+</select>
+<label>LOT-1</label>
+<input type="text" id="setLot1">
+<label>EXP-1</label>
+<input type="text" id="setExp1">
+<label>LOT-2</label>
+<input type="text" id="setLot2">
+<label>EXP-2</label>
+<input type="text" id="setExp2">
+</div>
+<div class="settings-group">
+<h4>LOT 3 (if applicable)</h4>
+<label>LOT-3</label>
+<input type="text" id="setLot3">
+<label>EXP-3</label>
+<input type="text" id="setExp3">
+</div>
+</div>
+<div class="modal-btns">
+<button class="modal-btn secondary" onclick="closeSettings()">Cancel</button>
+<button class="modal-btn primary" onclick="applySettings()">Apply</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="renameModal">
+<div class="modal" style="min-width:300px">
+<h3 id="renameTitle">Rename</h3>
+<label>New Name</label>
+<input type="text" id="renameInput">
+<div class="modal-btns">
+<button class="modal-btn secondary" onclick="closeRename()">Cancel</button>
+<button class="modal-btn primary" onclick="applyRename()">Apply</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="addTestModal">
+<div class="modal" style="min-width:350px">
+<h3>➕ Add New Test</h3>
+<label>Test Name</label>
+<input type="text" id="newTestName" placeholder="e.g. E2, WBC, GLU...">
+<label>Number of Levels</label>
+<select id="newTestLevels">
+<option value="2">2 Levels (L1, L2)</option>
+<option value="3">3 Levels (L1, L2, L3)</option>
+</select>
+<label>Default TEa (%)</label>
+<input type="number" id="newTestTEa" value="10" step="0.1">
+<div class="modal-btns">
+<button class="modal-btn secondary" onclick="closeAddTest()">Cancel</button>
+<button class="modal-btn primary" onclick="confirmAddTest()">Add Test</button>
+</div>
+</div>
+</div>
+<script>
+const appData = {
+currentDevice: 'hormones',
+currentAnalyte: 'E2',
+currentMonth: new Date().getMonth(),
+currentYear: new Date().getFullYear(),
+numLevels: 2,
+renameTarget: null,
+meanType: { L1: 'lab', L2: 'lab', L3: 'lab' },
+analyteLevels: {},
+excludedValues: {},
+institution: { nameAr: 'نسخة تجريبية', nameEn: 'trial version', logo: '' },
+devices: {
+hormones: { id: 'hormones', name: 'Hormones', analyzer: 'COBAS e411', analytes: ['E2', 'FSH', 'LH', 'PRL', 'TESTO', 'TSH', 'B-HCG'], numLevels: 2, labSP: 'Mohammed El Desoqy', designee: 'Mohammed El Desoqy', data: {} },
+chemistry: { id: 'chemistry', name: 'Chemistry', analyzer: 'AU5800', analytes: ['GLU', 'UREA', 'CREA', 'ALT', 'AST'], numLevels: 2, labSP: '', designee: '', data: {} },
+virology: { id: 'virology', name: 'Virology', analyzer: 'Architect i2000', analytes: ['HIV', 'HCV', 'HBsAg'], numLevels: 2, labSP: '', designee: '', data: {} },
+coagulation: { id: 'coagulation', name: 'Coagulation', analyzer: 'ACL TOP', analytes: ['PT', 'APTT', 'INR'], numLevels: 2, labSP: '', designee: '', data: {} },
+cbc: { id: 'cbc', name: 'CBC', analyzer: 'Macura F560', analytes: ['WBC', 'RBC', 'HGB', 'HCT', 'PLT'], numLevels: 3, labSP: '', designee: '', data: {} },
+cbc_new: { id: 'cbc_new', name: 'CBC new lot', analyzer: 'Macura F560', analytes: ['WBC', 'RBC', 'HGB'], numLevels: 3, labSP: '', designee: '', data: {} },
+device7: { id: 'device7', name: 'Device 7', analyzer: 'Analyzer 7', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} },
+device8: { id: 'device8', name: 'Device 8', analyzer: 'Analyzer 8', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} },
+device9: { id: 'device9', name: 'Device 9', analyzer: 'Analyzer 9', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} },
+device10: { id: 'device10', name: 'Device 10', analyzer: 'Analyzer 10', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} },
+device11: { id: 'device11', name: 'Device 11', analyzer: 'Analyzer 11', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} },
+device12: { id: 'device12', name: 'Device 12', analyzer: 'Analyzer 12', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} }
+}
+};
+Object.values(appData.devices).forEach(dev => { dev.analytes.forEach(a => { appData.analyteLevels[a] = dev.numLevels; }); });
+const sampleE2Aug2026 = {
+dates: ['01-Aug-26','02-Aug-26','03-Aug-26','04-Aug-26','05-Aug-26','06-Aug-26','08-Aug-26','09-Aug-26','10-Aug-26','11-Aug-26','12-Aug-26','13-Aug-26','15-Aug-26','16-Aug-26','17-Aug-26','18-Aug-26','19-Aug-26','20-Aug-26'],
+L1: [96.81,92.87,100.10,98.17,107.30,103.40,97.18,106.10,106.20,104.60,86.28,85.59,88.96,92.15,91.99,92.06,84.68,96.02],
+L2: [539.70,536.70,544.20,452.60,618.30,519.70,619.380,595.60,620.60,377.80,477.50,435.30,529.70,516.70,525.30,458.60,535.20,472.90],
+factoryMean: { L1: 98.90, L2: 485.00 }, factorySD: { L1: 9.89, L2: 48.50 },
+permissibleCV: { L1: 17.0, L2: 16.0 }, lot: { L1: '815248', L2: '815248' }, exp: { L1: 'Oct-2026', L2: 'Oct-2026' }
+};
+const sampleWBCAug2026 = {
+dates: ['01-Aug-26','02-Aug-26','03-Aug-26','04-Aug-26','05-Aug-26','06-Aug-26','08-Aug-26','09-Aug-26','10-Aug-26','11-Aug-26','12-Aug-26','15-Aug-26','16-Aug-26'],
+L1: [4.20,3.60,4.06,4.60,4.36,4.67,4.71,4.75,4.76,4.68,4.88,4.69],
+L2: [8.22,8.15,8.30,8.38,8.18,8.07,8.19,8.13,8.08,8.31,8.54,8.28],
+L3: [20.78,21.20,21.35,21.57,20.98,21.23,21.15,21.06,21.77,21.49,21.44,21.80],
+factoryMean: { L1: 4.21, L2: 7.86, L3: 20.45 }, factorySD: { L1: 0.30, L2: 0.20, L3: 0.50 },
+permissibleCV: { L1: 4.0, L2: 3.0, L3: 3.0 }, lot: { L1: '5080-1', L2: '5080-2', L3: '5080-3' }, exp: { L1: 'Aug-2026', L2: 'Aug-2026', L3: 'Aug-2026' }
+};
+let ljChart1, ljChart2, ljChart3, sigmaChart;
+let isUpdating = false;
+function getRulesForSigma(sigma) {
+if (sigma >= 6) return { rules: '1-3S', cls: 'sigma-world', label: 'World Class' };
+if (sigma >= 5) return { rules: '1-3S - 2-2S', cls: 'sigma-excellent', label: 'Excellent' };
+if (sigma >= 4) return { rules: '1-3S - 2-2S - R-4S', cls: 'sigma-good', label: 'Good' };
+if (sigma >= 3) return { rules: '1-3S - 2-2S - R-4S - 4-1S', cls: 'sigma-marginal', label: 'Marginal' };
+return { rules: '1-3S - 2-2S - R-4S - 4-1S - 8X', cls: 'sigma-unacceptable', label: 'Unacceptable' };
+}
+function toggleFullscreen() {
+const isCurrentlyFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+if (isCurrentlyFullscreen) {
+if (document.exitFullscreen) document.exitFullscreen();
+else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+else if (document.msExitFullscreen) document.msExitFullscreen();
+} else {
+const elem = document.documentElement;
+if (elem.requestFullscreen) elem.requestFullscreen();
+else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+}
+}
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('msfullscreenchange', handleFullscreenChange);
+function handleFullscreenChange() { setTimeout(resizeAllCharts, 200); }
+function safeResizeChart(chart) {
+if (!chart || !chart.canvas) return;
+const container = chart.canvas.parentElement;
+if (!container) return;
+const rect = container.getBoundingClientRect();
+if (rect.width > 0 && rect.height > 0) {
+chart.canvas.width = rect.width;
+chart.canvas.height = rect.height;
+chart.resize();
+}
+}
+function resizeAllCharts() {
+setTimeout(() => {
+safeResizeChart(ljChart1);
+safeResizeChart(ljChart2);
+safeResizeChart(ljChart3);
+safeResizeChart(sigmaChart);
+}, 100);
+}
+window.addEventListener('resize', resizeAllCharts);
+function getMonthData(device, analyte, year, month) {
+if (!device.data[analyte]) device.data[analyte] = {};
+if (!device.data[analyte][year]) device.data[analyte][year] = {};
+if (!device.data[analyte][year][month]) device.data[analyte][year][month] = createEmptyData();
+return device.data[analyte][year][month];
+}
+function getCurrentData() { return getMonthData(appData.devices[appData.currentDevice], appData.currentAnalyte, appData.currentYear, appData.currentMonth); }
+function createEmptyData() { return { dates: [], L1: [], L2: [], L3: [], factoryMean: { L1: 0, L2: 0, L3: 0 }, factorySD: { L1: 0, L2: 0, L3: 0 }, permissibleCV: { L1: 10, L2: 10, L3: 10 }, lot: { L1: '', L2: '', L3: '' }, exp: { L1: '', L2: '', L3: '' } }; }
+function hasDataForMonth(device, analyte, year, month) { return device.data[analyte] && device.data[analyte][year] && device.data[analyte][year][month] && device.data[analyte][year][month].dates && device.data[analyte][year][month].dates.length > 0; }
+function getAnalyteLevels(analyte) { return appData.analyteLevels[analyte] || 2; }
+function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
+function formatDate(day, month, year) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${String(day).padStart(2,'0')}-${months[month]}-${String(year).slice(-2)}`; }
+function updateInstitutionDisplay() {
+const inst = appData.institution;
+const logoImg = document.getElementById('customLogoImg');
+const nameEl = document.getElementById('institutionName');
+const subEl = document.getElementById('institutionSub');
+if (inst.logo) { logoImg.src = inst.logo; logoImg.style.display = 'block'; } else { logoImg.style.display = 'none'; }
+nameEl.textContent = inst.nameAr || 'Institution Name';
+subEl.textContent = inst.nameEn || '';
+}
+function previewLogo(event) {
+const file = event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+const base64 = e.target.result;
+const previewImg = document.getElementById('logoPreviewImg');
+const previewText = document.getElementById('logoPreviewText');
+previewImg.src = base64;
+previewImg.style.display = 'block';
+previewText.style.display = 'none';
+previewImg.dataset.base64 = base64;
+};
+reader.readAsDataURL(file);
+}
+function removeLogo() {
+const previewImg = document.getElementById('logoPreviewImg');
+const previewText = document.getElementById('logoPreviewText');
+previewImg.src = ''; previewImg.style.display = 'none';
+previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded';
+delete previewImg.dataset.base64;
+document.getElementById('setLogoFile').value = '';
+}
+document.addEventListener('DOMContentLoaded', () => {
+loadSampleData(); buildMonthGrid(); buildSidebar(); buildAnalyteBar();
+initImprecision(); setupNavButtons(); setupLevelSelect();
+updateDateDisplay(); updateInstitutionDisplay(); updateDashboard();
+});
+function loadSampleData() {
+const h = appData.devices.hormones;
+if (!h.data['E2']) h.data['E2'] = {};
+if (!h.data['E2'][2026]) h.data['E2'][2026] = {};
+h.data['E2'][2026][7] = JSON.parse(JSON.stringify(sampleE2Aug2026));
+appData.analyteLevels['E2'] = 2;
+const c = appData.devices.cbc;
+if (!c.data['WBC']) c.data['WBC'] = {};
+if (!c.data['WBC'][2026]) c.data['WBC'][2026] = {};
+c.data['WBC'][2026][7] = JSON.parse(JSON.stringify(sampleWBCAug2026));
+appData.analyteLevels['WBC'] = 3;
+}
+function buildMonthGrid() {
+const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEPT','OCT','NOV','DEC'];
+const grid = document.getElementById('monthGrid'); grid.innerHTML = '';
+[0,3,6,9,1,4,7,10,2,5,8,11].forEach(m => {
+const span = document.createElement('span'); span.dataset.month = m; span.textContent = months[m];
+if (m === appData.currentMonth) span.classList.add('active');
+updateMonthHasData(span, m);
+span.addEventListener('click', () => {
+document.querySelectorAll('.month-grid span').forEach(s => s.classList.remove('active'));
+span.classList.add('active'); appData.currentMonth = m; updateDateDisplay(); updateMonthBadges(); updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+});
+grid.appendChild(span);
+});
+}
+function updateMonthBadges() {
+document.querySelectorAll('.month-grid span').forEach(span => updateMonthHasData(span, parseInt(span.dataset.month)));
+document.getElementById('periodBadge').textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`;
+}
+function updateMonthHasData(span, month) {
+const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte;
+span.classList.toggle('has-data', hasDataForMonth(device, analyte, appData.currentYear, month));
+}
+function changeYear(delta) { appData.currentYear += delta; updateDateDisplay(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }
+function updateDateDisplay() { document.getElementById('yearPrev').textContent = appData.currentYear - 1; document.getElementById('yearCurr').textContent = appData.currentYear; document.getElementById('periodBadge').textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`; }
+function buildSidebar() {
+const sidebar = document.getElementById('sidebar'); sidebar.innerHTML = '';
+Object.values(appData.devices).forEach(dev => {
+const item = document.createElement('div'); item.className = 'sidebar-item' + (dev.id === appData.currentDevice ? ' active' : ''); item.dataset.device = dev.id;
+const nameSpan = document.createElement('span'); nameSpan.className = 'device-name'; nameSpan.textContent = dev.name;
+nameSpan.addEventListener('click', () => {
+if (appData.currentDevice === dev.id) return;
+document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active')); item.classList.add('active');
+appData.currentDevice = dev.id; const d = appData.devices[dev.id]; appData.currentAnalyte = d.analytes[0] || ''; appData.numLevels = d.numLevels || 2;
+buildAnalyteBar(); updateMonthBadges(); updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+});
+const actionsDiv = document.createElement('div'); actionsDiv.className = 'device-actions';
+const editBtn = document.createElement('button'); editBtn.className = 'action-btn'; editBtn.innerHTML = '✏️'; editBtn.addEventListener('click', (e) => { e.stopPropagation(); openRename('device', dev.id); });
+const removeBtn = document.createElement('button'); removeBtn.className = 'action-btn'; removeBtn.innerHTML = '🗑️'; removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeDevice(dev.id); });
+actionsDiv.appendChild(editBtn); actionsDiv.appendChild(removeBtn);
+item.appendChild(nameSpan); item.appendChild(actionsDiv); sidebar.appendChild(item);
+});
+const addBtn = document.createElement('button'); addBtn.className = 'add-device-btn'; addBtn.textContent = '➕ Add Device';
+addBtn.addEventListener('click', () => { const name = prompt('Enter new device name:'); if (name && name.trim()) { const id = 'device_' + Date.now(); appData.devices[id] = { id, name: name.trim(), analyzer: '', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} }; appData.analyteLevels['Analyte1'] = 2; buildSidebar(); showNotification('Device added!'); } });
+sidebar.appendChild(addBtn);
+}
+function removeDevice(deviceId) {
+if (Object.keys(appData.devices).length <= 1) { alert('Cannot remove the last device!'); return; }
+if (confirm(`Remove "${appData.devices[deviceId].name}"?`)) {
+delete appData.devices[deviceId];
+if (appData.currentDevice === deviceId) { const first = Object.keys(appData.devices)[0]; appData.currentDevice = first; appData.currentAnalyte = appData.devices[first].analytes[0] || ''; }
+buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Device removed!');
+}
+}
+function buildAnalyteBar() {
+const device = appData.devices[appData.currentDevice]; const bar = document.getElementById('analyteBar'); bar.innerHTML = '';
+device.analytes.forEach(a => {
+const btn = document.createElement('button'); const lvl = getAnalyteLevels(a);
+btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : '');
+btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
+btn.addEventListener('click', () => {
+if (appData.currentAnalyte === a) return;
+document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+appData.currentAnalyte = a;
+updateMonthBadges();
+updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+});
+bar.appendChild(btn);
+});
+const addBtn = document.createElement('button'); addBtn.className = 'analyte-btn'; addBtn.textContent = '➕ Add Test'; addBtn.style.background = '#2ecc71'; addBtn.style.color = '#fff';
+addBtn.addEventListener('click', () => { document.getElementById('newTestName').value = ''; document.getElementById('newTestLevels').value = '2'; document.getElementById('addTestModal').classList.add('active'); setTimeout(() => document.getElementById('newTestName').focus(), 100); });
+bar.appendChild(addBtn);
+const removeBtn = document.createElement('button'); removeBtn.className = 'remove-test-btn'; removeBtn.textContent = '🗑️ Remove Test';
+removeBtn.addEventListener('click', () => { const device = appData.devices[appData.currentDevice]; if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; } if (confirm(`Remove "${appData.currentAnalyte}"?`)) { const idx = device.analytes.indexOf(appData.currentAnalyte); device.analytes.splice(idx, 1); delete device.data[appData.currentAnalyte]; appData.currentAnalyte = device.analytes[0]; buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Test removed!'); } });
+bar.appendChild(removeBtn);
+}
+function closeAddTest() { document.getElementById('addTestModal').classList.remove('active'); }
+function confirmAddTest() {
+const name = document.getElementById('newTestName').value.trim(); const levels = parseInt(document.getElementById('newTestLevels').value);
+if (!name) { alert('Please enter a test name!'); return; }
+const device = appData.devices[appData.currentDevice];
+if (device.analytes.includes(name)) { alert('Test already exists!'); return; }
+device.analytes.push(name); appData.analyteLevels[name] = levels; device.data[name] = {};
+appData.currentAnalyte = name; closeAddTest(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification(`Test "${name}" added with ${levels} level(s)!`);
+}
+function setupNavButtons() { document.querySelectorAll('.nav-btn[data-view]').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); showView(btn.dataset.view); }); }); }
+function setupLevelSelect() { document.getElementById('levelSelect').addEventListener('change', function() { const nl = parseInt(this.value); appData.numLevels = nl; appData.devices[appData.currentDevice].numLevels = nl; appData.analyteLevels[appData.currentAnalyte] = nl; if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }); }
+function showView(view) { document.getElementById('dashboardView').classList.remove('active'); document.getElementById('spreadsheetView').classList.remove('active'); document.getElementById('imprecisionView').classList.remove('active'); if (view === 'dashboard') { document.getElementById('dashboardView').classList.add('active'); updateDashboard(); } else if (view === 'spreadsheet') { document.getElementById('spreadsheetView').classList.add('active'); populateSpreadsheet(); } else { document.getElementById('imprecisionView').classList.add('active'); } }
+function toggleMeanType(level) { const key = `L${level}`; if (appData.meanType[key] === 'lab') { appData.meanType[key] = 'factory'; document.getElementById(`labelL${level}`).textContent = `FACTORY Mean L${level}`; } else { appData.meanType[key] = 'lab'; document.getElementById(`labelL${level}`).textContent = `LAB Mean L${level}`; } updateDashboard(); }
+function openRename(type, id) { appData.renameTarget = { type, id }; document.getElementById('renameTitle').textContent = type === 'device' ? 'Rename Device' : 'Rename Test'; document.getElementById('renameInput').value = type === 'device' ? appData.devices[id].name : id; document.getElementById('renameModal').classList.add('active'); setTimeout(() => document.getElementById('renameInput').focus(), 100); }
+function closeRename() { document.getElementById('renameModal').classList.remove('active'); }
+function applyRename() {
+const { type, id } = appData.renameTarget; const newName = document.getElementById('renameInput').value.trim(); if (!newName) return;
+if (type === 'device') { appData.devices[id].name = newName; buildSidebar(); }
+else { const device = appData.devices[appData.currentDevice]; const idx = device.analytes.indexOf(id); if (idx >= 0) { device.analytes[idx] = newName; if (device.data[id]) { device.data[newName] = device.data[id]; delete device.data[id]; } if (appData.analyteLevels[id] !== undefined) { appData.analyteLevels[newName] = appData.analyteLevels[id]; delete appData.analyteLevels[id]; } if (appData.currentAnalyte === id) appData.currentAnalyte = newName; buildAnalyteBar(); updateMonthBadges(); updateDashboard(); } }
+closeRename(); showNotification('Renamed!');
+}
+function calcMean(arr) { if (!arr || arr.length === 0) return 0; return arr.reduce((a, b) => a + b, 0) / arr.length; }
+function calcSD(arr, mean) { if (!arr || arr.length < 2) return 0; return Math.sqrt(arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (arr.length - 1)); }
+function calcCV(sd, mean) { return mean === 0 ? 0 : (sd / Math.abs(mean)) * 100; }
+function calcBias(labMean, factoryMean) { return factoryMean === 0 ? 0 : ((labMean - factoryMean) / factoryMean) * 100; }
+function calcSigma(tea, bias, cv) { return cv === 0 ? 0 : (tea - Math.abs(bias)) / cv; }
+function calcQGI(bias, cv) { if (cv === 0) return 0; return Math.abs(bias) / (1.65 * cv); }
+function getNonExcludedValues(analyte, level, year, month) {
+const device = appData.devices[appData.currentDevice];
+const aData = getMonthData(device, analyte, year, month);
+const values = aData[`L${level}`] || [];
+const excludedKey = `${appData.currentDevice}_${analyte}_${year}_${month}_L${level}`;
+const excluded = appData.excludedValues[excludedKey] || [];
+return values.filter((v, i) => !excluded.includes(i) && !isNaN(v));
+}
+function toggleExclusion(analyte, level, rowIndex) {
+const excludedKey = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L${level}`;
+if (!appData.excludedValues[excludedKey]) appData.excludedValues[excludedKey] = [];
+const excluded = appData.excludedValues[excludedKey];
+const index = excluded.indexOf(rowIndex);
+if (index >= 0) { excluded.splice(index, 1); showNotification('Value included in calculations'); }
+else { excluded.push(rowIndex); showNotification('Value excluded from calculations'); }
+updateDashboard();
+populateStatsSummary();
+}
+function clearAllExclusions() {
+const analyte = appData.currentAnalyte;
+const prefix = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_`;
+Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
+populateSpreadsheet();
+updateDashboard();
+showNotification('All exclusions cleared!');
+}
+
+// =====================================================================
+// FIXED: Westgard Multi Rules - Priority-based evaluation
+// Rules are checked in order of severity. Only the MOST SEVERE rule
+// is reported per data point (no double-reporting 1-2s + 2-2s).
+// =====================================================================
+function westgardRules(values, mean, sd) {
+const rules = [];
+const n = values.length;
+if (n === 0 || sd === 0) return rules;
+const z = values.map(v => (v - mean) / sd);
+
+for (let i = 0; i < n; i++) {
+    // 1) 1-3s: single value beyond ±3SD  → REJECT (highest priority)
+    if (Math.abs(z[i]) > 3) {
+        rules.push({ rule: '1-3s', index: i, type: 'reject' });
+        continue;
+    }
+
+    // 2) 2-2s: two consecutive values beyond ±2SD on the SAME side → REJECT
+    if (i >= 1 && Math.abs(z[i]) > 2 && Math.abs(z[i-1]) > 2 && Math.sign(z[i]) === Math.sign(z[i-1])) {
+        rules.push({ rule: '2-2s', index: i, type: 'reject' });
+        continue;
+    }
+
+    // 3) R-4s: range between two consecutive values exceeds 4SD
+    //    (typically one above +2SD and next below -2SD, or vice versa) → REJECT
+    if (i >= 1 && Math.abs(values[i] - values[i-1]) > 4 * sd) {
+        rules.push({ rule: 'R-4s', index: i, type: 'reject' });
+        continue;
+    }
+
+    // 4) 4-1s: four consecutive values beyond ±1SD on the SAME side → REJECT
+    if (i >= 3) {
+        const side = Math.sign(z[i]);
+        let count = 0;
+        for (let j = i; j > i - 4; j--) {
+            if (Math.sign(z[j]) === side && Math.abs(z[j]) > 1) count++;
+        }
+        if (count >= 4) {
+            rules.push({ rule: '4-1s', index: i, type: 'reject' });
+            continue;
+        }
+    }
+
+    // 5) 8-X: eight consecutive values on the SAME side of the mean → REJECT
+    if (i >= 7) {
+        const side = Math.sign(z[i]);
+        let allSame = true;
+        for (let j = i; j > i - 8; j--) {
+            if (Math.sign(z[j]) !== side) { allSame = false; break; }
+        }
+        if (allSame) {
+            rules.push({ rule: '8-X', index: i, type: 'reject' });
+            continue;
+        }
+    }
+
+    // 6) 1-2s: single value beyond ±2SD → WARNING (lowest priority)
+    if (Math.abs(z[i]) > 2) {
+        rules.push({ rule: '1-2s', index: i, type: 'warning' });
+    }
+}
+return rules;
+}
+
+function getSigmaClass(sigma) {
+if (sigma >= 6) return { label: 'World Class', cls: 'excellent', color: '#2ecc71' };
+if (sigma >= 5) return { label: 'Excellent', cls: 'excellent', color: '#3498db' };
+if (sigma >= 4) return { label: 'Good', cls: 'good', color: '#f39c12' };
+if (sigma >= 3) return { label: 'Marginal', cls: 'marginal', color: '#e67e22' };
+return { label: 'Unacceptable', cls: 'unacceptable', color: '#e74c3c' };
+}
+function getQGIClass(qgi, sigma) {
+if (sigma >= 3) return { label: 'Acceptable', cls: 'good', rec: 'No action needed - Performance is acceptable', recCls: 'good' };
+if (qgi < 0.8) return { label: 'Random Error', cls: 'unacceptable', rec: 'Improve Precision (reduce imprecision/CV)', recCls: 'random-error' };
+if (qgi <= 1.2) return { label: 'Combined Error', cls: 'marginal', rec: 'Improve Both (reduce bias AND imprecision)', recCls: 'combined-error' };
+return { label: 'Systematic Error', cls: 'unacceptable', rec: 'Improve Accuracy (reduce bias)', recCls: 'systematic-error' };
+}
+function updateDashboard() {
+if (isUpdating) return;
+isUpdating = true;
+try {
+const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const data = getCurrentData(); const numLevels = getAnalyteLevels(analyte); appData.numLevels = numLevels;
+document.getElementById('qcResultsTitle').textContent = `${analyte} QC Results`;
+document.getElementById('ljTitle1').textContent = `${analyte} LJ Level 1`; document.getElementById('ljTitle2').textContent = `${analyte} LJ Level 2`; document.getElementById('ljTitle3').textContent = `${analyte} LJ Level 3`;
+document.getElementById('gaugeTitleL1').textContent = `${analyte} CV Level 1`; document.getElementById('gaugeTitleL2').textContent = `${analyte} CV Level 2`; document.getElementById('gaugeTitleL3').textContent = `${analyte} CV Level 3`;
+const showL3 = numLevels >= 3;
+document.getElementById('qcH3').style.display = showL3 ? 'table-cell' : 'none'; document.getElementById('wgH3').style.display = showL3 ? 'table-cell' : 'none';
+document.getElementById('meanL3Box').style.display = showL3 ? 'block' : 'none';
+document.getElementById('stdevL3Box').style.display = showL3 ? 'block' : 'none';
+document.getElementById('biasL3Box').style.display = showL3 ? 'block' : 'none';
+document.getElementById('gaugeL3Box').style.display = showL3 ? 'flex' : 'none';
+document.getElementById('ljBox3').style.display = showL3 ? 'flex' : 'none';
+document.getElementById('qcL3Box').style.display = showL3 ? 'block' : 'none';
+document.getElementById('levelSelect').value = numLevels;
+document.getElementById('topAnalyzer').textContent = device.analyzer || '-';
+if (data.lot) {
+document.getElementById('topLot1').textContent = data.lot.L1 || '-';
+document.getElementById('topExp1').textContent = data.exp.L1 || '-';
+document.getElementById('topLot2').textContent = data.lot.L2 || '-';
+document.getElementById('topExp2').textContent = data.exp.L2 || '-';
+} else {
+document.getElementById('topLot1').textContent = '-';
+document.getElementById('topExp1').textContent = '-';
+document.getElementById('topLot2').textContent = '-';
+document.getElementById('topExp2').textContent = '-';
+}
+if (!data || data.L1.length === 0) {
+document.getElementById('qcResultsBody').innerHTML = '<tr><td colspan="4" style="color:#888">No data for this month</td></tr>';
+document.getElementById('westgardBody').innerHTML = '';
+['meanL1','stdevL1','meanL2','stdevL2','meanL3','stdevL3'].forEach(id => document.getElementById(id).textContent = '-');
+document.getElementById('qcL1Mean').textContent = '-'; document.getElementById('qcL2Mean').textContent = '-'; document.getElementById('qcL3Mean').textContent = '-';
+showEmptyChart('ljChart1', 'No data'); showEmptyChart('ljChart2', 'No data'); if (showL3) showEmptyChart('ljChart3', 'No data');
+document.getElementById('sigmaInterpRows').innerHTML = '<div style="color:#888; text-align:center; padding:10px;">No data</div>';
+document.getElementById('qgiRows').innerHTML = '<div style="color:#888; text-align:center; padding:10px;">No data</div>';
+document.getElementById('rulesInfo').innerHTML = 'LEVEL 1: -<br>LEVEL 2: -';
+return;
+}
+updateQCResultsTable(data, numLevels); updateWestgardTable(data, numLevels); updateStats(data, numLevels, analyte); updateLJCharts(data, numLevels); updateSigmaChart(data, numLevels);
+updateSigmaInterpretation(data, numLevels);
+updateQGIInterpretation(data, numLevels);
+updateBottomRulesBar(data, numLevels);
+const meanL1 = calcMean(getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth));
+const meanL2 = calcMean(getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth));
+const meanL3 = showL3 ? calcMean(getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth)) : 0;
+document.getElementById('qcL1Mean').textContent = (appData.meanType.L1 === 'lab' ? meanL1 : (data.factoryMean.L1 || 0)).toFixed(2);
+document.getElementById('qcL2Mean').textContent = (appData.meanType.L2 === 'lab' ? meanL2 : (data.factoryMean.L2 || 0)).toFixed(2);
+if (showL3) document.getElementById('qcL3Mean').textContent = (appData.meanType.L3 === 'lab' ? meanL3 : (data.factoryMean.L3 || 0)).toFixed(2);
+resizeAllCharts();
+} finally {
+setTimeout(() => { isUpdating = false; }, 50);
+}
+}
+function updateBottomRulesBar(data, numLevels) {
+const analyte = appData.currentAnalyte;
+const levels = [
+{ key: 'L1', level: 1, label: 'LEVEL 1' },
+{ key: 'L2', level: 2, label: 'LEVEL 2' }
+];
+if (numLevels >= 3 && data.L3) levels.push({ key: 'L3', level: 3, label: 'LEVEL 3' });
+let html = '';
+levels.forEach(lvl => {
+const values = getNonExcludedValues(analyte, lvl.level, appData.currentYear, appData.currentMonth);
+if (values.length === 0) { html += `${lvl.label}: No data<br>`; return; }
+const labMean = calcMean(values);
+const labSD = calcSD(values, labMean);
+const labCV = calcCV(labSD, labMean);
+const factMean = data.factoryMean[lvl.key] || labMean;
+const bias = calcBias(labMean, factMean);
+const tea = data.permissibleCV[lvl.key] || 10;
+const sigma = calcSigma(tea, bias, labCV);
+const ruleInfo = getRulesForSigma(sigma);
+html += `${lvl.label}: <span class="sigma-level ${ruleInfo.cls}">σ=${sigma.toFixed(2)} (${ruleInfo.label})</span> → Rules: ${ruleInfo.rules}<br>`;
+});
+document.getElementById('rulesInfo').innerHTML = html;
+}
+function updateSigmaInterpretation(data, numLevels) {
+const container = document.getElementById('sigmaInterpRows');
+let html = '';
+const analyte = appData.currentAnalyte;
+const levels = [{ key: 'L1', label: 'Level 1', level: 1 }, { key: 'L2', label: 'Level 2', level: 2 }];
+if (numLevels >= 3 && data.L3) levels.push({ key: 'L3', label: 'Level 3', level: 3 });
+levels.forEach(lvl => {
+const values = getNonExcludedValues(analyte, lvl.level, appData.currentYear, appData.currentMonth);
+if (values.length === 0) return;
+const labMean = calcMean(values);
+const labSD = calcSD(values, labMean);
+const labCV = calcCV(labSD, labMean);
+const factMean = data.factoryMean[lvl.key] || labMean;
+const bias = calcBias(labMean, factMean);
+const tea = data.permissibleCV[lvl.key] || 10;
+const sigma = calcSigma(tea, bias, labCV);
+const sigmaClass = getSigmaClass(sigma);
+html += `<div class="interp-row level-${lvl.level}"><span class="interp-label">${lvl.label}</span><span class="interp-value ${sigmaClass.cls}">σ = ${sigma.toFixed(2)} - ${sigmaClass.label}</span></div>`;
+});
+container.innerHTML = html || '<div style="color:#888; text-align:center; padding:10px;">No data</div>';
+}
+function updateQGIInterpretation(data, numLevels) {
+const container = document.getElementById('qgiRows');
+let html = '';
+const analyte = appData.currentAnalyte;
+const levels = [{ key: 'L1', label: 'Level 1', level: 1 }, { key: 'L2', label: 'Level 2', level: 2 }];
+if (numLevels >= 3 && data.L3) levels.push({ key: 'L3', label: 'Level 3', level: 3 });
+levels.forEach(lvl => {
+const values = getNonExcludedValues(analyte, lvl.level, appData.currentYear, appData.currentMonth);
+if (values.length === 0) return;
+const labMean = calcMean(values);
+const labSD = calcSD(values, labMean);
+const labCV = calcCV(labSD, labMean);
+const factMean = data.factoryMean[lvl.key] || labMean;
+const bias = calcBias(labMean, factMean);
+const tea = data.permissibleCV[lvl.key] || 10;
+const sigma = calcSigma(tea, bias, labCV);
+const qgi = calcQGI(bias, labCV);
+const qgiClass = getQGIClass(qgi, sigma);
+html += `<div class="interp-row level-${lvl.level}"><div style="flex:1"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span class="interp-label">${lvl.label}</span><span class="interp-value ${qgiClass.cls}">QGI = ${qgi.toFixed(2)}</span></div><div class="qgi-recommendation ${qgiClass.recCls}">${qgiClass.rec}</div></div></div>`;
+});
+container.innerHTML = html || '<div style="color:#888; text-align:center; padding:10px;">No data</div>';
+}
+function showEmptyChart(canvasId, msg) { const canvas = document.getElementById(canvasId); if (!canvas) return; const container = canvas.parentElement; if (window[canvasId + '_chart']) { window[canvasId + '_chart'].destroy(); delete window[canvasId + '_chart']; } const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); let msgEl = container.querySelector('.empty-chart-msg'); if (!msgEl) { msgEl = document.createElement('div'); msgEl.className = 'empty-chart-msg'; container.appendChild(msgEl); } msgEl.textContent = msg; msgEl.style.display = 'flex'; canvas.style.display = 'none'; }
+function hideEmptyChart(canvasId) { const canvas = document.getElementById(canvasId); if (!canvas) return; const container = canvas.parentElement; const msgEl = container.querySelector('.empty-chart-msg'); if (msgEl) msgEl.style.display = 'none'; canvas.style.display = 'block'; }
+function rowHasData(data, i, numLevels) { for (let l = 1; l <= numLevels; l++) { if (data[`L${l}`] && data[`L${l}`][i] !== undefined && data[`L${l}`][i] !== null && data[`L${l}`][i] !== '') return true; } return false; }
+function updateQCResultsTable(data, numLevels) {
+const tbody = document.getElementById('qcResultsBody'); tbody.innerHTML = '';
+const analyte = appData.currentAnalyte;
+const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth);
+const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth);
+const meanL1 = calcMean(valuesL1), sdL1 = calcSD(valuesL1, meanL1);
+const meanL2 = calcMean(valuesL2), sdL2 = calcSD(valuesL2, meanL2);
+const valuesL3 = numLevels >= 3 ? getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth) : [];
+const meanL3 = valuesL3.length > 0 ? calcMean(valuesL3) : 0;
+const sdL3 = valuesL3.length > 0 ? calcSD(valuesL3, meanL3) : 0;
+const excludedKey1 = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L1`;
+const excludedKey2 = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L2`;
+const excludedKey3 = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L3`;
+const excluded1 = appData.excludedValues[excludedKey1] || [];
+const excluded2 = appData.excludedValues[excludedKey2] || [];
+const excluded3 = appData.excludedValues[excludedKey3] || [];
+for (let i = 0; i < data.dates.length; i++) {
+if (!rowHasData(data, i, numLevels)) continue;
+const tr = document.createElement('tr'); tr.innerHTML = `<td>${data.dates[i]}</td>`;
+const td1 = document.createElement('td'); td1.textContent = (data.L1[i] || 0).toFixed(2);
+if (excluded1.includes(i)) { td1.style.textDecoration = 'line-through'; td1.style.color = '#e74c3c'; }
+else if (sdL1 > 0 && Math.abs(data.L1[i] - meanL1) > 2 * sdL1) td1.className = 'red-val';
+tr.appendChild(td1);
+const td2 = document.createElement('td'); td2.textContent = (data.L2[i] || 0).toFixed(2);
+if (excluded2.includes(i)) { td2.style.textDecoration = 'line-through'; td2.style.color = '#e74c3c'; }
+else if (sdL2 > 0 && Math.abs(data.L2[i] - meanL2) > 2 * sdL2) td2.className = 'red-val';
+tr.appendChild(td2);
+if (numLevels >= 3 && data.L3) {
+const td3 = document.createElement('td'); td3.textContent = (data.L3[i] || 0).toFixed(2);
+if (excluded3.includes(i)) { td3.style.textDecoration = 'line-through'; td3.style.color = '#e74c3c'; }
+else if (sdL3 > 0 && Math.abs(data.L3[i] - meanL3) > 2 * sdL3) td3.className = 'red-val';
+tr.appendChild(td3);
+}
+tbody.appendChild(tr);
+}
+}
+function updateWestgardTable(data, numLevels) {
+const tbody = document.getElementById('westgardBody'); tbody.innerHTML = '';
+const analyte = appData.currentAnalyte;
+const valuesL1 = data.L1 || [];
+const valuesL2 = data.L2 || [];
+const labMeanL1 = calcMean(valuesL1), labSDL1 = calcSD(valuesL1, labMeanL1);
+const labMeanL2 = calcMean(valuesL2), labSDL2 = calcSD(valuesL2, labMeanL2);
+let meanL1, sdL1, meanL2, sdL2;
+if (appData.meanType.L1 === 'factory' && data.factoryMean.L1 && data.factorySD.L1) {
+meanL1 = data.factoryMean.L1;
+sdL1 = data.factorySD.L1;
+} else {
+meanL1 = labMeanL1;
+sdL1 = labSDL1;
+}
+if (appData.meanType.L2 === 'factory' && data.factoryMean.L2 && data.factorySD.L2) {
+meanL2 = data.factoryMean.L2;
+sdL2 = data.factorySD.L2;
+} else {
+meanL2 = labMeanL2;
+sdL2 = labSDL2;
+}
+const rulesL1 = westgardRules(valuesL1, meanL1, sdL1);
+const rulesL2 = westgardRules(valuesL2, meanL2, sdL2);
+let rulesL3 = [];
+let meanL3, sdL3;
+if (numLevels >= 3 && data.L3) {
+const valuesL3 = data.L3;
+const labMeanL3 = calcMean(valuesL3), labSDL3 = calcSD(valuesL3, labMeanL3);
+if (appData.meanType.L3 === 'factory' && data.factoryMean.L3 && data.factorySD.L3) {
+meanL3 = data.factoryMean.L3;
+sdL3 = data.factorySD.L3;
+} else {
+meanL3 = labMeanL3;
+sdL3 = labSDL3;
+}
+rulesL3 = westgardRules(valuesL3, meanL3, sdL3);
+}
+for (let i = 0; i < data.dates.length; i++) {
+if (!rowHasData(data, i, numLevels)) continue;
+const tr = document.createElement('tr'); tr.innerHTML = `<td>${data.dates[i]}</td>`;
+const r1 = rulesL1.find(r => r.index === i);
+const td1 = document.createElement('td');
+td1.textContent = r1 ? r1.rule.toUpperCase() : 'A';
+td1.className = r1 ? (r1.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a';
+tr.appendChild(td1);
+const r2 = rulesL2.find(r => r.index === i);
+const td2 = document.createElement('td');
+td2.textContent = r2 ? r2.rule.toUpperCase() : 'A';
+td2.className = r2 ? (r2.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a';
+tr.appendChild(td2);
+if (numLevels >= 3 && data.L3) {
+const r3 = rulesL3.find(r => r.index === i);
+const td3 = document.createElement('td');
+td3.textContent = r3 ? r3.rule.toUpperCase() : 'A';
+td3.className = r3 ? (r3.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a';
+tr.appendChild(td3);
+}
+tbody.appendChild(tr);
+}
+}
+function updateStats(data, numLevels, analyte) {
+const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth);
+const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth);
+const labMeanL1 = calcMean(valuesL1); const labSDL1 = calcSD(valuesL1, labMeanL1); const labCVL1 = calcCV(labSDL1, labMeanL1);
+const labMeanL2 = calcMean(valuesL2); const labSDL2 = calcSD(valuesL2, labMeanL2); const labCVL2 = calcCV(labSDL2, labMeanL2);
+const factMeanL1 = data.factoryMean.L1 || labMeanL1; const factSDL1 = data.factorySD.L1 || labSDL1; const factCVL1 = calcCV(factSDL1, factMeanL1);
+const factMeanL2 = data.factoryMean.L2 || labMeanL2; const factSDL2 = data.factorySD.L2 || labSDL2; const factCVL2 = calcCV(factSDL2, factMeanL2);
+const biasL1 = calcBias(labMeanL1, factMeanL1); const biasL2 = calcBias(labMeanL2, factMeanL2);
+const permCVL1 = data.permissibleCV.L1 || 10; const permCVL2 = data.permissibleCV.L2 || 10;
+document.getElementById('meanL1').textContent = labMeanL1.toFixed(2);
+document.getElementById('stdevL1').textContent = labSDL1.toFixed(3);
+document.getElementById('acceptBiasL1').textContent = permCVL1.toFixed(1) + '%';
+document.getElementById('labBiasL1').textContent = Math.abs(biasL1).toFixed(2) + '%';
+document.getElementById('permCVL1').textContent = permCVL1.toFixed(1) + '%';
+document.getElementById('factCVL1').textContent = factCVL1.toFixed(2) + '%';
+document.getElementById('labCVL1').textContent = labCVL1.toFixed(2) + '%';
+document.getElementById('meanL2').textContent = labMeanL2.toFixed(2);
+document.getElementById('stdevL2').textContent = labSDL2.toFixed(3);
+document.getElementById('acceptBiasL2').textContent = permCVL2.toFixed(1) + '%';
+document.getElementById('labBiasL2').textContent = Math.abs(biasL2).toFixed(2) + '%';
+document.getElementById('permCVL2').textContent = permCVL2.toFixed(1) + '%';
+document.getElementById('factCVL2').textContent = factCVL2.toFixed(2) + '%';
+document.getElementById('labCVL2').textContent = labCVL2.toFixed(2) + '%';
+drawGauge('gaugeL1', labCVL1, permCVL1); drawGauge('gaugeL2', labCVL2, permCVL2);
+if (numLevels >= 3 && data.L3) {
+const valuesL3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth);
+const labMeanL3 = calcMean(valuesL3); const labSDL3 = calcSD(valuesL3, labMeanL3); const labCVL3 = calcCV(labSDL3, labMeanL3);
+const factMeanL3 = data.factoryMean.L3 || labMeanL3; const factSDL3 = data.factorySD.L3 || labSDL3; const factCVL3 = calcCV(factSDL3, factMeanL3);
+const biasL3 = calcBias(labMeanL3, factMeanL3); const permCVL3 = data.permissibleCV.L3 || 10;
+document.getElementById('meanL3').textContent = labMeanL3.toFixed(2);
+document.getElementById('stdevL3').textContent = labSDL3.toFixed(3);
+document.getElementById('acceptBiasL3').textContent = permCVL3.toFixed(1) + '%';
+document.getElementById('labBiasL3').textContent = Math.abs(biasL3).toFixed(2) + '%';
+document.getElementById('permCVL3').textContent = permCVL3.toFixed(1) + '%';
+document.getElementById('factCVL3').textContent = factCVL3.toFixed(2) + '%';
+document.getElementById('labCVL3').textContent = labCVL3.toFixed(2) + '%';
+drawGauge('gaugeL3', labCVL3, permCVL3);
+}
+}
+function drawGauge(canvasId, value, max) {
+const canvas = document.getElementById(canvasId); if (!canvas) return;
+const ctx = canvas.getContext('2d'); const w = canvas.width = 162, h = canvas.height = 99; ctx.clearRect(0, 0, w, h);
+const cx = w/2, cy = h-7, radius = 63, pct = Math.min(value / max, 1);
+ctx.beginPath(); ctx.arc(cx, cy, radius, Math.PI, 0); ctx.lineWidth = 13; ctx.strokeStyle = '#333'; ctx.stroke();
+[{ end: 0.33, color: '#2ecc71' }, { end: 0.66, color: '#f39c12' }, { end: 1.0, color: '#e74c3c' }].forEach(s => { const ea = Math.PI + s.end * Math.PI; ctx.beginPath(); ctx.arc(cx, cy, radius, Math.PI + (s.end === 0.33 ? 0 : s.end === 0.66 ? 0.33 : 0.66) * Math.PI, ea); ctx.lineWidth = 13; ctx.strokeStyle = s.color; ctx.stroke(); });
+ctx.beginPath(); ctx.arc(cx, cy, radius - 20, Math.PI, Math.PI + pct * Math.PI); ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke();
+ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(value.toFixed(1) + '%', cx, cy - 7);
+}
+function updateLJCharts(data, numLevels) {
+const analyte = appData.currentAnalyte;
+const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth);
+const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth);
+const labMeanL1 = calcMean(valuesL1), labSDL1 = calcSD(valuesL1, labMeanL1);
+const labMeanL2 = calcMean(valuesL2), labSDL2 = calcSD(valuesL2, labMeanL2);
+const fMeanL1 = data.factoryMean.L1 || labMeanL1, fSDL1 = data.factorySD.L1 || labSDL1;
+const fMeanL2 = data.factoryMean.L2 || labMeanL2, fSDL2 = data.factorySD.L2 || labSDL2;
+const meanL1 = appData.meanType.L1 === 'factory' ? fMeanL1 : labMeanL1;
+const sdL1 = appData.meanType.L1 === 'factory' ? fSDL1 : labSDL1;
+const meanL2 = appData.meanType.L2 === 'factory' ? fMeanL2 : labMeanL2;
+const sdL2 = appData.meanType.L2 === 'factory' ? fSDL2 : labSDL2;
+const rangeL1 = { min: meanL1 - 3*sdL1, max: meanL1 + 3*sdL1, step: sdL1, mean: meanL1, sd: sdL1 };
+const rangeL2 = { min: meanL2 - 3*sdL2, max: meanL2 + 3*sdL2, step: sdL2, mean: meanL2, sd: sdL2 };
+function makeChart(canvasId, values, range) {
+hideEmptyChart(canvasId);
+if (window[canvasId + '_chart']) window[canvasId + '_chart'].destroy();
+const canvas = document.getElementById(canvasId);
+if (!canvas) return;
+const ctx = canvas.getContext('2d');
+const yMin = range.min;
+const yMax = range.max;
+const stepSize = range.step > 0 ? range.step : ((yMax - yMin) / 6);
+const mean = range.mean;
+const sd = range.sd;
+const labels = data.dates;
+const refLine = (val) => labels.map(() => val);
+const datasets = [
+{
+label: 'QC Data',
+data: values,
+borderColor: '#e0e0e0',
+pointRadius: 4,
+pointBackgroundColor: values.map(v => sd > 0 && Math.abs(v - mean) > 2 * sd ? '#e74c3c' : '#3498db'),
+pointBorderColor: '#fff',
+pointBorderWidth: 1,
+borderWidth: 2,
+tension: 0.1,
+fill: false,
+order: 1
+},
+{ label: 'Mean', data: refLine(mean), borderColor: '#2ecc71', borderWidth: 2, borderDash: [], pointRadius: 0, fill: false, order: 2 },
+{ label: '±1SD', data: refLine(mean + sd), borderColor: '#3498db', borderWidth: 1, borderDash: [5, 3], pointRadius: 0, fill: false, order: 2 },
+{ label: '-1SD', data: refLine(mean - sd), borderColor: '#3498db', borderWidth: 1, borderDash: [5, 3], pointRadius: 0, fill: false, order: 2 },
+{ label: '±2SD', data: refLine(mean + 2*sd), borderColor: '#f39c12', borderWidth: 1, borderDash: [5, 3], pointRadius: 0, fill: false, order: 2 },
+{ label: '-2SD', data: refLine(mean - 2*sd), borderColor: '#f39c12', borderWidth: 1, borderDash: [5, 3], pointRadius: 0, fill: false, order: 2 },
+{ label: '±3SD', data: refLine(mean + 3*sd), borderColor: '#e74c3c', borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, fill: false, order: 2 },
+{ label: '-3SD', data: refLine(mean - 3*sd), borderColor: '#e74c3c', borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, fill: false, order: 2 }
+];
+window[canvasId + '_chart'] = new Chart(ctx, {
+type: 'line',
+data: { labels, datasets },
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { display: false },
+tooltip: {
+callbacks: {
+label: (ctx) => ctx.dataset.label === 'QC Data' ? `Value: ${ctx.parsed.y.toFixed(2)}` : `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}`
+}
+}
+},
+scales: {
+x: { ticks: { color: '#aaa', font: { size: 9 }, maxRotation: 90 }, grid: { color: '#333' } },
+y: {
+min: yMin, max: yMax,
+ticks: { color: '#aaa', font: { size: 10 }, stepSize: stepSize, callback: v => v.toFixed(2) },
+grid: { color: '#333' }
+}
+}
+}
+});
+}
+makeChart('ljChart1', valuesL1, rangeL1);
+makeChart('ljChart2', valuesL2, rangeL2);
+if (numLevels >= 3 && data.L3) {
+const valuesL3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth);
+const labMeanL3 = calcMean(valuesL3), labSDL3 = calcSD(valuesL3, labMeanL3);
+const fMeanL3 = data.factoryMean.L3 || labMeanL3, fSDL3 = data.factorySD.L3 || labSDL3;
+const meanL3 = appData.meanType.L3 === 'factory' ? fMeanL3 : labMeanL3;
+const sdL3 = appData.meanType.L3 === 'factory' ? fSDL3 : labSDL3;
+const rangeL3 = { min: meanL3 - 3*sdL3, max: meanL3 + 3*sdL3, step: sdL3, mean: meanL3, sd: sdL3 };
+makeChart('ljChart3', valuesL3, rangeL3);
+}
+}
+function updateSigmaChart(data, numLevels) {
+const canvas = document.getElementById('sigmaChart');
+if (!canvas) return;
+const analyte = appData.currentAnalyte;
+const labels = ['Level 1', 'Level 2']; const values = [];
+const v1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth);
+const m1 = calcMean(v1), s1 = calcSD(v1, m1), cv1 = calcCV(s1, m1), b1 = calcBias(m1, data.factoryMean.L1 || m1);
+values.push(calcSigma(data.permissibleCV.L1 || 10, b1, cv1));
+const v2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth);
+const m2 = calcMean(v2), s2 = calcSD(v2, m2), cv2 = calcCV(s2, m2), b2 = calcBias(m2, data.factoryMean.L2 || m2);
+values.push(calcSigma(data.permissibleCV.L2 || 10, b2, cv2));
+if (numLevels >= 3 && data.L3) {
+labels.push('Level 3');
+const v3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth);
+const m3 = calcMean(v3), s3 = calcSD(v3, m3), cv3 = calcCV(s3, m3), b3 = calcBias(m3, data.factoryMean.L3 || m3);
+values.push(calcSigma(data.permissibleCV.L3 || 10, b3, cv3));
+}
+if (sigmaChart) sigmaChart.destroy();
+try {
+sigmaChart = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels, datasets: [{ data: values, backgroundColor: values.map(v => v >= 6 ? '#2ecc71' : v >= 4 ? '#f39c12' : v >= 3 ? '#e67e22' : '#e74c3c'), borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#aaa' }, grid: { color: '#333' } }, y: { min: 0, max: 6, ticks: { color: '#aaa', stepSize: 1 }, grid: { color: '#333' } } } } });
+} catch (e) { console.error('Error creating sigma chart:', e); }
+}
+function populateSpreadsheet() {
+const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const numLevels = getAnalyteLevels(analyte); const daysInMonth = getDaysInMonth(appData.currentYear, appData.currentMonth);
+const thead = document.getElementById('spreadsheetHead'); const tbody = document.getElementById('spreadsheetBody');
+let headerHTML = '<tr><th>Date</th>'; device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a}.L${l}</th>`; }); headerHTML += '</tr>'; thead.innerHTML = headerHTML;
+tbody.innerHTML = '';
+for (let i = 0; i < daysInMonth; i++) {
+const tr = document.createElement('tr'); const dateTd = document.createElement('td'); dateTd.textContent = formatDate(i + 1, appData.currentMonth, appData.currentYear); tr.appendChild(dateTd);
+device.analytes.forEach(a => {
+for (let l = 1; l <= getAnalyteLevels(a); l++) {
+const td = document.createElement('td');
+const input = document.createElement('input');
+input.type = 'number';
+input.step = '0.01';
+input.dataset.analyte = a;
+input.dataset.level = l;
+input.dataset.row = i;
+const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
+if (aData[`L${l}`] && aData[`L${l}`][i] !== undefined) input.value = aData[`L${l}`][i];
+const excludedKey = `${appData.currentDevice}_${a}_${appData.currentYear}_${appData.currentMonth}_L${l}`;
+const excluded = appData.excludedValues[excludedKey] || [];
+if (excluded.includes(i)) {
+input.classList.add('excluded');
+input.title = 'Excluded from calculations (double-click to include)';
+} else {
+input.title = 'Double-click to exclude from calculations';
+}
+input.addEventListener('dblclick', function(e) {
+e.preventDefault();
+const val = parseFloat(this.value);
+if (isNaN(val)) return;
+toggleExclusion(this.dataset.analyte, this.dataset.level, parseInt(this.dataset.row));
+this.classList.toggle('excluded');
+if (this.classList.contains('excluded')) { this.title = 'Excluded from calculations (double-click to include)'; }
+else { this.title = 'Double-click to exclude from calculations'; }
+});
+input.addEventListener('input', autoUpdateSpreadsheet);
+td.appendChild(input);
+tr.appendChild(td);
+}
+});
+tbody.appendChild(tr);
+}
+populateStatsSummary();
+setupArrowNavigation();
+}
+function setupArrowNavigation() {
+const table = document.getElementById('spreadsheetTable');
+if (!table) return;
+table.removeEventListener('keydown', handleArrowKeys);
+table.addEventListener('keydown', handleArrowKeys);
+}
+function handleArrowKeys(e) {
+if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+const input = e.target;
+if (input.tagName !== 'INPUT') return;
+const td = input.parentElement;
+const tr = td.parentElement;
+const table = tr.closest('table');
+if (!table) return;
+const allRows = Array.from(table.querySelectorAll('tbody tr'));
+const rowIndex = allRows.indexOf(tr);
+const allCells = Array.from(tr.querySelectorAll('td'));
+const dataCells = allCells.slice(1);
+const dataCellIndex = dataCells.indexOf(td);
+let targetRow = rowIndex;
+let targetCell = dataCellIndex;
+if (e.key === 'ArrowUp') { e.preventDefault(); if (rowIndex > 0) targetRow = rowIndex - 1; }
+else if (e.key === 'ArrowDown') { e.preventDefault(); if (rowIndex < allRows.length - 1) targetRow = rowIndex + 1; }
+else if (e.key === 'ArrowLeft') { e.preventDefault(); if (dataCellIndex > 0) targetCell = dataCellIndex - 1; }
+else if (e.key === 'ArrowRight') { e.preventDefault(); if (dataCellIndex < dataCells.length - 1) targetCell = dataCellIndex + 1; }
+const targetTr = allRows[targetRow];
+if (!targetTr) return;
+const targetDataCells = Array.from(targetTr.querySelectorAll('td')).slice(1);
+const targetTd = targetDataCells[targetCell];
+if (!targetTd) return;
+const targetInput = targetTd.querySelector('input');
+if (targetInput) { targetInput.focus(); targetInput.select(); }
+}
+function autoUpdateSpreadsheet() {
+const device = appData.devices[appData.currentDevice];
+device.analytes.forEach(a => { const aLevels = getAnalyteLevels(a); const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth); for (let l = 1; l <= aLevels; l++) aData[`L${l}`] = []; aData.dates = []; });
+document.querySelectorAll('#spreadsheetBody tr').forEach((tr, i) => { const dateCell = tr.querySelector('td:first-child'); tr.querySelectorAll('input').forEach(input => { const a = input.dataset.analyte, l = input.dataset.level, val = parseFloat(input.value); if (!isNaN(val) && a && l) { const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth); if (!aData[`L${l}`]) aData[`L${l}`] = []; aData[`L${l}`][i] = val; if (l === '1') aData.dates[i] = dateCell.textContent; } }); });
+populateStatsSummary(); updateMonthBadges();
+updateDashboard();
+}
+function populateStatsSummary() {
+const device = appData.devices[appData.currentDevice];
+const head = document.getElementById('statsSummaryHead'); const body = document.getElementById('statsSummaryBody');
+let headerHTML = '<tr><th></th>'; device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a} L${l}</th>`; }); headerHTML += '</tr>'; head.innerHTML = headerHTML;
+const rows = [
+{ name: 'Mean', type: 'mean', editable: true },
+{ name: 'S.D', type: 'sd', editable: true },
+{ name: 'F.MAX', type: 'fmax', editable: false },
+{ name: 'F.MIN', type: 'fmin', editable: false },
+{ name: 'LAB x̄', type: 'lab_mean', editable: false },
+{ name: 'LAB SD', type: 'lab_sd', editable: false },
+{ name: 'LAB MAX', type: 'lab_max', editable: false },
+{ name: 'LAB MIN', type: 'lab_min', editable: false },
+{ name: 'LAB CV%', type: 'lab_cv', editable: false },
+{ name: 'Factory CV%', type: 'fact_cv', editable: false },
+{ name: 'Bias%', type: 'bias', editable: false },
+{ name: 'TEa', type: 'tea', editable: true },
+{ name: 'Lot', type: 'lot', editable: true },
+{ name: 'EXP', type: 'exp', editable: true },
+{ name: 'Analyzer', type: 'analyzer', editable: true }
+];
+body.innerHTML = '';
+rows.forEach(rowObj => {
+const tr = document.createElement('tr'); const td0 = document.createElement('td'); td0.textContent = rowObj.name; td0.style.fontWeight = 'bold'; td0.style.color = '#e74c3c'; tr.appendChild(td0);
+device.analytes.forEach(a => {
+for (let l = 1; l <= getAnalyteLevels(a); l++) {
+const td = document.createElement('td'); const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
+const values = getNonExcludedValues(a, l, appData.currentYear, appData.currentMonth);
+const labMean = calcMean(values), labSD = calcSD(values, labMean), labMax = values.length > 0 ? Math.max(...values) : 0, labMin = values.length > 0 ? Math.min(...values) : 0;
+const labCV = calcCV(labSD, labMean);
+const factMean = (aData.factoryMean && aData.factoryMean[`L${l}`]) || 0;
+const factSD = (aData.factorySD && aData.factorySD[`L${l}`]) || 0;
+const factCV = factMean !== 0 ? calcCV(factSD, factMean) : 0;
+const fMax = factMean + 3 * factSD;
+const fMin = factMean - 3 * factSD;
+const bias = factMean !== 0 ? calcBias(labMean, factMean) : 0;
+const storedTEa = (aData.permissibleCV && aData.permissibleCV[`L${l}`]) || 10, storedLot = (aData.lot && aData.lot[`L${l}`]) || '', storedExp = (aData.exp && aData.exp[`L${l}`]) || '';
+if (rowObj.editable) {
+const input = document.createElement('input');
+if (rowObj.type === 'analyzer') { input.type = 'text'; input.value = device.analyzer || ''; input.style.width = '90px'; input.addEventListener('change', (e) => { device.analyzer = e.target.value; showNotification('Analyzer updated!'); }); }
+else {
+input.type = (rowObj.type === 'lot' || rowObj.type === 'exp') ? 'text' : 'number';
+if (rowObj.type !== 'lot' && rowObj.type !== 'exp') input.step = rowObj.type === 'tea' ? '0.1' : '0.01';
+input.style.width = '70px';
+if (rowObj.type === 'mean') input.value = factMean;
+else if (rowObj.type === 'sd') input.value = factSD;
+else if (rowObj.type === 'tea') input.value = storedTEa;
+else if (rowObj.type === 'lot') input.value = storedLot;
+else if (rowObj.type === 'exp') input.value = storedExp;
+input.addEventListener('change', (e) => {
+const val = rowObj.type === 'lot' || rowObj.type === 'exp' ? e.target.value : (parseFloat(e.target.value) || 0);
+if (rowObj.type === 'mean') { if (!aData.factoryMean) aData.factoryMean = {}; aData.factoryMean[`L${l}`] = val; }
+else if (rowObj.type === 'sd') { if (!aData.factorySD) aData.factorySD = {}; aData.factorySD[`L${l}`] = val; }
+else if (rowObj.type === 'tea') { if (!aData.permissibleCV) aData.permissibleCV = {}; aData.permissibleCV[`L${l}`] = val; }
+else if (rowObj.type === 'lot') { if (!aData.lot) aData.lot = {}; aData.lot[`L${l}`] = val; }
+else if (rowObj.type === 'exp') { if (!aData.exp) aData.exp = {}; aData.exp[`L${l}`] = val; }
+updateDashboard(); populateStatsSummary(); showNotification(`${rowObj.name} updated!`);
+});
+}
+input.style.textAlign = 'center'; input.style.background = 'transparent'; input.style.border = 'none'; input.style.color = '#e0e0e0'; input.style.fontSize = '11px'; input.style.padding = '2px';
+input.addEventListener('focus', function() { this.style.background = '#0f3460'; this.style.outline = '1px solid #e74c3c'; }); input.addEventListener('blur', function() { this.style.background = 'transparent'; this.style.outline = 'none'; });
+td.appendChild(input);
+} else {
+if (rowObj.type === 'fmax') td.textContent = fMax.toFixed(2);
+else if (rowObj.type === 'fmin') td.textContent = fMin.toFixed(2);
+else if (rowObj.type === 'lab_mean') { td.textContent = values.length > 0 ? labMean.toFixed(2) : '-'; td.style.color = '#3498db'; }
+else if (rowObj.type === 'lab_sd') { td.textContent = values.length > 0 ? labSD.toFixed(2) : '-'; td.style.color = '#3498db'; }
+else if (rowObj.type === 'lab_max') { td.textContent = values.length > 0 ? labMax.toFixed(2) : '-'; td.style.color = '#3498db'; }
+else if (rowObj.type === 'lab_min') { td.textContent = values.length > 0 ? labMin.toFixed(2) : '-'; td.style.color = '#3498db'; }
+else if (rowObj.type === 'lab_cv') { td.textContent = values.length > 0 ? labCV.toFixed(2) + '%' : '-'; td.style.color = '#2ecc71'; }
+else if (rowObj.type === 'fact_cv') { td.textContent = factMean !== 0 ? factCV.toFixed(2) + '%' : '-'; td.style.color = '#f39c12'; }
+else if (rowObj.type === 'bias') { td.textContent = (values.length > 0 && factMean !== 0 ? Math.abs(bias).toFixed(2) : '0') + '%'; td.style.color = bias > 0 ? '#e74c3c' : '#2ecc71'; }
+}
+tr.appendChild(td);
+}
+});
+body.appendChild(tr);
+});
+}
+function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
+function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues })); showNotification('Data saved!'); }
+function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
+
+// =====================================================================
+// FIXED: Clear Data - safely creates the data path before clearing
+// =====================================================================
+function clearCurrentData() {
+    if (!confirm(`Clear ALL data for ${appData.currentAnalyte} (${getMonthName()} ${appData.currentYear})?`)) return;
+    const device = appData.devices[appData.currentDevice];
+    const analyte = appData.currentAnalyte;
+    const year = appData.currentYear;
+    const month = appData.currentMonth;
+
+    // Safely build the path if it doesn't exist
+    if (!device.data[analyte]) device.data[analyte] = {};
+    if (!device.data[analyte][year]) device.data[analyte][year] = {};
+    device.data[analyte][year][month] = createEmptyData();
+
+    // Clear exclusions for this analyte/month
+    const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`;
+    Object.keys(appData.excludedValues).forEach(key => {
+        if (key.startsWith(prefix)) delete appData.excludedValues[key];
+    });
+
+    updateMonthBadges();
+    updateDashboard();
+    if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+    showNotification(`Data cleared for ${analyte}!`);
+}
+
+function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
+function copyFromPreviousMonth() { const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; let pm = appData.currentMonth - 1, py = appData.currentYear; if (pm < 0) { pm = 11; py--; } if (hasDataForMonth(device, analyte, py, pm)) { Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][pm]))); updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm]} ${py}!`); } else alert(`No data for ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm]} ${py}`); }
+function copyFromPreviousYear() { const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const py = appData.currentYear - 1; if (hasDataForMonth(device, analyte, py, appData.currentMonth)) { Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth]))); updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${getMonthName()} ${py}!`); } else alert(`No data for ${getMonthName()} ${py}`); }
+function initImprecision() { const tbody = document.getElementById('imprecisionBody'); tbody.innerHTML = ''; for (let i = 1; i <= 20; i++) { const tr = document.createElement('tr'); tr.innerHTML = `<td>Run ${i}</td><td><input type="number" step="0.01" class="imp-l1"></td><td><input type="number" step="0.01" class="imp-l2"></td><td style="display:none"><input type="number" step="0.01" class="imp-l3"></td>`; tbody.appendChild(tr); } }
+function calcImprecision() { const l1 = Array.from(document.querySelectorAll('.imp-l1')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l2 = Array.from(document.querySelectorAll('.imp-l2')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l3 = Array.from(document.querySelectorAll('.imp-l3')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const div = document.getElementById('imprecisionResults'); div.innerHTML = ''; [{ name: 'Level 1', v: l1 }, { name: 'Level 2', v: l2 }, { name: 'Level 3', v: l3 }].forEach(level => { if (level.v.length < 2) return; const mean = calcMean(level.v), sd = calcSD(level.v, mean), cv = calcCV(sd, mean); const box = document.createElement('div'); box.className = 'imp-box'; box.innerHTML = `<h4>${level.name}</h4><div>N: ${level.v.length}</div><div>Mean: <strong>${mean.toFixed(4)}</strong></div><div>SD: <strong>${sd.toFixed(4)}</strong></div><div>CV: <strong>${cv.toFixed(2)}%</strong></div><div>Min: ${Math.min(...level.v).toFixed(4)}</div><div>Max: ${Math.max(...level.v).toFixed(4)}</div>`; div.appendChild(box); }); showNotification('Imprecision calculated!'); }
+function openSettings() {
+const device = appData.devices[appData.currentDevice]; const data = getCurrentData();
+document.getElementById('setInstNameAr').value = appData.institution.nameAr || '';
+document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
+const previewImg = document.getElementById('logoPreviewImg');
+const previewText = document.getElementById('logoPreviewText');
+if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; }
+else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; }
+document.getElementById('setLogoFile').value = '';
+document.getElementById('setLabSP').value = device.labSP || '';
+document.getElementById('setDesignee').value = device.designee || '';
+document.getElementById('setBranch').value = '';
+document.getElementById('setUser').value = '';
+document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
+document.getElementById('setLot1').value = (data.lot && data.lot.L1) || '';
+document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
+document.getElementById('setLot2').value = (data.lot && data.lot.L2) || '';
+document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
+document.getElementById('setLot3').value = (data.lot && data.lot.L3) || '';
+document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
+document.getElementById('settingsModal').classList.add('active');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+function applySettings() {
+const device = appData.devices[appData.currentDevice];
+appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim();
+appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
+const previewImg = document.getElementById('logoPreviewImg');
+if (previewImg.dataset.base64) appData.institution.logo = previewImg.dataset.base64;
+updateInstitutionDisplay();
+device.labSP = document.getElementById('setLabSP').value;
+device.designee = document.getElementById('setDesignee').value;
+const nl = parseInt(document.getElementById('setNumLevels').value);
+appData.analyteLevels[appData.currentAnalyte] = nl; appData.numLevels = nl;
+const data = getCurrentData();
+data.lot.L1 = document.getElementById('setLot1').value; data.exp.L1 = document.getElementById('setExp1').value;
+data.lot.L2 = document.getElementById('setLot2').value; data.exp.L2 = document.getElementById('setExp2').value;
+data.lot.L3 = document.getElementById('setLot3').value; data.exp.L3 = document.getElementById('setExp3').value;
+closeSettings(); updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification('Settings applied!');
+}
+// =====================================================================
+// PDF Report Generation - Match "QC_WBC_Aug_2026.pdf" Format
+// =====================================================================
+async function generatePDFReport(analytesToPrint) {
+const { jsPDF } = window.jspdf;
+const device = appData.devices[appData.currentDevice];
+const periodStr = `${getMonthName()} ${appData.currentYear}`;
+const pdf = new jsPDF('p', 'mm', 'a4');
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
+let currentY = 8;
+// Header
+pdf.setFontSize(12);
+pdf.setFont('helvetica', 'bold');
+pdf.text('By LAB SP.Mohammed Al Desoqy', 10, currentY);
+currentY += 8;
+function drawHeader(analyte, data, numLevels) {
+// EVALUATION SUMMARY & CONFIGURATION Section
+pdf.setFillColor(220, 220, 220);
+pdf.rect(10, currentY, pageWidth - 20, 6, 'F');
+pdf.setFontSize(10);
+pdf.setFont('helvetica', 'bold');
+pdf.text('EVALUATION SUMMARY & CONFIGURATION', 12, currentY + 4);
+currentY += 6;
+// Draw border
+pdf.rect(10, currentY, pageWidth - 20, 20);
+pdf.setFontSize(9);
+pdf.setFont('helvetica', 'bold');
+// Left column
+pdf.text('Test Analyte:', 12, currentY + 4);
+pdf.text('Analyzer System:', 12, currentY + 8);
+pdf.text('Evaluation Date:', 12, currentY + 12);
+pdf.text('Designer:', 12, currentY + 16);
+pdf.setFont('helvetica', 'normal');
+pdf.text(`${analyte} `, 60, currentY + 4);
+pdf.text('', 60, currentY + 8);
+pdf.text(`24/08/${appData.currentYear}`, 60, currentY + 12);
+pdf.text('-', 60, currentY + 16);
+// Right column
+pdf.setFont('helvetica', 'bold');
+pdf.text('Evaluator / Lab SP:', 110, currentY + 4);
+pdf.text('Serial Number:', 110, currentY + 8);
+pdf.text('Mean Type:', 110, currentY + 12);
+pdf.text('Specifications:', 110, currentY + 16);
+pdf.setFont('helvetica', 'normal');
+pdf.text('-', 155, currentY + 4);
+pdf.text(device.id || '5080', 155, currentY + 8);
+const meanTypeText = Object.values(appData.meanType).every(t => t === 'lab') ? 'LAB Mean' :
+Object.values(appData.meanType).every(t => t === 'factory') ? 'FACTORY Mean' : 'Mixed Mean';
+pdf.text(meanTypeText, 155, currentY + 12);
+pdf.text('Manufacturer Specifications', 155, currentY + 16);
+currentY += 22;
+}
+function drawQCParameters(data, numLevels) {
+// QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION Section
+pdf.setFillColor(220, 220, 220);
+pdf.rect(10, currentY, pageWidth - 20, 6, 'F');
+pdf.setFontSize(10);
+pdf.setFont('helvetica', 'bold');
+pdf.text('QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION', 12, currentY + 4);
+currentY += 6;
+// Table headers - Fit to content (Total width = 190mm)
+const colWidths = [35, 40, 50, 35, 30];
+const startX = 10;
+// Draw header background
+pdf.setFillColor(230, 230, 230);
+let x = startX;
+for (let w of colWidths) {
+pdf.rect(x, currentY, w, 6, 'F');
+x += w;
+}
+pdf.setFontSize(8);
+pdf.setFont('helvetica', 'bold');
+pdf.text('Control Level', startX + 2, currentY + 4);
+pdf.text('Target QC Mean', startX + colWidths[0] + colWidths[1]/2, currentY + 4, { align: 'center' });
+pdf.text('Standard Deviation (SD)', startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 4, { align: 'center' });
+pdf.text('Expiration Date', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 4, { align: 'center' });
+pdf.text('Lot Number', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 4, { align: 'center' });
+currentY += 6;
+// Data rows
+pdf.setFont('helvetica', 'normal');
+pdf.setFontSize(8);
+for (let l = 1; l <= numLevels; l++) {
+x = startX;
+for (let w of colWidths) {
+pdf.rect(x, currentY, w, 5);
+x += w;
+}
+const mean = (data.factoryMean && data.factoryMean[`L${l}`]) ? data.factoryMean[`L${l}`].toFixed(3) : '0.000';
+const sd = (data.factorySD && data.factorySD[`L${l}`]) ? data.factorySD[`L${l}`].toFixed(3) : '0.000';
+const exp = (data.exp && data.exp[`L${l}`]) || 'Aug-2026';
+const lot = (data.lot && data.lot[`L${l}`]) || '5080-' + l;
+pdf.text(`Level ${l} (L${l})`, startX + 2, currentY + 3.5);
+pdf.text(mean, startX + colWidths[0] + colWidths[1]/2, currentY + 3.5, { align: 'center' });
+pdf.text(sd, startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 3.5, { align: 'center' });
+pdf.text(exp, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 3.5, { align: 'center' });
+pdf.text(lot, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 3.5, { align: 'center' });
+currentY += 5;
+}
+currentY += 4;
+}
+function drawDataTable(data, numLevels) {
+// DAILY RUN LOG DATA Section
+pdf.setFillColor(220, 220, 220);
+pdf.rect(10, currentY, pageWidth - 20, 6, 'F');
+pdf.setFontSize(10);
+pdf.setFont('helvetica', 'bold');
+pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4);
+currentY += 6;
+const colWidth = 23;
+const dateColWidth = 22;
+const startX = 10;
+// Split data into 2 columns (left and right)
+const halfLength = Math.ceil(data.dates.length / 2);
+// Draw headers for both columns
+for (let col = 0; col < 2; col++) {
+const colStartX = startX + col * (dateColWidth + colWidth * numLevels + 5);
+pdf.setFillColor(230, 230, 230);
+pdf.rect(colStartX, currentY, dateColWidth, 5, 'F');
+for (let l = 1; l <= numLevels; l++) {
+pdf.rect(colStartX + dateColWidth + (l-1) * colWidth, currentY, colWidth, 5, 'F');
+}
+pdf.setFontSize(7);
+pdf.setFont('helvetica', 'bold');
+pdf.text('Run Date', colStartX + 2, currentY + 3.5);
+for (let l = 1; l <= numLevels; l++) {
+pdf.text(`L${l} Result`, colStartX + dateColWidth + (l-1) * colWidth + colWidth/2, currentY + 3.5, { align: 'center' });
+}
+}
+currentY += 5;
+// Draw data rows
+pdf.setFont('helvetica', 'normal');
+pdf.setFontSize(7);
+const maxRows = Math.max(halfLength, data.dates.length - halfLength);
+for (let row = 0; row < maxRows; row++) {
+for (let col = 0; col < 2; col++) {
+const idx = col === 0 ? row : halfLength + row;
+if (idx >= data.dates.length) continue;
+const colStartX = startX + col * (dateColWidth + colWidth * numLevels + 5);
+pdf.rect(colStartX, currentY, dateColWidth, 4);
+const dateStr = data.dates[idx] || '';
+const shortDate = dateStr.substring(0, dateStr.indexOf('-') + 3) + '-' + dateStr.substring(dateStr.length - 2);
+pdf.text(shortDate, colStartX + 2, currentY + 3);
+for (let l = 1; l <= numLevels; l++) {
+pdf.rect(colStartX + dateColWidth + (l-1) * colWidth, currentY, colWidth, 4);
+const val = data[`L${l}`] && data[`L${l}`][idx] !== undefined ? data[`L${l}`][idx].toFixed(2) : '—';
+pdf.text(val, colStartX + dateColWidth + (l-1) * colWidth + colWidth/2, currentY + 3, { align: 'center' });
+}
+}
+currentY += 4;
+}
+currentY += 4;
+}
+function drawLJCharts(analyte, data, numLevels) {
+// LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS Section
+pdf.setFillColor(220, 220, 220);
+pdf.rect(10, currentY, pageWidth - 20, 6, 'F');
+pdf.setFontSize(10);
+pdf.setFont('helvetica', 'bold');
+pdf.text('LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS', 12, currentY + 4);
+// >>> ADDED 1.8 SPACE HERE (Changed from 8 to 9.8) <<<
+currentY += 9.8;
+const chartWidth = 170;
+const chartHeight = 40;
+const startX = 20;
+for (let l = 1; l <= numLevels; l++) {
+try {
+// Calculate mean and SD for title
+const values = getNonExcludedValues(analyte, l, appData.currentYear, appData.currentMonth);
+const mean = calcMean(values);
+const sd = calcSD(values, mean);
+// Chart title
+pdf.setFontSize(8);
+pdf.setFont('helvetica', 'bold');
+pdf.text(`${analyte} - Level ${l} (Target: ${mean.toFixed(2)} ± ${sd.toFixed(2)})`, 12, currentY);
+currentY += 2;
+// Draw chart border
+pdf.setDrawColor(0);
+pdf.setLineWidth(0.2);
+pdf.rect(startX, currentY, chartWidth, chartHeight);
+// Determine Y axis range
+const minY = mean - 3 * sd;
+const maxY = mean + 3 * sd;
+const yRange = maxY - minY;
+// Helper to map Y value to PDF Y coordinate
+const mapY = (val) => currentY + chartHeight - ((val - minY) / yRange) * chartHeight;
+// Draw horizontal lines (Mean, +/- 1SD, +/- 2SD, +/- 3SD)
+pdf.setLineWidth(0.1);
+// Mean line (solid)
+pdf.setDrawColor(0);
+pdf.line(startX, mapY(mean), startX + chartWidth, mapY(mean));
+// +/- 1SD (dashed)
+pdf.setDrawColor(100);
+pdf.setLineDashPattern([2, 2], 0);
+pdf.line(startX, mapY(mean + sd), startX + chartWidth, mapY(mean + sd));
+pdf.line(startX, mapY(mean - sd), startX + chartWidth, mapY(mean - sd));
+// +/- 2SD (dashed)
+pdf.line(startX, mapY(mean + 2*sd), startX + chartWidth, mapY(mean + 2*sd));
+pdf.line(startX, mapY(mean - 2*sd), startX + chartWidth, mapY(mean - 2*sd));
+// +/- 3SD (dotted)
+pdf.setLineDashPattern([1, 1], 0);
+pdf.line(startX, mapY(mean + 3*sd), startX + chartWidth, mapY(mean + 3*sd));
+pdf.line(startX, mapY(mean - 3*sd), startX + chartWidth, mapY(mean - 3*sd));
+pdf.setLineDashPattern([], 0); // reset
+// Draw data points and lines
+const levelData = data[`L${l}`];
+if (levelData && levelData.length > 0) {
+pdf.setDrawColor(0);
+pdf.setLineWidth(0.3);
+pdf.setFontSize(6);
+pdf.setFont('helvetica', 'normal');
+let prevX = null;
+let prevY = null;
+for (let i = 0; i < levelData.length; i++) {
+const val = levelData[i];
+if (val === undefined || val === null) continue;
+const x = startX + (i / (levelData.length - 1 || 1)) * chartWidth;
+const y = mapY(val);
+// Draw line
+if (prevX !== null) {
+pdf.line(prevX, prevY, x, y);
+}
+// Draw point
+pdf.circle(x, y, 0.8, 'F');
+prevX = x;
+prevY = y;
+}
+}
+// Draw X axis labels
+pdf.setFontSize(6);
+pdf.setFont('helvetica', 'normal');
+for (let i = 0; i < data.dates.length; i++) {
+const x = startX + (i / (data.dates.length - 1 || 1)) * chartWidth;
+const dateStr = data.dates[i] || '';
+const day = dateStr.substring(0, 2);
+if (i === 0 || i === data.dates.length - 1 || i % 2 === 0) {
+pdf.text(day, x - 2, currentY + chartHeight + 3);
+}
+}
+currentY += chartHeight + 8;
+} catch (e) {
+console.error('Error drawing chart:', e);
+}
+}
+}
+function drawFooter() {
+pdf.setFontSize(8);
+pdf.setFont('helvetica', 'italic');
+pdf.text('QC Managment By LAB SP.Mohammed Al Desoqy ', pageWidth - 50, pageHeight - 10, { align: 'right' });
+}
+// Process each analyte
+for (const analyte of analytesToPrint) {
+const numLevels = getAnalyteLevels(analyte);
+const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
+if (!data || !data.dates || data.dates.length === 0) continue;
+// Temporarily switch to this analyte to render charts correctly
+const prevAnalyte = appData.currentAnalyte;
+appData.currentAnalyte = analyte;
+updateDashboard();
+await new Promise(r => setTimeout(r, 400));
+drawHeader(analyte, data, numLevels);
+drawQCParameters(data, numLevels);
+drawDataTable(data, numLevels);
+await drawLJCharts(analyte, data, numLevels);
+drawFooter();
+appData.currentAnalyte = prevAnalyte;
+}
+// Restore original analyte and refresh
+updateDashboard();
+// Save PDF
+const filename = `QC_Report_${device.name}_${periodStr.replace(' ', '_')}.pdf`;
+pdf.save(filename);
+showNotification('PDF report generated!');
+}
+// END Report
+function printCurrent() {
+const analytesToPrint = [appData.currentAnalyte];
+generatePDFReport(analytesToPrint);
+}
+function printAll() {
+const device = appData.devices[appData.currentDevice];
+const analytesToPrint = device.analytes.filter(a => {
+const data = getMonthData(device, a, appData.currentYear, appData.currentMonth);
+return data && data.dates && data.dates.length > 0;
+});
+if (analytesToPrint.length === 0) {
+alert('No data available for this period!');
+return;
+}
+generatePDFReport(analytesToPrint);
+}
+
+// =====================================================================
+// FIXED: Export Excel - structured format with metadata row
+// Row 0: Headers (Date, Analyzer, Period, Analyte.L1, Analyte.L2, ..., META)
+// Row 1..N: Data rows (date, analyzer, '', L1, L2, L3, ...)
+// Row N+1: META row with factoryMean, factorySD, permissibleCV, lot, exp
+// Row N+2: STATS row (optional summary)
+// =====================================================================
+function exportExcel() {
+    const wb = XLSX.utils.book_new();
+    const device = appData.devices[appData.currentDevice];
+    const analyte = appData.currentAnalyte;
+    const data = getCurrentData();
+    const numLevels = getAnalyteLevels(analyte);
+
+    if (!data || data.dates.length === 0) {
+        alert('No data to export!');
+        return;
+    }
+
+    // --- Build header row ---
+    const header = ['Date', 'Analyzer', 'Period'];
+    for (let l = 1; l <= numLevels; l++) header.push(`${analyte}.L${l}`);
+    // Metadata columns (at the end)
+    for (let l = 1; l <= numLevels; l++) header.push(`FactoryMean.L${l}`);
+    for (let l = 1; l <= numLevels; l++) header.push(`FactorySD.L${l}`);
+    for (let l = 1; l <= numLevels; l++) header.push(`PermissibleCV.L${l}`);
+    for (let l = 1; l <= numLevels; l++) header.push(`Lot.L${l}`);
+    for (let l = 1; l <= numLevels; l++) header.push(`Exp.L${l}`);
+
+    const wsData = [header];
+
+    // --- Build data rows ---
+    const maxRows = data.dates.length;
+    for (let i = 0; i < maxRows; i++) {
+        const row = [
+            data.dates[i] || '',
+            device.analyzer || '',
+            `${getMonthName()} ${appData.currentYear}`
+        ];
+        for (let l = 1; l <= numLevels; l++) {
+            const val = data[`L${l}`] && data[`L${l}`][i] !== undefined ? data[`L${l}`][i] : '';
+            row.push(val);
+        }
+        // Fill metadata columns with empty strings for data rows
+        for (let l = 1; l <= numLevels * 5; l++) row.push('');
+        wsData.push(row);
+    }
+
+    // --- Build META row (stores factory params, lot, exp, levels) ---
+    const metaRow = ['__META__', device.analyzer || '', `${getMonthName()} ${appData.currentYear}`];
+    for (let l = 1; l <= numLevels; l++) metaRow.push(''); // L values empty
+    for (let l = 1; l <= numLevels; l++) metaRow.push(data.factoryMean && data.factoryMean[`L${l}`] ? data.factoryMean[`L${l}`] : 0);
+    for (let l = 1; l <= numLevels; l++) metaRow.push(data.factorySD && data.factorySD[`L${l}`] ? data.factorySD[`L${l}`] : 0);
+    for (let l = 1; l <= numLevels; l++) metaRow.push(data.permissibleCV && data.permissibleCV[`L${l}`] ? data.permissibleCV[`L${l}`] : 10);
+    for (let l = 1; l <= numLevels; l++) metaRow.push(data.lot && data.lot[`L${l}`] ? data.lot[`L${l}`] : '');
+    for (let l = 1; l <= numLevels; l++) metaRow.push(data.exp && data.exp[`L${l}`] ? data.exp[`L${l}`] : '');
+    wsData.push(metaRow);
+
+    // --- Build CONFIG row (stores numLevels + analyte name) ---
+    const configRow = ['__CONFIG__', analyte, numLevels, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+    wsData.push(configRow);
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Auto-width columns
+    const colWidths = header.map(h => ({ wch: Math.max(String(h).length, 12) }));
+    ws['!cols'] = colWidths;
+
+    const sheetName = `${analyte}_${getMonthName()}${appData.currentYear}`.substring(0, 31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+    const filename = `QC_${device.name}_${analyte}_${getMonthName()}_${appData.currentYear}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showNotification('Excel exported!');
+}
+
+// =====================================================================
+// FIXED: Import Excel - reads header to find column positions,
+// parses __META__ and __CONFIG__ rows, supports multiple sheets
+// =====================================================================
+function importExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const wb = XLSX.read(e.target.result, { type: 'array' });
+            const device = appData.devices[appData.currentDevice];
+            let importedCount = 0;
+
+            wb.SheetNames.forEach(sheetName => {
+                const ws = wb.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                if (jsonData.length < 2) return;
+
+                // --- Parse header row to find column positions ---
+                const header = jsonData[0].map(h => String(h).trim());
+                const colIndex = {};
+                header.forEach((h, idx) => { colIndex[h] = idx; });
+
+                // Determine analyte name from sheet name (format: "Analyte_MonthYear")
+                let analyteName = sheetName.split('_')[0].trim();
+                if (!analyteName) analyteName = 'Imported';
+
+                // Find level columns dynamically
+                const levelCols = {}; // { 1: colIdx, 2: colIdx, 3: colIdx }
+                let maxLevel = 0;
+                header.forEach((h, idx) => {
+                    const match = h.match(/^(.+)\.L(\d+)$/);
+                    if (match) {
+                        const lvl = parseInt(match[2]);
+                        levelCols[lvl] = idx;
+                        if (lvl > maxLevel) maxLevel = lvl;
+                        // Update analyte name from first match if available
+                        if (Object.keys(levelCols).length === 1) {
+                            const detectedAnalyte = match[1].trim();
+                            if (detectedAnalyte) analyteName = detectedAnalyte;
+                        }
+                    }
+                });
+
+                if (maxLevel === 0) return; // No level columns found
+
+                const dateCol = colIndex['Date'] !== undefined ? colIndex['Date'] : 0;
+                const analyzerCol = colIndex['Analyzer'] !== undefined ? colIndex['Analyzer'] : 1;
+
+                // Find metadata column positions
+                const metaCols = {
+                    factoryMean: {}, factorySD: {}, permissibleCV: {}, lot: {}, exp: {}
+                };
+                header.forEach((h, idx) => {
+                    let m;
+                    if ((m = h.match(/^FactoryMean\.L(\d+)$/))) metaCols.factoryMean[parseInt(m[1])] = idx;
+                    else if ((m = h.match(/^FactorySD\.L(\d+)$/))) metaCols.factorySD[parseInt(m[1])] = idx;
+                    else if ((m = h.match(/^PermissibleCV\.L(\d+)$/))) metaCols.permissibleCV[parseInt(m[1])] = idx;
+                    else if ((m = h.match(/^Lot\.L(\d+)$/))) metaCols.lot[parseInt(m[1])] = idx;
+                    else if ((m = h.match(/^Exp\.L(\d+)$/))) metaCols.exp[parseInt(m[1])] = idx;
+                });
+
+                // --- Initialize data structure ---
+                if (!device.data[analyteName]) device.data[analyteName] = {};
+                if (!device.data[analyteName][appData.currentYear]) device.data[analyteName][appData.currentYear] = {};
+                const data = createEmptyData();
+
+                // --- Read data rows ---
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || row.length === 0) continue;
+                    const firstCell = String(row[0] || '').trim();
+
+                    // Skip META and CONFIG rows
+                    if (firstCell === '__META__' || firstCell === '__CONFIG__' || firstCell === 'STATS') continue;
+
+                    // Skip empty date rows
+                    if (!firstCell) continue;
+
+                    data.dates.push(firstCell);
+
+                    for (let l = 1; l <= maxLevel; l++) {
+                        const colIdx = levelCols[l];
+                        if (colIdx === undefined) continue;
+                        const val = row[colIdx];
+                        const numVal = parseFloat(val);
+                        if (!data[`L${l}`]) data[`L${l}`] = [];
+                        data[`L${l}`].push(isNaN(numVal) ? null : numVal);
+                    }
+
+                    // Fill remaining levels with null if needed
+                    for (let l = maxLevel + 1; l <= 3; l++) {
+                        if (!data[`L${l}`]) data[`L${l}`] = [];
+                        data[`L${l}`].push(null);
+                    }
+                }
+
+                // --- Read __META__ row ---
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || String(row[0] || '').trim() !== '__META__') continue;
+
+                    for (let l = 1; l <= maxLevel; l++) {
+                        if (metaCols.factoryMean[l] !== undefined) {
+                            const v = parseFloat(row[metaCols.factoryMean[l]]);
+                            data.factoryMean[`L${l}`] = isNaN(v) ? 0 : v;
+                        }
+                        if (metaCols.factorySD[l] !== undefined) {
+                            const v = parseFloat(row[metaCols.factorySD[l]]);
+                            data.factorySD[`L${l}`] = isNaN(v) ? 0 : v;
+                        }
+                        if (metaCols.permissibleCV[l] !== undefined) {
+                            const v = parseFloat(row[metaCols.permissibleCV[l]]);
+                            data.permissibleCV[`L${l}`] = isNaN(v) ? 10 : v;
+                        }
+                        if (metaCols.lot[l] !== undefined) {
+                            data.lot[`L${l}`] = String(row[metaCols.lot[l]] || '');
+                        }
+                        if (metaCols.exp[l] !== undefined) {
+                            data.exp[`L${l}`] = String(row[metaCols.exp[l]] || '');
+                        }
+                    }
+                    break;
+                }
+
+                // --- Read __CONFIG__ row (to get numLevels) ---
+                let importedLevels = maxLevel;
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || String(row[0] || '').trim() !== '__CONFIG__') continue;
+                    const cfgLevels = parseInt(row[2]);
+                    if (!isNaN(cfgLevels) && cfgLevels >= 2 && cfgLevels <= 3) {
+                        importedLevels = cfgLevels;
+                    }
+                    break;
+                }
+
+                // Store the data
+                device.data[analyteName][appData.currentYear][appData.currentMonth] = data;
+
+                // Register analyte if new
+                if (!device.analytes.includes(analyteName)) {
+                    device.analytes.push(analyteName);
+                }
+                appData.analyteLevels[analyteName] = importedLevels;
+
+                importedCount++;
+            });
+
+            if (importedCount === 0) {
+                alert('No valid data found in the Excel file!');
+                return;
+            }
+
+            // Refresh UI
+            buildSidebar();
+            buildAnalyteBar();
+            updateMonthBadges();
+            updateDashboard();
+            if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+            showNotification(`Excel imported! (${importedCount} analyte(s))`);
+        } catch (err) {
+            console.error('Import error:', err);
+            alert('Error importing file: ' + err.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+}
+
+function showNotification(msg) { const n = document.getElementById('notification'); n.textContent = msg; n.style.display = 'block'; setTimeout(() => { n.style.display = 'none'; }, 3000); }
+function exitApp() { if (confirm('Exit?')) document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#e74c3c;font-size:24px;background:#1a1a2e;">Application Closed</div>'; }
+</script>
+</body>
+</html>
