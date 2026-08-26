@@ -8,71 +8,117 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- Firebase SDKs -->
+
+
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig = {
+apiKey: "AIzaSyBEvpekc492iwnhxX5y3x2ufrMOtqqN0AI",
+authDomain: "qmsap-fca73.firebaseapp.com",
+projectId: "qmsap-fca73",
+storageBucket: "qmsap-fca73.firebasestorage.app",
+messagingSenderId: "658389329307",
+appId: "1:658389329307:web:82dfbc42e992bdd4ccad3e",
+measurementId: "G-8V84GZ4RLW"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBEvpekc492iwnhxX5y3x2ufrMOtqqN0AI",
-    authDomain: "qmsap-fca73.firebaseapp.com",
-    projectId: "qmsap-fca73",
-    storageBucket: "qmsap-fca73.firebasestorage.app",
-    messagingSenderId: "658389329307",
-    appId: "1:658389329307:web:82dfbc42e992bdd4ccad3e",
-    measurementId: "G-8V84GZ4RLW"
-  };
-
-  const fbApp = initializeApp(firebaseConfig);
-  const db = getFirestore(fbApp);
-
-  // Auto-save timer variable
-  let autoSaveTimeout;
-
-  window.saveToCloud = async () => {
-    try {
-      await setDoc(doc(db, "qmsap_data", "main"), appData);
-      showNotification('☁️ Saved to Cloud');
-    } catch (e) { 
-      console.error("Error saving: ", e); 
-      showNotification('Error saving to cloud'); 
+// Helper function to remove undefined values recursively
+function cleanData(obj) {
+    if (obj === null || obj === undefined) return null;
+    if (typeof obj !== 'object') return obj;
+    
+    if (Array.isArray(obj)) {
+        return obj.map(item => cleanData(item));
     }
-  };
+    
+    const cleaned = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = cleanData(obj[key]);
+            if (value !== undefined) {
+                cleaned[key] = value;
+            }
+        }
+    }
+    return cleaned;
+}
 
-  // Trigger auto-save with a delay to prevent spamming the database
-  window.triggerAutoSave = () => {
-    clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(() => {
-      window.saveToCloud();
-    }, 2000); // Waits 2 seconds after last change before saving
-  };
-
-  window.loadFromCloud = async () => {
-    try {
-      const docRef = doc(db, "qmsap_data", "main");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        Object.assign(appData, docSnap.data());
-        buildSidebar(); 
-        buildAnalyteBar(); 
-        updateMonthBadges(); 
-        updateInstitutionDisplay(); 
-        updateDashboard(); 
+// Auto-save timer variable
+let autoSaveTimeout;
+window.saveToCloud = async () => {
+try {
+    // Clean the data before saving to remove undefined values
+    const cleanAppData = cleanData(appData);
+    await setDoc(doc(db, "qmsap_data", "main"), cleanAppData);
+    showNotification('☁️ Saved to Cloud');
+} catch (e) {
+console.error("Error saving: ", e);
+showNotification('Error saving to cloud: ' + e.message);
+}
+};
+// Trigger auto-save with a delay to prevent spamming the database
+window.triggerAutoSave = () => {
+clearTimeout(autoSaveTimeout);
+autoSaveTimeout = setTimeout(() => {
+window.saveToCloud();
+}, 2000); // Waits 2 seconds after last change before saving
+};
+// Silent Load Function (No Notification)
+window.loadFromCloudSilent = async () => {
+try {
+const docRef = doc(db, "qmsap_data", "main");
+const docSnap = await getDoc(docRef);
+if (docSnap.exists()) {
+    // Merge loaded data carefully to avoid overwriting with undefined if structure differs
+    const loadedData = docSnap.data();
+    Object.assign(appData, loadedData);
+    // Refresh all UI components silently
+    buildSidebar();
+    buildAnalyteBar();
+    updateMonthBadges();
+    updateInstitutionDisplay();
+    updateDashboard();
+    if (document.getElementById('spreadsheetView').classList.contains('active')) {
         populateSpreadsheet();
-        showNotification('QMSAP Data loaded from Cloud! 📂');
-      } else { 
-        showNotification('No cloud data found.'); 
-      }
-    } catch (e) { 
-      console.error("Error loading: ", e); 
-      showNotification('Error loading from cloud'); 
     }
-  };
-
-  // Auto-load on start
-  window.addEventListener('load', () => {
-    setTimeout(() => window.loadFromCloud(), 1000);
-  });
+}
+} catch (e) {
+console.error("Error loading: ", e);
+}
+};
+// Manual Load Function (With Notification)
+window.loadFromCloud = async () => {
+try {
+const docRef = doc(db, "qmsap_data", "main");
+const docSnap = await getDoc(docRef);
+if (docSnap.exists()) {
+    const loadedData = docSnap.data();
+    Object.assign(appData, loadedData);
+    buildSidebar();
+    buildAnalyteBar();
+    updateMonthBadges();
+    updateInstitutionDisplay();
+    updateDashboard();
+    populateSpreadsheet();
+    showNotification('QMSAP Data loaded from Cloud! 📂');
+} else {
+showNotification('No cloud data found.');
+}
+} catch (e) {
+console.error("Error loading: ", e);
+showNotification('Error loading from cloud');
+}
+};
+// Auto-load on start (Silent)
+window.addEventListener('load', () => {
+setTimeout(() => window.loadFromCloudSilent(), 1000);
+});
 </script>
+
+
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
@@ -210,7 +256,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .spreadsheet-table input.sd-1 { background: rgba(255, 255, 0, 0.15); color: #ffffaa; } /* 1-2 SD */
 .spreadsheet-table input.sd-2 { background: rgba(255, 165, 0, 0.2); color: #ffcc80; } /* 2-3 SD */
 .spreadsheet-table input.sd-3 { background: rgba(255, 0, 0, 0.2); color: #ffaaaa; } /* >3 SD */
-
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
 .modal-overlay.active { display: flex; }
 .modal { background: #16213e; border-radius: 10px; padding: 25px; min-width: 400px; max-width: 700px; max-height: 90vh; overflow-y: auto; border: 1px solid #e74c3c; }
@@ -343,7 +388,8 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="auto-panel westgard-panel">
 <div class="panel-title">Westgard Multi Rules</div>
 <table class="westgard-table">
-<thead><tr><th></th><th>L1</th><th>L2</th><th id="wgH3" style="display:none">L3</th></tr></thead>
+<!-- REMOVED EMPTY DATE HEADER CELL -->
+<thead><tr><th>L1</th><th>L2</th><th id="wgH3" style="display:none">L3</th></tr></thead>
 <tbody id="westgardBody"></tbody>
 </table>
 </div>
@@ -500,6 +546,12 @@ LEVEL 1: -<br>LEVEL 2: -
 <div class="modal-overlay" id="settingsModal">
 <div class="modal">
 <h3>⚙️ Settings</h3>
+<!-- Settings Tabs -->
+<div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+<button class="modal-btn secondary" onclick="showSettingsTab('general')" id="tab-general" style="background:#e74c3c;">General</button>
+<button class="modal-btn secondary" onclick="showSettingsTab('report')" id="tab-report">Report Layout</button>
+</div>
+<div id="settings-general">
 <div class="settings-grid">
 <div class="settings-group">
 <h4>Institution & Logo</h4>
@@ -560,6 +612,34 @@ LEVEL 1: -<br>LEVEL 2: -
 <input type="text" id="setExp3">
 </div>
 </div>
+</div>
+<div id="settings-report" style="display:none;">
+<div class="settings-grid">
+<div class="settings-group">
+<h4>QC Parameters Table</h4>
+<label>Column Widths (mm) [Lvl, Mean, SD, Exp, Lot]</label>
+<input type="text" id="setRepQcCols" placeholder="e.g. 25, 30, 40, 25, 20">
+<label>Font Size</label>
+<input type="number" id="setRepQcFont" step="1">
+</div>
+<div class="settings-group">
+<h4>Daily Run Log Table</h4>
+<label>Date Col Width (mm)</label>
+<input type="number" id="setRepLogDateW" step="1">
+<label>Result Col Width (mm)</label>
+<input type="number" id="setRepLogResW" step="1">
+<label>Font Size</label>
+<input type="number" id="setRepLogFont" step="1">
+</div>
+<div class="settings-group">
+<h4>Levey-Jennings Charts</h4>
+<label>Chart Width (mm)</label>
+<input type="number" id="setRepChartW" step="1">
+<label>Chart Height (mm)</label>
+<input type="number" id="setRepChartH" step="1">
+</div>
+</div>
+</div>
 <div class="modal-btns">
 <button class="modal-btn secondary" onclick="closeSettings()">Cancel</button>
 <button class="modal-btn primary" onclick="applySettings()">Apply</button>
@@ -607,6 +687,16 @@ meanType: { L1: 'lab', L2: 'lab', L3: 'lab' },
 analyteLevels: {},
 excludedValues: {},
 institution: { nameAr: 'نسخة تجريبية', nameEn: 'trial version', logo: '' },
+// Default Report Settings
+reportSettings: {
+qcColWidths: [25, 30, 40, 25, 20],
+qcFontSize: 7,
+logDateWidth: 16,
+logResWidth: 18,
+logFontSize: 6,
+chartWidth: 160,
+chartHeight: 35
+},
 devices: {
 hormones: { id: 'hormones', name: 'Hormones', analyzer: 'COBAS e411', analytes: ['E2', 'FSH', 'LH', 'PRL', 'TESTO', 'TSH', 'B-HCG'], numLevels: 2, labSP: 'Mohammed El Desoqy', designee: 'Mohammed El Desoqy', data: {} },
 chemistry: { id: 'chemistry', name: 'Chemistry', analyzer: 'AU5800', analytes: ['GLU', 'UREA', 'CREA', 'ALT', 'AST'], numLevels: 2, labSP: '', designee: '', data: {} },
@@ -835,7 +925,22 @@ appData.currentAnalyte = name; closeAddTest(); buildAnalyteBar(); updateMonthBad
 }
 function setupNavButtons() { document.querySelectorAll('.nav-btn[data-view]').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); showView(btn.dataset.view); }); }); }
 function setupLevelSelect() { document.getElementById('levelSelect').addEventListener('change', function() { const nl = parseInt(this.value); appData.numLevels = nl; appData.devices[appData.currentDevice].numLevels = nl; appData.analyteLevels[appData.currentAnalyte] = nl; if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }); }
-function showView(view) { document.getElementById('dashboardView').classList.remove('active'); document.getElementById('spreadsheetView').classList.remove('active'); document.getElementById('imprecisionView').classList.remove('active'); if (view === 'dashboard') { document.getElementById('dashboardView').classList.add('active'); updateDashboard(); } else if (view === 'spreadsheet') { document.getElementById('spreadsheetView').classList.add('active'); populateSpreadsheet(); } else { document.getElementById('imprecisionView').classList.add('active'); } }
+function showView(view) {
+document.getElementById('dashboardView').classList.remove('active');
+document.getElementById('spreadsheetView').classList.remove('active');
+document.getElementById('imprecisionView').classList.remove('active');
+// Add this line to load data when switching views
+window.loadFromCloudSilent();
+if (view === 'dashboard') {
+document.getElementById('dashboardView').classList.add('active');
+updateDashboard();
+} else if (view === 'spreadsheet') {
+document.getElementById('spreadsheetView').classList.add('active');
+populateSpreadsheet();
+} else {
+document.getElementById('imprecisionView').classList.add('active');
+}
+}
 function toggleMeanType(level) { const key = `L${level}`; if (appData.meanType[key] === 'lab') { appData.meanType[key] = 'factory'; document.getElementById(`labelL${level}`).textContent = `FACTORY Mean L${level}`; } else { appData.meanType[key] = 'lab'; document.getElementById(`labelL${level}`).textContent = `LAB Mean L${level}`; } updateDashboard(); }
 function openRename(type, id) { appData.renameTarget = { type, id }; document.getElementById('renameTitle').textContent = type === 'device' ? 'Rename Device' : 'Rename Test'; document.getElementById('renameInput').value = type === 'device' ? appData.devices[id].name : id; document.getElementById('renameModal').classList.add('active'); setTimeout(() => document.getElementById('renameInput').focus(), 100); }
 function closeRename() { document.getElementById('renameModal').classList.remove('active'); }
@@ -893,60 +998,53 @@ const rules = [];
 const n = values.length;
 if (n === 0 || sd === 0) return rules;
 const z = values.map(v => (v - mean) / sd);
-
 for (let i = 0; i < n; i++) {
-    let ruleFound = false;
-
-    // 1) 1-3s: single value beyond ±3SD → REJECT (highest priority)
-    if (Math.abs(z[i]) > 3) {
-        rules.push({ rule: '1-3s', index: i, type: 'reject' });
-        ruleFound = true;
-    }
-
-    // 2) 2-2s: two consecutive values beyond ±2SD on the SAME side → REJECT
-    if (!ruleFound && i >= 1 && Math.abs(z[i]) > 2 && Math.abs(z[i-1]) > 2 && Math.sign(z[i]) === Math.sign(z[i-1])) {
-        rules.push({ rule: '2-2s', index: i, type: 'reject' });
-        ruleFound = true;
-    }
-
-    // 3) R-4s: range between two consecutive values exceeds 4SD
-    //    (typically one above +2SD and next below -2SD, or vice versa) → REJECT
-    if (!ruleFound && i >= 1 && Math.abs(values[i] - values[i-1]) > 4 * sd) {
-        rules.push({ rule: 'R-4s', index: i, type: 'reject' });
-        ruleFound = true;
-    }
-
-    // 4) 4-1s: four consecutive values beyond ±1SD on the SAME side → REJECT
-    if (!ruleFound && i >= 3) {
-        const side = Math.sign(z[i]);
-        let count = 0;
-        for (let j = i; j > i - 4; j--) {
-            if (Math.sign(z[j]) === side && Math.abs(z[j]) > 1) count++;
-        }
-        if (count >= 4) {
-            rules.push({ rule: '4-1s', index: i, type: 'reject' });
-            ruleFound = true;
-        }
-    }
-
-    // 5) 8-X: eight consecutive values on the SAME side of the mean → REJECT
-    if (!ruleFound && i >= 7) {
-        const side = Math.sign(z[i]);
-        let allSame = true;
-        for (let j = i; j > i - 8; j--) {
-            if (Math.sign(z[j]) !== side) { allSame = false; break; }
-        }
-        if (allSame) {
-            rules.push({ rule: '8-X', index: i, type: 'reject' });
-            ruleFound = true;
-        }
-    }
-
-    // 6) 1-2s: single value beyond ±2SD → WARNING (lowest priority)
-    // Only show if no other rule was triggered for this point
-    if (!ruleFound && Math.abs(z[i]) > 2) {
-        rules.push({ rule: '1-2s', index: i, type: 'warning' });
-    }
+let ruleFound = false;
+// 1) 1-3s: single value beyond ±3SD → REJECT (highest priority)
+if (Math.abs(z[i]) > 3) {
+rules.push({ rule: '1-3s', index: i, type: 'reject' });
+ruleFound = true;
+}
+// 2) 2-2s: two consecutive values beyond ±2SD on the SAME side → REJECT
+if (!ruleFound && i >= 1 && Math.abs(z[i]) > 2 && Math.abs(z[i-1]) > 2 && Math.sign(z[i]) === Math.sign(z[i-1])) {
+rules.push({ rule: '2-2s', index: i, type: 'reject' });
+ruleFound = true;
+}
+// 3) R-4s: range between two consecutive values exceeds 4SD
+//    (typically one above +2SD and next below -2SD, or vice versa) → REJECT
+if (!ruleFound && i >= 1 && Math.abs(values[i] - values[i-1]) > 4 * sd) {
+rules.push({ rule: 'R-4s', index: i, type: 'reject' });
+ruleFound = true;
+}
+// 4) 4-1s: four consecutive values beyond ±1SD on the SAME side → REJECT
+if (!ruleFound && i >= 3) {
+const side = Math.sign(z[i]);
+let count = 0;
+for (let j = i; j > i - 4; j--) {
+if (Math.sign(z[j]) === side && Math.abs(z[j]) > 1) count++;
+}
+if (count >= 4) {
+rules.push({ rule: '4-1s', index: i, type: 'reject' });
+ruleFound = true;
+}
+}
+// 5) 8-X: eight consecutive values on the SAME side of the mean → REJECT
+if (!ruleFound && i >= 7) {
+const side = Math.sign(z[i]);
+let allSame = true;
+for (let j = i; j > i - 8; j--) {
+if (Math.sign(z[j]) !== side) { allSame = false; break; }
+}
+if (allSame) {
+rules.push({ rule: '8-X', index: i, type: 'reject' });
+ruleFound = true;
+}
+}
+// 6) 1-2s: single value beyond ±2SD → WARNING (lowest priority)
+// Only show if no other rule was triggered for this point
+if (!ruleFound && Math.abs(z[i]) > 2) {
+rules.push({ rule: '1-2s', index: i, type: 'warning' });
+}
 }
 return rules;
 }
@@ -1123,6 +1221,7 @@ tr.appendChild(td3);
 tbody.appendChild(tr);
 }
 }
+// UPDATED: Removed date column from Westgard Table
 function updateWestgardTable(data, numLevels) {
 const tbody = document.getElementById('westgardBody'); tbody.innerHTML = '';
 const analyte = appData.currentAnalyte;
@@ -1163,17 +1262,24 @@ rulesL3 = westgardRules(valuesL3, meanL3, sdL3);
 }
 for (let i = 0; i < data.dates.length; i++) {
 if (!rowHasData(data, i, numLevels)) continue;
-const tr = document.createElement('tr'); tr.innerHTML = `<td>${data.dates[i]}</td>`;
+const tr = document.createElement('tr'); 
+// REMOVED: Date cell creation
+        
+// L1 Rule
 const r1 = rulesL1.find(r => r.index === i);
 const td1 = document.createElement('td');
 td1.textContent = r1 ? r1.rule.toUpperCase() : 'A';
 td1.className = r1 ? (r1.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a';
 tr.appendChild(td1);
+        
+// L2 Rule
 const r2 = rulesL2.find(r => r.index === i);
 const td2 = document.createElement('td');
 td2.textContent = r2 ? r2.rule.toUpperCase() : 'A';
 td2.className = r2 ? (r2.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a';
 tr.appendChild(td2);
+        
+// L3 Rule
 if (numLevels >= 3 && data.L3) {
 const r3 = rulesL3.find(r => r.index === i);
 const td3 = document.createElement('td');
@@ -1181,6 +1287,7 @@ td3.textContent = r3 ? r3.rule.toUpperCase() : 'A';
 td3.className = r3 ? (r3.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a';
 tr.appendChild(td3);
 }
+        
 tbody.appendChild(tr);
 }
 }
@@ -1368,7 +1475,6 @@ input.title = 'Double-click to exclude from calculations';
 }
 // Apply SD coloring
 applySDColoring(input, a, l, appData.currentYear, appData.currentMonth);
-
 input.addEventListener('dblclick', function(e) {
 e.preventDefault();
 const val = parseFloat(this.value);
@@ -1389,23 +1495,23 @@ populateStatsSummary();
 setupArrowNavigation();
 }
 function applySDColoring(input, analyte, level, year, month) {
-    const aData = getMonthData(appData.devices[appData.currentDevice], analyte, year, month);
-    const val = parseFloat(input.value);
-    if (isNaN(val)) {
-        input.classList.remove('sd-1', 'sd-2', 'sd-3');
-        return;
-    }
-    const mean = aData.factoryMean[`L${level}`] || 0;
-    const sd = aData.factorySD[`L${level}`] || 0;
-    if (sd === 0) {
-        input.classList.remove('sd-1', 'sd-2', 'sd-3');
-        return;
-    }
-    const diff = Math.abs(val - mean);
-    input.classList.remove('sd-1', 'sd-2', 'sd-3');
-    if (diff > 3 * sd) input.classList.add('sd-3');
-    else if (diff > 2 * sd) input.classList.add('sd-2');
-    else if (diff > 1 * sd) input.classList.add('sd-1');
+const aData = getMonthData(appData.devices[appData.currentDevice], analyte, year, month);
+const val = parseFloat(input.value);
+if (isNaN(val)) {
+input.classList.remove('sd-1', 'sd-2', 'sd-3');
+return;
+}
+const mean = aData.factoryMean[`L${level}`] || 0;
+const sd = aData.factorySD[`L${level}`] || 0;
+if (sd === 0) {
+input.classList.remove('sd-1', 'sd-2', 'sd-3');
+return;
+}
+const diff = Math.abs(val - mean);
+input.classList.remove('sd-1', 'sd-2', 'sd-3');
+if (diff > 3 * sd) input.classList.add('sd-3');
+else if (diff > 2 * sd) input.classList.add('sd-2');
+else if (diff > 1 * sd) input.classList.add('sd-1');
 }
 function setupArrowNavigation() {
 const table = document.getElementById('spreadsheetTable');
@@ -1531,9 +1637,71 @@ body.appendChild(tr);
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
 function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues })); showNotification('Data saved!'); }
 function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
-function clearCurrentData() { if (confirm(`Clear data for ${appData.currentAnalyte}?`)) { appData.devices[appData.currentDevice].data[appData.currentAnalyte][appData.currentYear][appData.currentMonth] = createEmptyData(); const prefix = `${appData.currentDevice}_${appData.currentAnalyte}_${appData.currentYear}_${appData.currentMonth}_`; Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; }); updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification('Data cleared!'); window.triggerAutoSave(); } }
+// =====================================================================
+// FIXED: Clear Data - safely creates the data path before clearing
+// =====================================================================
+function clearCurrentData() {
+if (!confirm(`Clear QC RESULTS only for ${appData.currentAnalyte} (${getMonthName()} ${appData.currentYear})? Parameters will be kept.`)) return;
+const device = appData.devices[appData.currentDevice];
+const analyte = appData.currentAnalyte;
+const year = appData.currentYear;
+const month = appData.currentMonth;
+// Safely build the path if it doesn't exist
+if (!device.data[analyte]) device.data[analyte] = {};
+if (!device.data[analyte][year]) device.data[analyte][year] = {};
+// Get current data to save parameters
+const currentData = getMonthData(device, analyte, year, month);
+// Save parameters before clearing
+const savedParams = {
+factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 },
+factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 },
+permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 },
+lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' },
+exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' }
+};
+// Create empty data structure
+device.data[analyte][year][month] = createEmptyData();
+// Restore parameters
+device.data[analyte][year][month].factoryMean = savedParams.factoryMean;
+device.data[analyte][year][month].factorySD = savedParams.factorySD;
+device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV;
+device.data[analyte][year][month].lot = savedParams.lot;
+device.data[analyte][year][month].exp = savedParams.exp;
+// Clear exclusions for this analyte/month
+const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`;
+Object.keys(appData.excludedValues).forEach(key => {
+if (key.startsWith(prefix)) delete appData.excludedValues[key];
+});
+updateMonthBadges();
+updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`QC Results cleared for ${analyte}! Parameters retained.`);
+}
 function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
-function copyFromPreviousMonth() { const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; let pm = appData.currentMonth - 1, py = appData.currentYear; if (pm < 0) { pm = 11; py--; } if (hasDataForMonth(device, analyte, py, pm)) { Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][pm]))); updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm]} ${py}!`); window.triggerAutoSave(); } else alert(`No data for ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm]} ${py}`); }
+function copyFromPreviousMonth() {
+const device = appData.devices[appData.currentDevice];
+const analyte = appData.currentAnalyte;
+let pm = appData.currentMonth - 1, py = appData.currentYear;
+if (pm < 0) { pm = 11; py--; }
+if (hasDataForMonth(device, analyte, py, pm)) {
+// Copy the raw data first
+Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][pm])));
+// Explicitly ensure parameters are copied if they exist in the source
+const sourceData = device.data[analyte][py][pm];
+const targetData = getCurrentData();
+if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
+if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
+if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringify(sourceData.permissibleCV));
+if (sourceData.lot) targetData.lot = JSON.parse(JSON.stringify(sourceData.lot));
+if (sourceData.exp) targetData.exp = JSON.parse(JSON.stringify(sourceData.exp));
+updateMonthBadges();
+updateDashboard();
+populateSpreadsheet();
+showNotification(`Copied data & parameters from ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm]} ${py}!`);
+} else {
+alert(`No data for ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm]} ${py}`);
+}
+}
 function copyFromPreviousYear() { const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const py = appData.currentYear - 1; if (hasDataForMonth(device, analyte, py, appData.currentMonth)) { Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth]))); updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${getMonthName()} ${py}!`); window.triggerAutoSave(); } else alert(`No data for ${getMonthName()} ${py}`); }
 function initImprecision() { const tbody = document.getElementById('imprecisionBody'); tbody.innerHTML = ''; for (let i = 1; i <= 20; i++) { const tr = document.createElement('tr'); tr.innerHTML = `<td>Run ${i}</td><td><input type="number" step="0.01" class="imp-l1"></td><td><input type="number" step="0.01" class="imp-l2"></td><td style="display:none"><input type="number" step="0.01" class="imp-l3"></td>`; tbody.appendChild(tr); } }
 function calcImprecision() { const l1 = Array.from(document.querySelectorAll('.imp-l1')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l2 = Array.from(document.querySelectorAll('.imp-l2')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l3 = Array.from(document.querySelectorAll('.imp-l3')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const div = document.getElementById('imprecisionResults'); div.innerHTML = ''; [{ name: 'Level 1', v: l1 }, { name: 'Level 2', v: l2 }, { name: 'Level 3', v: l3 }].forEach(level => { if (level.v.length < 2) return; const mean = calcMean(level.v), sd = calcSD(level.v, mean), cv = calcCV(sd, mean); const box = document.createElement('div'); box.className = 'imp-box'; box.innerHTML = `<h4>${level.name}</h4><div>N: ${level.v.length}</div><div>Mean: <strong>${mean.toFixed(4)}</strong></div><div>SD: <strong>${sd.toFixed(4)}</strong></div><div>CV: <strong>${cv.toFixed(2)}%</strong></div><div>Min: ${Math.min(...level.v).toFixed(4)}</div><div>Max: ${Math.max(...level.v).toFixed(4)}</div>`; div.appendChild(box); }); showNotification('Imprecision calculated!'); }
@@ -1557,9 +1725,24 @@ document.getElementById('setLot2').value = (data.lot && data.lot.L2) || '';
 document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
 document.getElementById('setLot3').value = (data.lot && data.lot.L3) || '';
 document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
+// Load Report Settings
+const rs = appData.reportSettings;
+document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', ');
+document.getElementById('setRepQcFont').value = rs.qcFontSize;
+document.getElementById('setRepLogDateW').value = rs.logDateWidth;
+document.getElementById('setRepLogResW').value = rs.logResWidth;
+document.getElementById('setRepLogFont').value = rs.logFontSize;
+document.getElementById('setRepChartW').value = rs.chartWidth;
+document.getElementById('setRepChartH').value = rs.chartHeight;
 document.getElementById('settingsModal').classList.add('active');
 }
 function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+function showSettingsTab(tab) {
+document.getElementById('settings-general').style.display = tab === 'general' ? 'block' : 'none';
+document.getElementById('settings-report').style.display = tab === 'report' ? 'block' : 'none';
+document.getElementById('tab-general').style.background = tab === 'general' ? '#e74c3c' : '#0f3460';
+document.getElementById('tab-report').style.background = tab === 'report' ? '#e74c3c' : '#0f3460';
+}
 function applySettings() {
 const device = appData.devices[appData.currentDevice];
 appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim();
@@ -1575,6 +1758,15 @@ const data = getCurrentData();
 data.lot.L1 = document.getElementById('setLot1').value; data.exp.L1 = document.getElementById('setExp1').value;
 data.lot.L2 = document.getElementById('setLot2').value; data.exp.L2 = document.getElementById('setExp2').value;
 data.lot.L3 = document.getElementById('setLot3').value; data.exp.L3 = document.getElementById('setExp3').value;
+// Save Report Settings
+const qcColsStr = document.getElementById('setRepQcCols').value;
+appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value) || 7;
+appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value) || 16;
+appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value) || 18;
+appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value) || 6;
+appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value) || 160;
+appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value) || 35;
 closeSettings(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 showNotification('Settings applied!');
@@ -1591,18 +1783,17 @@ const pdf = new jsPDF('p', 'mm', 'a4');
 const pageWidth = pdf.internal.pageSize.getWidth();
 const pageHeight = pdf.internal.pageSize.getHeight();
 let currentY = 8;
-
 // Header with Institution Names
 pdf.setFontSize(12);
 pdf.setFont('helvetica', 'bold');
 pdf.text(appData.institution.nameAr || 'Institution', 10, currentY);
 pdf.text(appData.institution.nameEn || '', 10, currentY + 6);
 currentY += 12;
-
 pdf.setFontSize(10);
 pdf.text(`By LAB SP.Mohammed Al Desoqy`, 10, currentY);
 currentY += 8;
-
+// Use settings from appData.reportSettings
+const rs = appData.reportSettings;
 function drawHeader(analyte, data, numLevels) {
 // EVALUATION SUMMARY & CONFIGURATION Section
 pdf.setFillColor(220, 220, 220);
@@ -1650,7 +1841,7 @@ pdf.text('QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION', 12, currentY + 
 currentY += 6;
 // Table headers - Fit to content (Total width = 190mm)
 // Made smaller: reduced column widths
-const colWidths = [30, 35, 45, 30, 25];
+const colWidths = rs.qcColWidths.length === 5 ? rs.qcColWidths : [25, 30, 40, 25, 20];
 const startX = 10;
 // Draw header background
 pdf.setFillColor(230, 230, 230);
@@ -1659,7 +1850,7 @@ for (let w of colWidths) {
 pdf.rect(x, currentY, w, 6, 'F');
 x += w;
 }
-pdf.setFontSize(8);
+pdf.setFontSize(rs.qcFontSize);
 pdf.setFont('helvetica', 'bold');
 pdf.text('Control Level', startX + 2, currentY + 4);
 pdf.text('Target QC Mean', startX + colWidths[0] + colWidths[1]/2, currentY + 4, { align: 'center' });
@@ -1669,7 +1860,7 @@ pdf.text('Lot Number', startX + colWidths[0] + colWidths[1] + colWidths[2] + col
 currentY += 6;
 // Data rows
 pdf.setFont('helvetica', 'normal');
-pdf.setFontSize(8);
+pdf.setFontSize(rs.qcFontSize);
 for (let l = 1; l <= numLevels; l++) {
 x = startX;
 for (let w of colWidths) {
@@ -1689,59 +1880,124 @@ currentY += 5;
 }
 currentY += 4;
 }
+
+
+
+
+
+
+
+
+
 function drawDataTable(data, numLevels) {
-// DAILY RUN LOG DATA Section
-pdf.setFillColor(220, 220, 220);
-pdf.rect(10, currentY, pageWidth - 20, 6, 'F');
-pdf.setFontSize(10);
-pdf.setFont('helvetica', 'bold');
-pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4);
-currentY += 6;
-// Made smaller: reduced column widths
-const colWidth = 20;
-const dateColWidth = 18;
-const startX = 10;
-// Split data into 2 columns (left and right)
-const halfLength = Math.ceil(data.dates.length / 2);
-// Draw headers for both columns
-for (let col = 0; col < 2; col++) {
-const colStartX = startX + col * (dateColWidth + colWidth * numLevels + 5);
-pdf.setFillColor(230, 230, 230);
-pdf.rect(colStartX, currentY, dateColWidth, 5, 'F');
-for (let l = 1; l <= numLevels; l++) {
-pdf.rect(colStartX + dateColWidth + (l-1) * colWidth, currentY, colWidth, 5, 'F');
+    // DAILY RUN LOG DATA Section - Horizontal Layout
+    pdf.setFillColor(220, 220, 220);
+    pdf.rect(10, currentY, pageWidth - 20, 6, 'F');
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4);
+    currentY += 6;
+
+    const startX = 10;
+    const dateColWidth = 15; 
+    const dayCellWidth = (pageWidth - 20 - dateColWidth) / 31; 
+    const rowHeight = 6;
+    const unifiedFontSize = 6; 
+
+    // Helper to calculate font size that fits in a cell
+    const getFontSizeForCell = (text, cellWidth, cellHeight, baseFontSize) => {
+        if (!text) return baseFontSize;
+        let fontSize = baseFontSize;
+        pdf.setFontSize(fontSize);
+        const textWidth = pdf.getTextWidth(text);
+        
+        while (textWidth > (cellWidth - 1) && fontSize > 3) { 
+            fontSize -= 0.5;
+            pdf.setFontSize(fontSize);
+        }
+        
+        while ((fontSize * 1.2) > (cellHeight - 0.5) && fontSize > 3) {
+             fontSize -= 0.5;
+        }
+        
+        return Math.max(3, fontSize);
+    };
+
+    // --- Row 1: Month/Year Header (Single Cell) ---
+    pdf.setFontSize(9); 
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFillColor(255, 255, 255); 
+    pdf.rect(startX, currentY, pageWidth - 20, rowHeight, 'FD');
+    pdf.text(periodStr.toUpperCase(), startX + (pageWidth - 20) / 2, currentY + 4, { align: 'center' }); 
+    currentY += rowHeight;
+
+    // --- Row 2: Date Header (32 Cells: "Date" + 1-31) ---
+    pdf.setFontSize(unifiedFontSize); 
+    pdf.setFillColor(211, 211, 211); 
+    pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD');
+    pdf.text('Date', startX + 2, currentY + 4);
+    
+    for (let d = 1; d <= 31; d++) {
+        pdf.setFillColor(211, 211, 211); 
+        pdf.rect(startX + dateColWidth + (d - 1) * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD');
+        pdf.text(d.toString(), startX + dateColWidth + (d - 1) * dayCellWidth + dayCellWidth / 2, currentY + 4, { align: 'center' });
+    }
+    currentY += rowHeight;
+
+    // Function to draw Level Rows (Data ONLY - M Rule Removed)
+    const drawLevelRows = (level) => {
+        if (numLevels < level) return;
+
+        // Row: LVL X Results
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFillColor(211, 211, 211); 
+        pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD');
+        pdf.setFontSize(unifiedFontSize); 
+        pdf.text(`LVL ${level}`, startX + 2, currentY + 4);
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(0, 0, 0); 
+        for (let d = 1; d <= 31; d++) {
+            const idx = d - 1;
+            const val = data[`L${level}`] && data[`L${level}`][idx] !== undefined ? data[`L${level}`][idx].toFixed(1) : '';
+            
+            pdf.setFillColor(255, 255, 255); 
+            pdf.rect(startX + dateColWidth + idx * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD');
+            
+            if (val) {
+                const fSize = getFontSizeForCell(val, dayCellWidth, rowHeight, 7);
+                pdf.setFontSize(fSize);
+                pdf.text(val, startX + dateColWidth + idx * dayCellWidth + dayCellWidth / 2, currentY + (rowHeight/2) + (fSize*0.3), { align: 'center', baseline: 'middle' });
+            }
+        }
+        currentY += rowHeight;
+        
+        // REMOVED: The entire "Row: M Rule (Westgard Rules)" block has been deleted here.
+        
+        currentY += 2; // Small gap between levels
+    };
+
+    drawLevelRows(1);
+    drawLevelRows(2);
+    drawLevelRows(3);
+    
+    currentY += 5;
 }
-pdf.setFontSize(7);
-pdf.setFont('helvetica', 'bold');
-pdf.text('Run Date', colStartX + 2, currentY + 3.5);
-for (let l = 1; l <= numLevels; l++) {
-pdf.text(`L${l} Result`, colStartX + dateColWidth + (l-1) * colWidth + colWidth/2, currentY + 3.5, { align: 'center' });
-}
-}
-currentY += 5;
-// Draw data rows
-pdf.setFont('helvetica', 'normal');
-pdf.setFontSize(7);
-const maxRows = Math.max(halfLength, data.dates.length - halfLength);
-for (let row = 0; row < maxRows; row++) {
-for (let col = 0; col < 2; col++) {
-const idx = col === 0 ? row : halfLength + row;
-if (idx >= data.dates.length) continue;
-const colStartX = startX + col * (dateColWidth + colWidth * numLevels + 5);
-pdf.rect(colStartX, currentY, dateColWidth, 4);
-const dateStr = data.dates[idx] || '';
-const shortDate = dateStr.substring(0, dateStr.indexOf('-') + 3) + '-' + dateStr.substring(dateStr.length - 2);
-pdf.text(shortDate, colStartX + 2, currentY + 3);
-for (let l = 1; l <= numLevels; l++) {
-pdf.rect(colStartX + dateColWidth + (l-1) * colWidth, currentY, colWidth, 4);
-const val = data[`L${l}`] && data[`L${l}`][idx] !== undefined ? data[`L${l}`][idx].toFixed(2) : '—';
-pdf.text(val, colStartX + dateColWidth + (l-1) * colWidth + colWidth/2, currentY + 3, { align: 'center' });
-}
-}
-currentY += 4;
-}
-currentY += 4;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function drawLJCharts(analyte, data, numLevels) {
 // LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS Section
 pdf.setFillColor(220, 220, 220);
@@ -1751,8 +2007,8 @@ pdf.setFont('helvetica', 'bold');
 pdf.text('LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS', 12, currentY + 4);
 // >>> ADDED 1.8 SPACE HERE (Changed from 8 to 9.8) <<<
 currentY += 9.8;
-const chartWidth = 170;
-const chartHeight = 40;
+const chartWidth = rs.chartWidth;
+const chartHeight = rs.chartHeight;
 const startX = 20;
 for (let l = 1; l <= numLevels; l++) {
 try {
@@ -1888,153 +2144,132 @@ generatePDFReport(analytesToPrint);
 // Row N+2: STATS row (optional summary)
 // =====================================================================
 function exportExcel() {
-    const wb = XLSX.utils.book_new();
-    const device = appData.devices[appData.currentDevice];
-    
-    // Create a single sheet for all analytes
-    const wsData = [['Date']];
-    
-    // Add headers for each analyte
-    device.analytes.forEach(analyte => {
-        const numLevels = getAnalyteLevels(analyte);
-        for (let l = 1; l <= numLevels; l++) {
-            wsData[0].push(`${analyte}.L${l}`);
-        }
-    });
-
-    // Find the maximum number of dates across all analytes
-    let maxDates = 0;
-    device.analytes.forEach(analyte => {
-        const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
-        if (data && data.dates.length > maxDates) maxDates = data.dates.length;
-    });
-
-    // Fill data rows
-    for (let i = 0; i < maxDates; i++) {
-        const row = [i < maxDates ? (device.analytes[0] ? getMonthData(device, device.analytes[0], appData.currentYear, appData.currentMonth).dates[i] || '' : '') : ''];
-        
-        device.analytes.forEach(analyte => {
-            const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
-            const numLevels = getAnalyteLevels(analyte);
-            for (let l = 1; l <= numLevels; l++) {
-                row.push(data && data[`L${l}`] && data[`L${l}`][i] !== undefined ? data[`L${l}`][i] : '');
-            }
-        });
-        wsData.push(row);
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const sheetName = `QC_${getMonthName()}${appData.currentYear}`.substring(0, 31);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-    const filename = `QC_${device.name}_${getMonthName()}_${appData.currentYear}.xlsx`;
-    XLSX.writeFile(wb, filename);
-    showNotification('Excel exported!');
+const wb = XLSX.utils.book_new();
+const device = appData.devices[appData.currentDevice];
+// Create a single sheet for all analytes
+const wsData = [['Date']];
+// Add headers for each analyte
+device.analytes.forEach(analyte => {
+const numLevels = getAnalyteLevels(analyte);
+for (let l = 1; l <= numLevels; l++) {
+wsData[0].push(`${analyte}.L${l}`);
 }
-
+});
+// Find the maximum number of dates across all analytes
+let maxDates = 0;
+device.analytes.forEach(analyte => {
+const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
+if (data && data.dates.length > maxDates) maxDates = data.dates.length;
+});
+// Fill data rows
+for (let i = 0; i < maxDates; i++) {
+const row = [i < maxDates ? (device.analytes[0] ? getMonthData(device, device.analytes[0], appData.currentYear, appData.currentMonth).dates[i] || '' : '') : ''];
+device.analytes.forEach(analyte => {
+const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
+const numLevels = getAnalyteLevels(analyte);
+for (let l = 1; l <= numLevels; l++) {
+row.push(data && data[`L${l}`] && data[`L${l}`][i] !== undefined ? data[`L${l}`][i] : '');
+}
+});
+wsData.push(row);
+}
+const ws = XLSX.utils.aoa_to_sheet(wsData);
+const sheetName = `QC_${getMonthName()}${appData.currentYear}`.substring(0, 31);
+XLSX.utils.book_append_sheet(wb, ws, sheetName);
+const filename = `QC_${device.name}_${getMonthName()}_${appData.currentYear}.xlsx`;
+XLSX.writeFile(wb, filename);
+showNotification('Excel exported!');
+}
 // =====================================================================
 // FIXED: Import Excel - reads header to find column positions,
 // parses __META__ and __CONFIG__ rows, supports multiple sheets
 // =====================================================================
 function importExcel(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const wb = XLSX.read(e.target.result, { type: 'array' });
-            const device = appData.devices[appData.currentDevice];
-            let importedCount = 0;
-
-            // Process each sheet in the workbook
-            wb.SheetNames.forEach(sheetName => {
-                const ws = wb.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                if (jsonData.length < 2) return;
-
-                // Parse header row to find column positions
-                const header = jsonData[0].map(h => String(h).trim());
-                
-                // Identify analytes from headers (e.g., "E2.L1", "FSH.L2")
-                const analyteCols = {};
-                header.forEach((h, idx) => {
-                    if (idx === 0) return; // Skip Date column
-                    const match = h.match(/^(.+)\.L(\d+)$/);
-                    if (match) {
-                        const analyteName = match[1];
-                        const level = parseInt(match[2]);
-                        if (!analyteCols[analyteName]) analyteCols[analyteName] = {};
-                        analyteCols[analyteName][level] = idx;
-                        
-                        // Ensure analyte exists in device
-                        if (!device.analytes.includes(analyteName)) {
-                            device.analytes.push(analyteName);
-                            appData.analyteLevels[analyteName] = 2; // Default, will update later
-                        }
-                    }
-                });
-
-                // Process data rows
-                for (let i = 1; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    if (!row || row.length === 0) continue;
-                    const dateVal = String(row[0] || '').trim();
-                    if (!dateVal) continue;
-
-                    Object.keys(analyteCols).forEach(analyteName => {
-                        const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth);
-                        const levels = analyteCols[analyteName];
-                        
-                        // Add date if not already present (assuming all analytes share same dates for simplicity in this view)
-                        if (!data.dates.includes(dateVal)) {
-                            data.dates.push(dateVal);
-                        }
-                        
-                        const dateIndex = data.dates.indexOf(dateVal);
-                        
-                        Object.keys(levels).forEach(lvl => {
-                            const colIdx = levels[lvl];
-                            const val = parseFloat(row[colIdx]);
-                            if (!data[`L${lvl}`]) data[`L${lvl}`] = [];
-                            // Ensure array is long enough
-                            while (data[`L${lvl}`].length <= dateIndex) {
-                                data[`L${lvl}`].push(null);
-                            }
-                            if (!isNaN(val)) {
-                                data[`L${lvl}`][dateIndex] = val;
-                            }
-                        });
-                        
-                        // Update numLevels for this analyte based on imported data
-                        const maxLvl = Math.max(...Object.keys(levels).map(Number));
-                        appData.analyteLevels[analyteName] = maxLvl;
-                    });
-                }
-                importedCount++;
-            });
-
-            if (importedCount === 0) {
-                alert('No valid data found in the Excel file!');
-                return;
-            }
-
-            // Refresh UI
-            buildSidebar();
-            buildAnalyteBar();
-            updateMonthBadges();
-            updateDashboard();
-            if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-            showNotification(`Excel imported! (${importedCount} sheet(s))`);
-            window.triggerAutoSave();
-        } catch (err) {
-            console.error('Import error:', err);
-            alert('Error importing file: ' + err.message);
-        }
-    };
-    reader.readAsArrayBuffer(file);
-    event.target.value = '';
+const file = event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+try {
+const wb = XLSX.read(e.target.result, { type: 'array' });
+const device = appData.devices[appData.currentDevice];
+let importedCount = 0;
+// Process each sheet in the workbook
+wb.SheetNames.forEach(sheetName => {
+const ws = wb.Sheets[sheetName];
+const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+if (jsonData.length < 2) return;
+// Parse header row to find column positions
+const header = jsonData[0].map(h => String(h).trim());
+// Identify analytes from headers (e.g., "E2.L1", "FSH.L2")
+const analyteCols = {};
+header.forEach((h, idx) => {
+if (idx === 0) return; // Skip Date column
+const match = h.match(/^(.+)\.L(\d+)$/);
+if (match) {
+const analyteName = match[1];
+const level = parseInt(match[2]);
+if (!analyteCols[analyteName]) analyteCols[analyteName] = {};
+analyteCols[analyteName][level] = idx;
+// Ensure analyte exists in device
+if (!device.analytes.includes(analyteName)) {
+device.analytes.push(analyteName);
+appData.analyteLevels[analyteName] = 2; // Default, will update later
 }
-
+}
+});
+// Process data rows
+for (let i = 1; i < jsonData.length; i++) {
+const row = jsonData[i];
+if (!row || row.length === 0) continue;
+const dateVal = String(row[0] || '').trim();
+if (!dateVal) continue;
+Object.keys(analyteCols).forEach(analyteName => {
+const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth);
+const levels = analyteCols[analyteName];
+// Add date if not already present (assuming all analytes share same dates for simplicity in this view)
+if (!data.dates.includes(dateVal)) {
+data.dates.push(dateVal);
+}
+const dateIndex = data.dates.indexOf(dateVal);
+Object.keys(levels).forEach(lvl => {
+const colIdx = levels[lvl];
+const val = parseFloat(row[colIdx]);
+if (!data[`L${lvl}`]) data[`L${lvl}`] = [];
+// Ensure array is long enough
+while (data[`L${lvl}`].length <= dateIndex) {
+data[`L${lvl}`].push(null);
+}
+if (!isNaN(val)) {
+data[`L${lvl}`][dateIndex] = val;
+}
+});
+// Update numLevels for this analyte based on imported data
+const maxLvl = Math.max(...Object.keys(levels).map(Number));
+appData.analyteLevels[analyteName] = maxLvl;
+});
+}
+importedCount++;
+});
+if (importedCount === 0) {
+alert('No valid data found in the Excel file!');
+return;
+}
+// Refresh UI
+buildSidebar();
+buildAnalyteBar();
+updateMonthBadges();
+updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`Excel imported! (${importedCount} sheet(s))`);
+window.triggerAutoSave();
+} catch (err) {
+console.error('Import error:', err);
+alert('Error importing file: ' + err.message);
+}
+};
+reader.readAsArrayBuffer(file);
+event.target.value = '';
+}
 function showNotification(msg) { const n = document.getElementById('notification'); n.textContent = msg; n.style.display = 'block'; setTimeout(() => { n.style.display = 'none'; }, 3000); }
 function exitApp() { if (confirm('Exit?')) document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#e74c3c;font-size:24px;background:#1a1a2e;">Application Closed</div>'; }
 </script>
