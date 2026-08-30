@@ -61,13 +61,13 @@ if (!appData.users) appData.users = {};
 if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
 if (!appData.reportSettings) appData.reportSettings = {};
 if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) {
-  // Migrate old single-day setting to array
-  if (appData.reportSettings.highlightDayOfWeek && appData.reportSettings.highlightDayOfWeek !== 'none') {
-    appData.reportSettings.highlightDaysOfWeek = [parseInt(appData.reportSettings.highlightDayOfWeek)];
-  } else {
-    appData.reportSettings.highlightDaysOfWeek = [];
-  }
-  delete appData.reportSettings.highlightDayOfWeek;
+// Migrate old single-day setting to array
+if (appData.reportSettings.highlightDayOfWeek && appData.reportSettings.highlightDayOfWeek !== 'none') {
+appData.reportSettings.highlightDaysOfWeek = [parseInt(appData.reportSettings.highlightDayOfWeek)];
+} else {
+appData.reportSettings.highlightDaysOfWeek = [];
+}
+delete appData.reportSettings.highlightDayOfWeek;
 }
 buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
@@ -98,7 +98,6 @@ window.addEventListener('load', () => { setTimeout(() => window.loadFromCloudSil
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
 input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
-
 /* ===== LOGIN SCREEN ===== */
 .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 40%, #16213e 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .login-overlay.hidden { display: none; }
@@ -116,7 +115,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .login-btn:hover { background: linear-gradient(135deg, #c0392b, #a93226); transform: translateY(-1px); box-shadow: 0 5px 15px rgba(231,76,60,0.3); }
 .login-error { color: #e74c3c; font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; }
 .login-footer { text-align: center; margin-top: 20px; color: #555; font-size: 10px; }
-
 /* ===== USER SESSION BAR ===== */
 .user-session-bar { display: flex; align-items: center; gap: 8px; background: #0f3460; padding: 4px 10px; border-radius: 6px; border: 1px solid #333; margin-left: auto; }
 .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e74c3c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #fff; }
@@ -128,7 +126,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .role-user { color: #3498db; }
 .logout-btn { background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.2s; }
 .logout-btn:hover { background: #e74c3c; color: #fff; }
-
 /* ===== USER MANAGEMENT MODAL ===== */
 .user-mgmt-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
 .user-mgmt-table th { background: #0f3460; padding: 8px 6px; text-align: left; font-size: 11px; color: #e74c3c; border-bottom: 2px solid #e74c3c; }
@@ -149,7 +146,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .device-assign-chip { padding: 4px 10px; background: #16213e; border: 1px solid #333; border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
 .device-assign-chip.selected { background: rgba(46,204,113,0.2); border-color: #2ecc71; color: #2ecc71; }
 .device-assign-chip:hover { border-color: #e74c3c; }
-
 /* ===== DAY OF WEEK HIGHLIGHT ===== */
 .spreadsheet-table tbody tr.highlighted-row { background: rgba(231, 76, 60, 0.18) !important; border-left: 4px solid #e74c3c; box-shadow: inset 0 0 0 1px rgba(231, 76, 60, 0.3); }
 .spreadsheet-table tbody tr.highlighted-row td { background: rgba(231, 76, 60, 0.18) !important; color: #fff !important; font-weight: 600; }
@@ -157,7 +153,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .spreadsheet-table tbody tr.highlighted-row input { color: #fff !important; font-weight: 600; background: transparent !important; }
 .spreadsheet-table tbody tr.highlighted-row:hover { background: rgba(231, 76, 60, 0.28) !important; }
 .day-highlight-indicator { display: inline-block; padding: 2px 8px; background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; border-radius: 10px; font-size: 10px; font-weight: bold; margin-left: 8px; }
-
 /* ===== DAY CHECKBOXES ===== */
 .day-checkbox-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
 .day-checkbox-item { position: relative; }
@@ -169,7 +164,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .day-checkbox-actions { display: flex; gap: 8px; margin-top: 10px; }
 .day-checkbox-actions button { flex: 1; padding: 7px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s; }
 .day-checkbox-actions button:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
-
 .top-bar { background: #16213e; display: flex; align-items: center; padding: 8px 15px; gap: 10px; border-bottom: 2px solid #e74c3c; flex-wrap: wrap; min-height: 70px; }
 .fixed-action-bar { display: flex; gap: 5px; align-items: center; background: #16213e; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; }
 .action-icon-btn { background: #0f3460; border: 1px solid #333; color: #e74c3c; cursor: pointer; border-radius: 4px; font-size: 11px; padding: 5px 9px; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
@@ -343,29 +337,27 @@ input[type="number"] { -moz-appearance: textfield; }
 </style>
 </head>
 <body>
-
 <!-- ===== LOGIN SCREEN ===== -->
 <div class="login-overlay" id="loginOverlay">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="logo-icon">🔬</div>
-      <h2>QMSAP</h2>
-      <p>Quality Management System — Access Portal</p>
-    </div>
-    <div class="login-field">
-      <label>👤 Username</label>
-      <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="off">
-    </div>
-    <div class="login-field">
-      <label>🔒 Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter your password">
-    </div>
-    <button class="login-btn" onclick="attemptLogin()">🔑 SIGN IN</button>
-    <div class="login-error" id="loginError"></div>
-    <div class="login-footer">QMSAP v2.0 — Developed by Lab.SP Mohammed Al Desoqy</div>
-  </div>
+<div class="login-box">
+<div class="login-logo">
+<div class="logo-icon">🔬</div>
+<h2>QMSAP</h2>
+<p>Quality Management System — Access Portal</p>
 </div>
-
+<div class="login-field">
+<label>👤 Username</label>
+<input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="off">
+</div>
+<div class="login-field">
+<label>🔒 Password</label>
+<input type="password" id="loginPassword" placeholder="Enter your password">
+</div>
+<button class="login-btn" onclick="attemptLogin()">🔑 SIGN IN</button>
+<div class="login-error" id="loginError"></div>
+<div class="login-footer">QMSAP v2.0 — Developed by Lab.SP Mohammed Al Desoqy</div>
+</div>
+</div>
 <div class="notification" id="notification"></div>
 <div class="top-bar" id="topBar" style="display:none;">
 <div class="fixed-action-bar">
@@ -416,12 +408,12 @@ input[type="number"] { -moz-appearance: textfield; }
 <button class="nav-btn" id="userMgmtBtn" onclick="openUserManagement()" style="font-size:18px; display:none;" title="User Management">👥</button>
 <button class="nav-btn" onclick="openAbout()" style="font-size:18px" title="About Developer">ℹ️</button>
 <div class="user-session-bar" id="userSessionBar">
-  <div class="user-avatar" id="userAvatar">H</div>
-  <div class="user-session-info">
-    <div class="user-session-name" id="userSessionName">Hunter</div>
-    <div class="user-session-role" id="userSessionRole">ADMIN</div>
-  </div>
-  <button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
+<div class="user-avatar" id="userAvatar">H</div>
+<div class="user-session-info">
+<div class="user-session-name" id="userSessionName">Hunter</div>
+<div class="user-session-role" id="userSessionRole">ADMIN</div>
+</div>
+<button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
 </div>
 <div class="analyte-bar" id="analyteBar"></div>
 </div>
@@ -518,7 +510,6 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="dev-info"><strong>Developer: Lab.SP Mohammed al Desoqy</strong><br><strong>Email: M.i.y.d@hotmail.com</strong></div>
 <div class="rules-info" id="rulesInfo">LEVEL 1: -<br>LEVEL 2: -</div>
 </div>
-
 <!-- About Modal -->
 <div class="modal-overlay" id="aboutModal">
 <div class="modal" style="min-width:400px; max-width:500px; text-align:center;">
@@ -538,68 +529,65 @@ input[type="number"] { -moz-appearance: textfield; }
 </div>
 </div>
 </div>
-
 <!-- ===== USER MANAGEMENT MODAL ===== -->
 <div class="modal-overlay" id="userMgmtModal">
 <div class="modal" style="min-width:650px; max-width:800px;">
 <h3>👥 User Management & Permissions</h3>
 <div class="add-user-form">
-  <h4>➕ Create New User</h4>
-  <div class="add-user-grid">
-    <div><label>Username</label><input type="text" id="newUsername" placeholder="e.g. ahmed_lab"></div>
-    <div><label>Full Name</label><input type="text" id="newUserFullName" placeholder="e.g. Ahmed Ali"></div>
-    <div><label>Password</label><input type="text" id="newUserPassword" placeholder="Set password"></div>
-  </div>
-  <div style="margin-top:10px;">
-    <label style="font-size:11px; color:#aaa;">Role</label>
-    <select id="newUserRole" style="padding:7px; background:#16213e; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:200px;">
-      <option value="user">🔹 Normal User (Selected Devices)</option>
-      <option value="manager">🔸 Lab Manager (All Devices)</option>
-    </select>
-  </div>
-  <div id="newUserDeviceSection" style="margin-top:10px;">
-    <label style="font-size:11px; color:#aaa;">Assign Devices (click to toggle)</label>
-    <div class="device-assign-grid" id="newUserDeviceGrid"></div>
-  </div>
-  <button class="modal-btn primary" onclick="createNewUser()" style="margin-top:12px;">✅ Create User</button>
+<h4>➕ Create New User</h4>
+<div class="add-user-grid">
+<div><label>Username</label><input type="text" id="newUsername" placeholder="e.g. ahmed_lab"></div>
+<div><label>Full Name</label><input type="text" id="newUserFullName" placeholder="e.g. Ahmed Ali"></div>
+<div><label>Password</label><input type="text" id="newUserPassword" placeholder="Set password"></div>
+</div>
+<div style="margin-top:10px;">
+<label style="font-size:11px; color:#aaa;">Role</label>
+<select id="newUserRole" style="padding:7px; background:#16213e; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:200px;">
+<option value="user">🔹 Normal User (Selected Devices)</option>
+<option value="manager">🔸 Lab Manager (All Devices)</option>
+</select>
+</div>
+<div id="newUserDeviceSection" style="margin-top:10px;">
+<label style="font-size:11px; color:#aaa;">Assign Devices (click to toggle)</label>
+<div class="device-assign-grid" id="newUserDeviceGrid"></div>
+</div>
+<button class="modal-btn primary" onclick="createNewUser()" style="margin-top:12px;">✅ Create User</button>
 </div>
 <h4 style="color:#e74c3c; margin:15px 0 8px; font-size:14px;">📋 Existing Users</h4>
 <table class="user-mgmt-table">
-  <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Assigned Devices</th><th>Actions</th></tr></thead>
-  <tbody id="userMgmtTableBody"></tbody>
+<thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Assigned Devices</th><th>Actions</th></tr></thead>
+<tbody id="userMgmtTableBody"></tbody>
 </table>
 <div class="modal-btns">
-  <button class="modal-btn secondary" onclick="closeUserManagement()">Close</button>
+<button class="modal-btn secondary" onclick="closeUserManagement()">Close</button>
 </div>
 </div>
 </div>
-
 <!-- Edit User Modal -->
 <div class="modal-overlay" id="editUserModal">
 <div class="modal" style="min-width:450px;">
-  <h3>✏️ Edit User: <span id="editUserName"></span></h3>
-  <div style="margin-bottom:12px;">
-    <label style="font-size:11px; color:#aaa;">Role</label>
-    <select id="editUserRole" style="padding:7px; background:#0f3460; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:100%;">
-      <option value="user">🔹 Normal User (Selected Devices)</option>
-      <option value="manager">🔸 Lab Manager (All Devices)</option>
-    </select>
-  </div>
-  <div id="editUserDeviceSection">
-    <label style="font-size:11px; color:#aaa;">Assign Devices (click to toggle)</label>
-    <div class="device-assign-grid" id="editUserDeviceGrid"></div>
-  </div>
-  <div style="margin-top:12px;">
-    <label style="font-size:11px; color:#aaa;">New Password (leave blank to keep current)</label>
-    <input type="text" id="editUserPassword" placeholder="New password" style="padding:7px; background:#0f3460; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:100%;">
-  </div>
-  <div class="modal-btns">
-    <button class="modal-btn secondary" onclick="closeEditUser()">Cancel</button>
-    <button class="modal-btn primary" onclick="saveEditUser()">💾 Save Changes</button>
-  </div>
+<h3>✏️ Edit User: <span id="editUserName"></span></h3>
+<div style="margin-bottom:12px;">
+<label style="font-size:11px; color:#aaa;">Role</label>
+<select id="editUserRole" style="padding:7px; background:#0f3460; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:100%;">
+<option value="user">🔹 Normal User (Selected Devices)</option>
+<option value="manager">🔸 Lab Manager (All Devices)</option>
+</select>
+</div>
+<div id="editUserDeviceSection">
+<label style="font-size:11px; color:#aaa;">Assign Devices (click to toggle)</label>
+<div class="device-assign-grid" id="editUserDeviceGrid"></div>
+</div>
+<div style="margin-top:12px;">
+<label style="font-size:11px; color:#aaa;">New Password (leave blank to keep current)</label>
+<input type="text" id="editUserPassword" placeholder="New password" style="padding:7px; background:#0f3460; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:100%;">
+</div>
+<div class="modal-btns">
+<button class="modal-btn secondary" onclick="closeEditUser()">Cancel</button>
+<button class="modal-btn primary" onclick="saveEditUser()">💾 Save Changes</button>
 </div>
 </div>
-
+</div>
 <div class="modal-overlay" id="settingsModal">
 <div class="modal">
 <h3>⚙️ Settings</h3>
@@ -617,38 +605,36 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="logo-preview-box" id="logoPreviewBox"><img id="logoPreviewImg" style="display:none" alt="Logo Preview"><span class="preview-text" id="logoPreviewText">No logo uploaded</span></div>
 <button class="modal-btn secondary" onclick="removeLogo()" style="margin-top:8px; width:100%;">Remove Logo</button>
 </div>
-<div class="settings-group"><h4>Lab Information</h4><label>Lab SP</label><input type="text" id="setLabSP"><label>Designee</label><input type="text" id="setDesignee"></div>
+<div class="settings-group"><h4>Lab Information</h4><label>Lab SP</label><input type="text" id="setLabSP"><label>Lab Manager</label><input type="text" id="setDesignee"></div>
 <div class="settings-group"><h4>Branch & User</h4><label>Branch Name</label><input type="text" id="setBranch"><label>User Name</label><input type="text" id="setUser"><label>Printer</label><select id="setPrinter"><option>Default Printer</option><option>HP LaserJet Pro</option><option>Canon PIXMA</option><option>Epson L3150</option></select></div>
 <div class="settings-group"><h4>QC Levels</h4><label>Number of Levels</label><select id="setNumLevels"><option value="2">2 Levels</option><option value="3">3 Levels</option></select><label>LOT-1</label><input type="text" id="setLot1"><label>EXP-1</label><input type="text" id="setExp1"><label>LOT-2</label><input type="text" id="setLot2"><label>EXP-2</label><input type="text" id="setExp2"></div>
 <div class="settings-group"><h4>LOT 3 (if applicable)</h4><label>LOT-3</label><input type="text" id="setLot3"><label>EXP-3</label><input type="text" id="setExp3"></div>
-
 <!-- ===== DAY OF WEEK HIGHLIGHT - CHECKBOXES ===== -->
 <div class="settings-group" style="grid-column: 1 / -1; background: linear-gradient(135deg, #0f3460 0%, #1a3a5c 100%); border: 1px solid #e74c3c;">
 <h4>📅 Spreadsheet Day Highlight (Multiple Selection)</h4>
 <p style="font-size:11px; color:#aaa; margin-bottom:10px; line-height:1.5;">
-  Select one or more days of the week. Rows in the spreadsheet matching any selected day will be highlighted in red.
+Select one or more days of the week. Rows in the spreadsheet matching any selected day will be highlighted in red.
 </p>
 <div class="day-checkbox-grid" id="dayCheckboxGrid">
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck0" value="0"><label for="dayCheck0"><span class="day-emoji">☀️</span>Sun</label></div>
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck1" value="1"><label for="dayCheck1"><span class="day-emoji">🌙</span>Mon</label></div>
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck2" value="2"><label for="dayCheck2"><span class="day-emoji">🔥</span>Tue</label></div>
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck3" value="3"><label for="dayCheck3"><span class="day-emoji">💧</span>Wed</label></div>
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck4" value="4"><label for="dayCheck4"><span class="day-emoji">⚡</span>Thu</label></div>
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck5" value="5"><label for="dayCheck5"><span class="day-emoji">🕌</span>Fri</label></div>
-  <div class="day-checkbox-item"><input type="checkbox" id="dayCheck6" value="6"><label for="dayCheck6"><span class="day-emoji">🌟</span>Sat</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck0" value="0"><label for="dayCheck0"><span class="day-emoji">☀️</span>Sun</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck1" value="1"><label for="dayCheck1"><span class="day-emoji">🌙</span>Mon</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck2" value="2"><label for="dayCheck2"><span class="day-emoji">🔥</span>Tue</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck3" value="3"><label for="dayCheck3"><span class="day-emoji">💧</span>Wed</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck4" value="4"><label for="dayCheck4"><span class="day-emoji">⚡</span>Thu</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck5" value="5"><label for="dayCheck5"><span class="day-emoji">🕌</span>Fri</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck6" value="6"><label for="dayCheck6"><span class="day-emoji">🌟</span>Sat</label></div>
 </div>
 <div class="day-checkbox-actions">
-  <button onclick="selectAllDays()">✅ Select All</button>
-  <button onclick="selectWeekendDays()">🏖️ Weekends Only</button>
-  <button onclick="selectWorkdays()">💼 Workdays Only</button>
-  <button onclick="clearAllDays()">❌ Clear All</button>
+<button onclick="selectAllDays()">✅ Select All</button>
+<button onclick="selectWeekendDays()">🏖️ Weekends Only</button>
+<button onclick="selectWorkdays()">💼 Workdays Only</button>
+<button onclick="clearAllDays()">❌ Clear All</button>
 </div>
 <div style="margin-top:10px; padding:8px; background:rgba(231,76,60,0.1); border-radius:4px; border-left:3px solid #e74c3c; font-size:11px; color:#e0e0e0;">
-  <strong style="color:#e74c3c;">💡 Preview:</strong>
-  <span id="highlightPreviewText">No days selected</span>
+<strong style="color:#e74c3c;">💡 Preview:</strong>
+<span id="highlightPreviewText">No days selected</span>
 </div>
 </div>
-
 </div>
 </div>
 <div id="settings-report" style="display:none;">
@@ -667,14 +653,13 @@ input[type="number"] { -moz-appearance: textfield; }
 // ===== AUTHENTICATION & USER MANAGEMENT SYSTEM =====
 let currentUser = null;
 let editingUser = null;
-
 const appData = {
 currentDevice: 'hormones', currentAnalyte: 'E2', currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), numLevels: 2, renameTarget: null,
 meanType: { L1: 'lab', L2: 'lab', L3: 'lab' }, analyteLevels: {}, excludedValues: {},
 institution: { nameAr: 'نسخة تجريبية', nameEn: 'trial version', logo: '' },
 reportSettings: { qcColWidths: [25, 30, 40, 25, 20], qcFontSize: 7, logDateWidth: 16, logResWidth: 18, logFontSize: 6, chartWidth: 160, chartHeight: 35, highlightDaysOfWeek: [] },
 users: {
-  'Hunter': { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }
+'Hunter': { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }
 },
 devices: {
 hormones: { id: 'hormones', name: 'Hormones', analyzer: 'COBAS e411', analytes: ['E2', 'FSH', 'LH', 'PRL', 'TESTO', 'TSH', 'B-HCG'], numLevels: 2, labSP: 'Mohammed El Desoqy', designee: 'Mohammed El Desoqy', data: {} },
@@ -692,244 +677,234 @@ device12: { id: 'device12', name: 'Device 12', analyzer: 'Analyzer 12', analytes
 }
 };
 Object.values(appData.devices).forEach(dev => { dev.analytes.forEach(a => { appData.analyteLevels[a] = dev.numLevels; }); });
-
 // ===== LOGIN FUNCTIONS =====
 function attemptLogin() {
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errorEl = document.getElementById('loginError');
-  if (!username || !password) { errorEl.textContent = '⚠️ Please enter both username and password.'; return; }
-  if (!appData.users) appData.users = {};
-  if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
-  const user = appData.users[username];
-  if (!user || user.password !== password) { errorEl.textContent = '❌ Invalid username or password.'; document.getElementById('loginPassword').value = ''; return; }
-  currentUser = { username: username, role: user.role, name: user.name };
-  errorEl.textContent = '';
-  document.getElementById('loginOverlay').classList.add('hidden');
-  document.getElementById('topBar').style.display = 'flex';
-  document.getElementById('mainLayout').style.display = 'flex';
-  document.getElementById('bottomBar').style.display = 'flex';
-  updateUserSessionBar();
-  applyUserPermissions();
-  showNotification(`Welcome, ${user.name}! 👋`);
+const username = document.getElementById('loginUsername').value.trim();
+const password = document.getElementById('loginPassword').value;
+const errorEl = document.getElementById('loginError');
+if (!username || !password) { errorEl.textContent = '⚠️ Please enter both username and password.'; return; }
+if (!appData.users) appData.users = {};
+if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
+const user = appData.users[username];
+if (!user || user.password !== password) { errorEl.textContent = '❌ Invalid username or password.'; document.getElementById('loginPassword').value = ''; return; }
+currentUser = { username: username, role: user.role, name: user.name };
+errorEl.textContent = '';
+document.getElementById('loginOverlay').classList.add('hidden');
+document.getElementById('topBar').style.display = 'flex';
+document.getElementById('mainLayout').style.display = 'flex';
+document.getElementById('bottomBar').style.display = 'flex';
+updateUserSessionBar();
+applyUserPermissions();
+showNotification(`Welcome, ${user.name}! 👋`);
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) attemptLogin(); });
 function logoutUser() {
-  if (!confirm('Are you sure you want to logout?')) return;
-  currentUser = null;
-  document.getElementById('loginOverlay').classList.remove('hidden');
-  document.getElementById('topBar').style.display = 'none';
-  document.getElementById('mainLayout').style.display = 'none';
-  document.getElementById('bottomBar').style.display = 'none';
-  document.getElementById('loginUsername').value = '';
-  document.getElementById('loginPassword').value = '';
-  document.getElementById('loginError').textContent = '';
+if (!confirm('Are you sure you want to logout?')) return;
+currentUser = null;
+document.getElementById('loginOverlay').classList.remove('hidden');
+document.getElementById('topBar').style.display = 'none';
+document.getElementById('mainLayout').style.display = 'none';
+document.getElementById('bottomBar').style.display = 'none';
+document.getElementById('loginUsername').value = '';
+document.getElementById('loginPassword').value = '';
+document.getElementById('loginError').textContent = '';
 }
 function updateUserSessionBar() {
-  if (!currentUser) return;
-  document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
-  document.getElementById('userSessionName').textContent = currentUser.name;
-  const roleLabels = { admin: '🛡️ DEVELOPER / ADMIN', manager: '🔸 LAB MANAGER', user: '🔹 USER' };
-  const roleClasses = { admin: 'role-admin', manager: 'role-manager', user: 'role-user' };
-  const roleEl = document.getElementById('userSessionRole');
-  roleEl.textContent = roleLabels[currentUser.role] || 'USER';
-  roleEl.className = 'user-session-role ' + (roleClasses[currentUser.role] || 'role-user');
+if (!currentUser) return;
+document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+document.getElementById('userSessionName').textContent = currentUser.name;
+const roleLabels = { admin: '🛡️ DEVELOPER / ADMIN', manager: '🔸 LAB MANAGER', user: '🔹 USER' };
+const roleClasses = { admin: 'role-admin', manager: 'role-manager', user: 'role-user' };
+const roleEl = document.getElementById('userSessionRole');
+roleEl.textContent = roleLabels[currentUser.role] || 'USER';
+roleEl.className = 'user-session-role ' + (roleClasses[currentUser.role] || 'role-user');
 }
 function applyUserPermissions() {
-  if (!currentUser) return;
-  document.getElementById('userMgmtBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
-  if (!canAccessDevice(appData.currentDevice)) {
-    const accessible = getAccessibleDevices();
-    if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
-  }
-  buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard();
+if (!currentUser) return;
+document.getElementById('userMgmtBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+if (!canAccessDevice(appData.currentDevice)) {
+const accessible = getAccessibleDevices();
+if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
+}
+buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard();
 }
 function canAccessDevice(deviceId) {
-  if (!currentUser) return false;
-  if (currentUser.role === 'admin' || currentUser.role === 'manager') return true;
-  const user = appData.users[currentUser.username];
-  if (!user || !user.assignedDevices) return false;
-  return user.assignedDevices.includes(deviceId);
+if (!currentUser) return false;
+if (currentUser.role === 'admin' || currentUser.role === 'manager') return true;
+const user = appData.users[currentUser.username];
+if (!user || !user.assignedDevices) return false;
+return user.assignedDevices.includes(deviceId);
 }
 function getAccessibleDevices() { return Object.values(appData.devices).filter(dev => canAccessDevice(dev.id)); }
-
 // ===== USER MANAGEMENT =====
 function openUserManagement() {
-  if (!currentUser || currentUser.role !== 'admin') { showNotification('⛔ Access denied. Admin only.'); return; }
-  populateUserMgmtTable(); populateNewUserDeviceGrid();
-  document.getElementById('userMgmtModal').classList.add('active');
-  document.getElementById('newUserRole').onchange = function() { document.getElementById('newUserDeviceSection').style.display = this.value === 'user' ? 'block' : 'none'; };
+if (!currentUser || currentUser.role !== 'admin') { showNotification('⛔ Access denied. Admin only.'); return; }
+populateUserMgmtTable(); populateNewUserDeviceGrid();
+document.getElementById('userMgmtModal').classList.add('active');
+document.getElementById('newUserRole').onchange = function() { document.getElementById('newUserDeviceSection').style.display = this.value === 'user' ? 'block' : 'none'; };
 }
 function closeUserManagement() { document.getElementById('userMgmtModal').classList.remove('active'); }
 function populateNewUserDeviceGrid() {
-  const grid = document.getElementById('newUserDeviceGrid');
-  grid.innerHTML = '';
-  Object.values(appData.devices).forEach(dev => {
-    const chip = document.createElement('div');
-    chip.className = 'device-assign-chip';
-    chip.textContent = dev.name;
-    chip.dataset.deviceId = dev.id;
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
-    grid.appendChild(chip);
-  });
+const grid = document.getElementById('newUserDeviceGrid');
+grid.innerHTML = '';
+Object.values(appData.devices).forEach(dev => {
+const chip = document.createElement('div');
+chip.className = 'device-assign-chip';
+chip.textContent = dev.name;
+chip.dataset.deviceId = dev.id;
+chip.addEventListener('click', () => chip.classList.toggle('selected'));
+grid.appendChild(chip);
+});
 }
 function createNewUser() {
-  const username = document.getElementById('newUsername').value.trim();
-  const fullName = document.getElementById('newUserFullName').value.trim();
-  const password = document.getElementById('newUserPassword').value;
-  const role = document.getElementById('newUserRole').value;
-  if (!username || !fullName || !password) { alert('Please fill in all fields!'); return; }
-  if (appData.users[username]) { alert('Username already exists!'); return; }
-  if (password.length < 4) { alert('Password must be at least 4 characters!'); return; }
-  let assignedDevices = [];
-  if (role === 'user') {
-    const selected = document.querySelectorAll('#newUserDeviceGrid .device-assign-chip.selected');
-    assignedDevices = Array.from(selected).map(c => c.dataset.deviceId);
-    if (assignedDevices.length === 0) { alert('Please assign at least one device to the user!'); return; }
-  }
-  appData.users[username] = { password, role, name: fullName, assignedDevices };
-  document.getElementById('newUsername').value = '';
-  document.getElementById('newUserFullName').value = '';
-  document.getElementById('newUserPassword').value = '';
-  document.getElementById('newUserRole').value = 'user';
-  document.querySelectorAll('#newUserDeviceGrid .device-assign-chip').forEach(c => c.classList.remove('selected'));
-  document.getElementById('newUserDeviceSection').style.display = 'block';
-  populateUserMgmtTable();
-  showNotification(`User "${fullName}" created successfully! ✅`);
-  window.triggerAutoSave();
+const username = document.getElementById('newUsername').value.trim();
+const fullName = document.getElementById('newUserFullName').value.trim();
+const password = document.getElementById('newUserPassword').value;
+const role = document.getElementById('newUserRole').value;
+if (!username || !fullName || !password) { alert('Please fill in all fields!'); return; }
+if (appData.users[username]) { alert('Username already exists!'); return; }
+if (password.length < 4) { alert('Password must be at least 4 characters!'); return; }
+let assignedDevices = [];
+if (role === 'user') {
+const selected = document.querySelectorAll('#newUserDeviceGrid .device-assign-chip.selected');
+assignedDevices = Array.from(selected).map(c => c.dataset.deviceId);
+if (assignedDevices.length === 0) { alert('Please assign at least one device to the user!'); return; }
+}
+appData.users[username] = { password, role, name: fullName, assignedDevices };
+document.getElementById('newUsername').value = '';
+document.getElementById('newUserFullName').value = '';
+document.getElementById('newUserPassword').value = '';
+document.getElementById('newUserRole').value = 'user';
+document.querySelectorAll('#newUserDeviceGrid .device-assign-chip').forEach(c => c.classList.remove('selected'));
+document.getElementById('newUserDeviceSection').style.display = 'block';
+populateUserMgmtTable();
+showNotification(`User "${fullName}" created successfully! ✅`);
+window.triggerAutoSave();
 }
 function populateUserMgmtTable() {
-  const tbody = document.getElementById('userMgmtTableBody');
-  tbody.innerHTML = '';
-  Object.entries(appData.users).forEach(([username, user]) => {
-    const tr = document.createElement('tr');
-    const isAdmin = user.role === 'admin';
-    const roleBadgeClass = user.role === 'admin' ? 'admin' : user.role === 'manager' ? 'manager' : 'user';
-    const roleLabel = user.role === 'admin' ? '🛡️ Admin' : user.role === 'manager' ? '🔸 Manager' : '🔹 User';
-    let devicesHTML = '';
-    if (user.role === 'admin' || user.role === 'manager') {
-      devicesHTML = '<span style="color:#2ecc71; font-size:10px;">✅ All Devices</span>';
-    } else if (user.assignedDevices && user.assignedDevices.length > 0) {
-      devicesHTML = user.assignedDevices.map(dId => { const dev = appData.devices[dId]; return `<span class="device-chip assigned">${dev ? dev.name : dId}</span>`; }).join('');
-    } else { devicesHTML = '<span style="color:#e74c3c; font-size:10px;">⚠️ None</span>'; }
-    let actionsHTML = '';
-    if (isAdmin) { actionsHTML = '<span style="color:#888; font-size:10px;">🔒 Protected</span>'; }
-    else { actionsHTML = `<button class="modal-btn secondary" style="padding:3px 8px; font-size:10px;" onclick="openEditUser('${username}')">✏️ Edit</button> <button class="modal-btn danger" style="padding:3px 8px; font-size:10px;" onclick="deleteUser('${username}')">🗑️</button>`; }
-    tr.innerHTML = `<td><strong style="color:#fff;">${username}</strong></td><td>${user.name}</td><td><span class="role-badge ${roleBadgeClass}">${roleLabel}</span></td><td>${devicesHTML}</td><td>${actionsHTML}</td>`;
-    tbody.appendChild(tr);
-  });
+const tbody = document.getElementById('userMgmtTableBody');
+tbody.innerHTML = '';
+Object.entries(appData.users).forEach(([username, user]) => {
+const tr = document.createElement('tr');
+const isAdmin = user.role === 'admin';
+const roleBadgeClass = user.role === 'admin' ? 'admin' : user.role === 'manager' ? 'manager' : 'user';
+const roleLabel = user.role === 'admin' ? '🛡️ Admin' : user.role === 'manager' ? '🔸 Manager' : '🔹 User';
+let devicesHTML = '';
+if (user.role === 'admin' || user.role === 'manager') {
+devicesHTML = '<span style="color:#2ecc71; font-size:10px;">✅ All Devices</span>';
+} else if (user.assignedDevices && user.assignedDevices.length > 0) {
+devicesHTML = user.assignedDevices.map(dId => { const dev = appData.devices[dId]; return `<span class="device-chip assigned">${dev ? dev.name : dId}</span>`; }).join('');
+} else { devicesHTML = '<span style="color:#e74c3c; font-size:10px;">⚠️ None</span>'; }
+let actionsHTML = '';
+if (isAdmin) { actionsHTML = '<span style="color:#888; font-size:10px;">🔒 Protected</span>'; }
+else { actionsHTML = `<button class="modal-btn secondary" style="padding:3px 8px; font-size:10px;" onclick="openEditUser('${username}')">✏️ Edit</button> <button class="modal-btn danger" style="padding:3px 8px; font-size:10px;" onclick="deleteUser('${username}')">🗑️</button>`; }
+tr.innerHTML = `<td><strong style="color:#fff;">${username}</strong></td><td>${user.name}</td><td><span class="role-badge ${roleBadgeClass}">${roleLabel}</span></td><td>${devicesHTML}</td><td>${actionsHTML}</td>`;
+tbody.appendChild(tr);
+});
 }
 function deleteUser(username) {
-  if (username === 'Hunter') { alert('Cannot delete the admin account!'); return; }
-  if (currentUser && currentUser.username === username) { alert('Cannot delete your own account while logged in!'); return; }
-  if (confirm(`Delete user "${username}"?`)) { delete appData.users[username]; populateUserMgmtTable(); showNotification(`User "${username}" deleted.`); window.triggerAutoSave(); }
+if (username === 'Hunter') { alert('Cannot delete the admin account!'); return; }
+if (currentUser && currentUser.username === username) { alert('Cannot delete your own account while logged in!'); return; }
+if (confirm(`Delete user "${username}"?`)) { delete appData.users[username]; populateUserMgmtTable(); showNotification(`User "${username}" deleted.`); window.triggerAutoSave(); }
 }
 function openEditUser(username) {
-  editingUser = username;
-  const user = appData.users[username];
-  if (!user) return;
-  document.getElementById('editUserName').textContent = `${user.name} (${username})`;
-  document.getElementById('editUserRole').value = user.role;
-  document.getElementById('editUserPassword').value = '';
-  const grid = document.getElementById('editUserDeviceGrid');
-  grid.innerHTML = '';
-  Object.values(appData.devices).forEach(dev => {
-    const chip = document.createElement('div');
-    chip.className = 'device-assign-chip' + (user.assignedDevices && user.assignedDevices.includes(dev.id) ? ' selected' : '');
-    chip.textContent = dev.name;
-    chip.dataset.deviceId = dev.id;
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
-    grid.appendChild(chip);
-  });
-  document.getElementById('editUserDeviceSection').style.display = user.role === 'user' ? 'block' : 'none';
-  document.getElementById('editUserRole').onchange = function() { document.getElementById('editUserDeviceSection').style.display = this.value === 'user' ? 'block' : 'none'; };
-  document.getElementById('editUserModal').classList.add('active');
+editingUser = username;
+const user = appData.users[username];
+if (!user) return;
+document.getElementById('editUserName').textContent = `${user.name} (${username})`;
+document.getElementById('editUserRole').value = user.role;
+document.getElementById('editUserPassword').value = '';
+const grid = document.getElementById('editUserDeviceGrid');
+grid.innerHTML = '';
+Object.values(appData.devices).forEach(dev => {
+const chip = document.createElement('div');
+chip.className = 'device-assign-chip' + (user.assignedDevices && user.assignedDevices.includes(dev.id) ? ' selected' : '');
+chip.textContent = dev.name;
+chip.dataset.deviceId = dev.id;
+chip.addEventListener('click', () => chip.classList.toggle('selected'));
+grid.appendChild(chip);
+});
+document.getElementById('editUserDeviceSection').style.display = user.role === 'user' ? 'block' : 'none';
+document.getElementById('editUserRole').onchange = function() { document.getElementById('editUserDeviceSection').style.display = this.value === 'user' ? 'block' : 'none'; };
+document.getElementById('editUserModal').classList.add('active');
 }
 function closeEditUser() { document.getElementById('editUserModal').classList.remove('active'); editingUser = null; }
 function saveEditUser() {
-  if (!editingUser || !appData.users[editingUser]) return;
-  const user = appData.users[editingUser];
-  const newRole = document.getElementById('editUserRole').value;
-  const newPassword = document.getElementById('editUserPassword').value.trim();
-  user.role = newRole;
-  if (newPassword && newPassword.length >= 4) user.password = newPassword;
-  else if (newPassword && newPassword.length < 4) { alert('Password must be at least 4 characters!'); return; }
-  if (newRole === 'user') {
-    const selected = document.querySelectorAll('#editUserDeviceGrid .device-assign-chip.selected');
-    user.assignedDevices = Array.from(selected).map(c => c.dataset.deviceId);
-    if (user.assignedDevices.length === 0) { alert('Please assign at least one device!'); return; }
-  } else user.assignedDevices = [];
-  closeEditUser(); populateUserMgmtTable(); applyUserPermissions();
-  showNotification(`User "${editingUser}" updated! ✅`);
-  window.triggerAutoSave();
+if (!editingUser || !appData.users[editingUser]) return;
+const user = appData.users[editingUser];
+const newRole = document.getElementById('editUserRole').value;
+const newPassword = document.getElementById('editUserPassword').value.trim();
+user.role = newRole;
+if (newPassword && newPassword.length >= 4) user.password = newPassword;
+else if (newPassword && newPassword.length < 4) { alert('Password must be at least 4 characters!'); return; }
+if (newRole === 'user') {
+const selected = document.querySelectorAll('#editUserDeviceGrid .device-assign-chip.selected');
+user.assignedDevices = Array.from(selected).map(c => c.dataset.deviceId);
+if (user.assignedDevices.length === 0) { alert('Please assign at least one device!'); return; }
+} else user.assignedDevices = [];
+closeEditUser(); populateUserMgmtTable(); applyUserPermissions();
+showNotification(`User "${editingUser}" updated! ✅`);
+window.triggerAutoSave();
 }
-
 // ===== DAY OF WEEK HELPERS (MULTIPLE SELECTION) =====
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 function getHighlightDaysArray() {
-  if (!appData.reportSettings.highlightDaysOfWeek) appData.reportSettings.highlightDaysOfWeek = [];
-  return appData.reportSettings.highlightDaysOfWeek;
+if (!appData.reportSettings.highlightDaysOfWeek) appData.reportSettings.highlightDaysOfWeek = [];
+return appData.reportSettings.highlightDaysOfWeek;
 }
-
 function shouldHighlightRow(dayOfWeek) {
-  const days = getHighlightDaysArray();
-  if (!days || days.length === 0) return false;
-  return days.includes(dayOfWeek);
+const days = getHighlightDaysArray();
+if (!days || days.length === 0) return false;
+return days.includes(dayOfWeek);
 }
-
 function selectAllDays() {
-  for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = true;
-  updateHighlightPreview();
+for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = true;
+updateHighlightPreview();
 }
 function selectWeekendDays() {
-  for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i === 5 || i === 6);
-  updateHighlightPreview();
+for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i === 5 || i === 6);
+updateHighlightPreview();
 }
 function selectWorkdays() {
-  for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i >= 0 && i <= 4);
-  updateHighlightPreview();
+for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i >= 0 && i <= 4);
+updateHighlightPreview();
 }
 function clearAllDays() {
-  for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = false;
-  updateHighlightPreview();
+for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = false;
+updateHighlightPreview();
 }
-
 function updateHighlightPreview() {
-  const previewText = document.getElementById('highlightPreviewText');
-  if (!previewText) return;
-  const selected = [];
-  for (let i = 0; i < 7; i++) {
-    if (document.getElementById('dayCheck' + i).checked) selected.push(DAY_NAMES[i]);
-  }
-  if (selected.length === 0) {
-    previewText.innerHTML = '<span style="color:#888;">No days selected — highlighting disabled</span>';
-  } else {
-    previewText.innerHTML = `<strong style="color:#e74c3c;">${selected.join(', ')}</strong> rows will be highlighted`;
-  }
+const previewText = document.getElementById('highlightPreviewText');
+if (!previewText) return;
+const selected = [];
+for (let i = 0; i < 7; i++) {
+if (document.getElementById('dayCheck' + i).checked) selected.push(DAY_NAMES[i]);
 }
-
+if (selected.length === 0) {
+previewText.innerHTML = '<span style="color:#888;">No days selected — highlighting disabled</span>';
+} else {
+previewText.innerHTML = `<strong style="color:#e74c3c;">${selected.join(', ')}</strong> rows will be highlighted`;
+}
+}
 function setupHighlightPreview() {
-  for (let i = 0; i < 7; i++) {
-    const cb = document.getElementById('dayCheck' + i);
-    if (cb) cb.addEventListener('change', updateHighlightPreview);
-  }
+for (let i = 0; i < 7; i++) {
+const cb = document.getElementById('dayCheck' + i);
+if (cb) cb.addEventListener('change', updateHighlightPreview);
 }
-
+}
 function updateDayHighlightBadge() {
-  const badge = document.getElementById('dayHighlightBadge');
-  if (!badge) return;
-  const days = getHighlightDaysArray();
-  if (!days || days.length === 0) {
-    badge.style.display = 'none';
-  } else {
-    const names = days.map(d => DAY_NAMES_SHORT[d]).join(', ');
-    badge.textContent = `🔴 ${names}`;
-    badge.style.display = 'inline-block';
-  }
+const badge = document.getElementById('dayHighlightBadge');
+if (!badge) return;
+const days = getHighlightDaysArray();
+if (!days || days.length === 0) {
+badge.style.display = 'none';
+} else {
+const names = days.map(d => DAY_NAMES_SHORT[d]).join(', ');
+badge.textContent = `🔴 ${names}`;
+badge.style.display = 'inline-block';
 }
-
+}
 const sampleE2Aug2026 = { dates: ['01-Aug-26','02-Aug-26','03-Aug-26','04-Aug-26','05-Aug-26','06-Aug-26','08-Aug-26','09-Aug-26','10-Aug-26','11-Aug-26','12-Aug-26','13-Aug-26','15-Aug-26','16-Aug-26','17-Aug-26','18-Aug-26','19-Aug-26','20-Aug-26'], L1: [96.81,92.87,100.10,98.17,107.30,103.40,97.18,106.10,106.20,104.60,86.28,85.59,88.96,92.15,91.99,92.06,84.68,96.02], L2: [539.70,536.70,544.20,452.60,618.30,548.70,563.20,595.60,507.60,477.80,477.50,435.30,529.70,516.70,525.30,458.60,535.20,472.90], factoryMean: { L1: 98.90, L2: 485.00 }, factorySD: { L1: 9.89, L2: 48.50 }, permissibleCV: { L1: 17.0, L2: 16.0 }, lot: { L1: '815248', L2: '815248' }, exp: { L1: 'Oct-2026', L2: 'Oct-2026' } };
 const sampleWBCAug2026 = { dates: ['01-Aug-26','02-Aug-26','03-Aug-26','04-Aug-26','05-Aug-26','06-Aug-26','08-Aug-26','09-Aug-26','10-Aug-26','11-Aug-26','12-Aug-26','15-Aug-26','16-Aug-26'], L1: [4.20,3.60,4.06,4.60,4.36,4.67,4.71,4.75,4.76,4.68,4.88,4.69], L2: [8.22,8.15,8.30,8.38,8.18,8.07,8.19,8.13,8.08,8.31,8.54,8.28], L3: [20.78,21.20,21.35,21.57,20.98,21.23,21.15,21.06,21.77,21.49,21.44,21.80], factoryMean: { L1: 4.21, L2: 7.86, L3: 20.45 }, factorySD: { L1: 0.30, L2: 0.20, L3: 0.50 }, permissibleCV: { L1: 4.0, L2: 3.0, L3: 3.0 }, lot: { L1: '5080-1', L2: '5080-2', L3: '5080-3' }, exp: { L1: 'Aug-2026', L2: 'Aug-2026', L3: 'Aug-2026' } };
 let ljChart1, ljChart2, ljChart3, sigmaChart;
@@ -959,155 +934,155 @@ function updateMonthHasData(span, month) { const device = appData.devices[appDat
 function changeYear(delta) { appData.currentYear += delta; updateDateDisplay(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }
 function updateDateDisplay() { const yp = document.getElementById('yearPrev'); const yc = document.getElementById('yearCurr'); const pb = document.getElementById('periodBadge'); if (yp) yp.textContent = appData.currentYear - 1; if (yc) yc.textContent = appData.currentYear; if (pb) pb.textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`; }
 function buildSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  if (!sidebar) return;
-  sidebar.innerHTML = '';
-  const accessibleDevices = getAccessibleDevices();
-  if (accessibleDevices.length === 0) { sidebar.innerHTML = '<div style="color:#e74c3c; font-size:11px; text-align:center; padding:20px 5px;">⛔ No devices assigned.<br>Contact admin.</div>'; return; }
-  if (!canAccessDevice(appData.currentDevice) && accessibleDevices.length > 0) { appData.currentDevice = accessibleDevices[0].id; appData.currentAnalyte = accessibleDevices[0].analytes[0] || ''; }
-  const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
-  accessibleDevices.forEach(dev => {
-    const item = document.createElement('div');
-    item.className = 'sidebar-item' + (dev.id === appData.currentDevice ? ' active' : '');
-    item.dataset.device = dev.id;
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'device-name';
-    nameSpan.textContent = dev.name;
-    nameSpan.addEventListener('click', () => {
-      if (appData.currentDevice === dev.id) return;
-      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      appData.currentDevice = dev.id;
-      const d = appData.devices[dev.id];
-      appData.currentAnalyte = d.analytes[0] || '';
-      appData.numLevels = d.numLevels || 2;
-      buildAnalyteBar(); updateMonthBadges(); updateDashboard();
-      if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-    });
-    if (canModify) {
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'device-actions';
-      const editBtn = document.createElement('button');
-      editBtn.className = 'action-btn';
-      editBtn.innerHTML = '✏️';
-      editBtn.addEventListener('click', (e) => { e.stopPropagation(); openRename('device', dev.id); });
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'action-btn';
-      removeBtn.innerHTML = '🗑️';
-      removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeDevice(dev.id); });
-      actionsDiv.appendChild(editBtn);
-      actionsDiv.appendChild(removeBtn);
-      item.appendChild(nameSpan);
-      item.appendChild(actionsDiv);
-    } else item.appendChild(nameSpan);
-    sidebar.appendChild(item);
-  });
-  if (canModify) {
-    const addBtn = document.createElement('button');
-    addBtn.className = 'add-device-btn';
-    addBtn.textContent = '➕ Add Device';
-    addBtn.addEventListener('click', () => {
-      const name = prompt('Enter new device name:');
-      if (name && name.trim()) {
-        const id = 'device_' + Date.now();
-        appData.devices[id] = { id, name: name.trim(), analyzer: '', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} };
-        appData.analyteLevels['Analyte1'] = 2;
-        buildSidebar(); showNotification('Device added!');
-        window.triggerAutoSave();
-      }
-    });
-    sidebar.appendChild(addBtn);
-  }
+const sidebar = document.getElementById('sidebar');
+if (!sidebar) return;
+sidebar.innerHTML = '';
+const accessibleDevices = getAccessibleDevices();
+if (accessibleDevices.length === 0) { sidebar.innerHTML = '<div style="color:#e74c3c; font-size:11px; text-align:center; padding:20px 5px;">⛔ No devices assigned.<br>Contact admin.</div>'; return; }
+if (!canAccessDevice(appData.currentDevice) && accessibleDevices.length > 0) { appData.currentDevice = accessibleDevices[0].id; appData.currentAnalyte = accessibleDevices[0].analytes[0] || ''; }
+const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+accessibleDevices.forEach(dev => {
+const item = document.createElement('div');
+item.className = 'sidebar-item' + (dev.id === appData.currentDevice ? ' active' : '');
+item.dataset.device = dev.id;
+const nameSpan = document.createElement('span');
+nameSpan.className = 'device-name';
+nameSpan.textContent = dev.name;
+nameSpan.addEventListener('click', () => {
+if (appData.currentDevice === dev.id) return;
+document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+item.classList.add('active');
+appData.currentDevice = dev.id;
+const d = appData.devices[dev.id];
+appData.currentAnalyte = d.analytes[0] || '';
+appData.numLevels = d.numLevels || 2;
+buildAnalyteBar(); updateMonthBadges(); updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+});
+if (canModify) {
+const actionsDiv = document.createElement('div');
+actionsDiv.className = 'device-actions';
+const editBtn = document.createElement('button');
+editBtn.className = 'action-btn';
+editBtn.innerHTML = '✏️';
+editBtn.addEventListener('click', (e) => { e.stopPropagation(); openRename('device', dev.id); });
+const removeBtn = document.createElement('button');
+removeBtn.className = 'action-btn';
+removeBtn.innerHTML = '🗑️';
+removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeDevice(dev.id); });
+actionsDiv.appendChild(editBtn);
+actionsDiv.appendChild(removeBtn);
+item.appendChild(nameSpan);
+item.appendChild(actionsDiv);
+} else item.appendChild(nameSpan);
+sidebar.appendChild(item);
+});
+if (canModify) {
+const addBtn = document.createElement('button');
+addBtn.className = 'add-device-btn';
+addBtn.textContent = '➕ Add Device';
+addBtn.addEventListener('click', () => {
+const name = prompt('Enter new device name:');
+if (name && name.trim()) {
+const id = 'device_' + Date.now();
+appData.devices[id] = { id, name: name.trim(), analyzer: '', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} };
+appData.analyteLevels['Analyte1'] = 2;
+buildSidebar(); showNotification('Device added!');
+window.triggerAutoSave();
+}
+});
+sidebar.appendChild(addBtn);
+}
 }
 function removeDevice(deviceId) {
-  if (Object.keys(appData.devices).length <= 1) { alert('Cannot remove the last device!'); return; }
-  if (confirm(`Remove "${appData.devices[deviceId].name}"?`)) {
-    delete appData.devices[deviceId];
-    if (appData.currentDevice === deviceId) {
-      const accessible = getAccessibleDevices();
-      if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
-    }
-    buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Device removed!');
-    window.triggerAutoSave();
-  }
+if (Object.keys(appData.devices).length <= 1) { alert('Cannot remove the last device!'); return; }
+if (confirm(`Remove "${appData.devices[deviceId].name}"?`)) {
+delete appData.devices[deviceId];
+if (appData.currentDevice === deviceId) {
+const accessible = getAccessibleDevices();
+if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
+}
+buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Device removed!');
+window.triggerAutoSave();
+}
 }
 function buildAnalyteBar() {
-  const device = appData.devices[appData.currentDevice];
-  if (!device) return;
-  const bar = document.getElementById('analyteBar');
-  if (!bar) return;
-  bar.innerHTML = '';
-  const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
-  device.analytes.forEach(a => {
-    const btn = document.createElement('button');
-    const lvl = getAnalyteLevels(a);
-    btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : '');
-    btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
-    btn.addEventListener('click', () => {
-      if (appData.currentAnalyte === a) return;
-      document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      appData.currentAnalyte = a;
-      updateMonthBadges(); updateDashboard();
-      if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-    });
-    bar.appendChild(btn);
-  });
-  if (canModify) {
-    const addBtn = document.createElement('button');
-    addBtn.className = 'analyte-btn';
-    addBtn.textContent = '➕ Add Test';
-    addBtn.style.background = '#2ecc71';
-    addBtn.style.color = '#fff';
-    addBtn.addEventListener('click', () => {
-      document.getElementById('newTestName').value = '';
-      document.getElementById('newTestLevels').value = '2';
-      document.getElementById('newTestTEa').value = '10';
-      document.getElementById('addTestModal').classList.add('active');
-      setTimeout(() => document.getElementById('newTestName').focus(), 100);
-    });
-    bar.appendChild(addBtn);
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-test-btn';
-    removeBtn.textContent = '🗑️ Remove Test';
-    removeBtn.addEventListener('click', () => {
-      const device = appData.devices[appData.currentDevice];
-      if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; }
-      if (confirm(`Remove "${appData.currentAnalyte}"?`)) {
-        const idx = device.analytes.indexOf(appData.currentAnalyte);
-        device.analytes.splice(idx, 1);
-        delete device.data[appData.currentAnalyte];
-        delete appData.analyteLevels[appData.currentAnalyte];
-        appData.currentAnalyte = device.analytes[0];
-        buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Test removed!');
-        window.triggerAutoSave();
-      }
-    });
-    bar.appendChild(removeBtn);
-  }
+const device = appData.devices[appData.currentDevice];
+if (!device) return;
+const bar = document.getElementById('analyteBar');
+if (!bar) return;
+bar.innerHTML = '';
+const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+device.analytes.forEach(a => {
+const btn = document.createElement('button');
+const lvl = getAnalyteLevels(a);
+btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : '');
+btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
+btn.addEventListener('click', () => {
+if (appData.currentAnalyte === a) return;
+document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+appData.currentAnalyte = a;
+updateMonthBadges(); updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+});
+bar.appendChild(btn);
+});
+if (canModify) {
+const addBtn = document.createElement('button');
+addBtn.className = 'analyte-btn';
+addBtn.textContent = '➕ Add Test';
+addBtn.style.background = '#2ecc71';
+addBtn.style.color = '#fff';
+addBtn.addEventListener('click', () => {
+document.getElementById('newTestName').value = '';
+document.getElementById('newTestLevels').value = '2';
+document.getElementById('newTestTEa').value = '10';
+document.getElementById('addTestModal').classList.add('active');
+setTimeout(() => document.getElementById('newTestName').focus(), 100);
+});
+bar.appendChild(addBtn);
+const removeBtn = document.createElement('button');
+removeBtn.className = 'remove-test-btn';
+removeBtn.textContent = '🗑️ Remove Test';
+removeBtn.addEventListener('click', () => {
+const device = appData.devices[appData.currentDevice];
+if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; }
+if (confirm(`Remove "${appData.currentAnalyte}"?`)) {
+const idx = device.analytes.indexOf(appData.currentAnalyte);
+device.analytes.splice(idx, 1);
+delete device.data[appData.currentAnalyte];
+delete appData.analyteLevels[appData.currentAnalyte];
+appData.currentAnalyte = device.analytes[0];
+buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Test removed!');
+window.triggerAutoSave();
+}
+});
+bar.appendChild(removeBtn);
+}
 }
 function closeAddTest() { document.getElementById('addTestModal').classList.remove('active'); }
 function confirmAddTest() {
-  const name = document.getElementById('newTestName').value.trim();
-  const levels = parseInt(document.getElementById('newTestLevels').value);
-  const tea = parseFloat(document.getElementById('newTestTEa').value) || 10;
-  if (!name) { alert('Please enter a test name!'); return; }
-  const device = appData.devices[appData.currentDevice];
-  if (!device) { alert('No device selected!'); return; }
-  if (device.analytes.includes(name)) { alert('Test already exists!'); return; }
-  device.analytes.push(name);
-  appData.analyteLevels[name] = levels;
-  device.data[name] = {};
-  appData.currentAnalyte = name;
-  appData.numLevels = levels;
-  closeAddTest();
-  buildSidebar();
-  buildAnalyteBar();
-  updateMonthBadges();
-  updateDashboard();
-  if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-  showNotification(`✅ Test "${name}" added with ${levels} level(s)!`);
-  window.triggerAutoSave();
+const name = document.getElementById('newTestName').value.trim();
+const levels = parseInt(document.getElementById('newTestLevels').value);
+const tea = parseFloat(document.getElementById('newTestTEa').value) || 10;
+if (!name) { alert('Please enter a test name!'); return; }
+const device = appData.devices[appData.currentDevice];
+if (!device) { alert('No device selected!'); return; }
+if (device.analytes.includes(name)) { alert('Test already exists!'); return; }
+device.analytes.push(name);
+appData.analyteLevels[name] = levels;
+device.data[name] = {};
+appData.currentAnalyte = name;
+appData.numLevels = levels;
+closeAddTest();
+buildSidebar();
+buildAnalyteBar();
+updateMonthBadges();
+updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`✅ Test "${name}" added with ${levels} level(s)!`);
+window.triggerAutoSave();
 }
 function setupNavButtons() { document.querySelectorAll('.nav-btn[data-view]').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); showView(btn.dataset.view); }); }); }
 function setupLevelSelect() { document.getElementById('levelSelect').addEventListener('change', function() { const nl = parseInt(this.value); appData.numLevels = nl; appData.devices[appData.currentDevice].numLevels = nl; appData.analyteLevels[appData.currentAnalyte] = nl; if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }); }
@@ -1291,69 +1266,68 @@ makeChart('ljChart3', rawValuesL3, rangeL3);
 }
 }
 function updateSigmaChart(data, numLevels) { const canvas = document.getElementById('sigmaChart'); if (!canvas) return; const analyte = appData.currentAnalyte; const labels = ['Level 1', 'Level 2']; const values = []; const v1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); const m1 = calcMean(v1), s1 = calcSD(v1, m1), cv1 = calcCV(s1, m1), b1 = calcBias(m1, data.factoryMean.L1 || m1); values.push(calcSigma(data.permissibleCV.L1 || 10, b1, cv1)); const v2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); const m2 = calcMean(v2), s2 = calcSD(v2, m2), cv2 = calcCV(s2, m2), b2 = calcBias(m2, data.factoryMean.L2 || m2); values.push(calcSigma(data.permissibleCV.L2 || 10, b2, cv2)); if (numLevels >= 3 && data.L3) { labels.push('Level 3'); const v3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); const m3 = calcMean(v3), s3 = calcSD(v3, m3), cv3 = calcCV(s3, m3), b3 = calcBias(m3, data.factoryMean.L3 || m3); values.push(calcSigma(data.permissibleCV.L3 || 10, b3, cv3)); } if (sigmaChart) sigmaChart.destroy(); try { sigmaChart = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels, datasets: [{ data: values, backgroundColor: values.map(v => v >= 6 ? '#2ecc71' : v >= 4 ? '#f39c12' : v >= 3 ? '#e67e22' : '#e74c3c'), borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#aaa' }, grid: { color: '#333' } }, y: { min: 0, max: 6, ticks: { color: '#aaa', stepSize: 1 }, grid: { color: '#333' } } } } }); } catch (e) { console.error('Error creating sigma chart:', e); } }
-
 // ===== MODIFIED populateSpreadsheet WITH DAY HIGHLIGHT (MULTIPLE DAYS) =====
 function populateSpreadsheet() {
-  const device = appData.devices[appData.currentDevice];
-  if (!device) return;
-  const analyte = appData.currentAnalyte;
-  const numLevels = getAnalyteLevels(analyte);
-  const daysInMonth = getDaysInMonth(appData.currentYear, appData.currentMonth);
-  const thead = document.getElementById('spreadsheetHead');
-  const tbody = document.getElementById('spreadsheetBody');
-  if (!thead || !tbody) return;
-  let headerHTML = '<tr><th>Date</th>';
-  device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a}.L${l}</th>`; });
-  headerHTML += '</tr>';
-  thead.innerHTML = headerHTML;
-  tbody.innerHTML = '';
-  updateDayHighlightBadge();
-  for (let i = 0; i < daysInMonth; i++) {
-    const tr = document.createElement('tr');
-    const dateStr = formatDate(i + 1, appData.currentMonth, appData.currentYear);
-    const dateTd = document.createElement('td');
-    dateTd.textContent = dateStr;
-    const dateObj = new Date(appData.currentYear, appData.currentMonth, i + 1);
-    const dayOfWeek = dateObj.getDay();
-    const dayName = DAY_NAMES_SHORT[dayOfWeek];
-    const dayIndicator = document.createElement('span');
-    dayIndicator.style.cssText = 'display:block; font-size:9px; color:#e74c3c; font-weight:bold; margin-top:2px;';
-    dayIndicator.textContent = dayName;
-    dateTd.appendChild(dayIndicator);
-    tr.appendChild(dateTd);
-    // Check if this row should be highlighted (multiple days supported)
-    if (shouldHighlightRow(dayOfWeek)) tr.classList.add('highlighted-row');
-    device.analytes.forEach(a => {
-      for (let l = 1; l <= getAnalyteLevels(a); l++) {
-        const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.type = 'number'; input.step = '0.01';
-        input.dataset.analyte = a; input.dataset.level = l; input.dataset.row = i;
-        const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
-        if (aData[`L${l}`] && aData[`L${l}`][i] !== undefined && aData[`L${l}`][i] !== null && aData[`L${l}`][i] !== 0) input.value = aData[`L${l}`][i];
-        const excludedKey = `${appData.currentDevice}_${a}_${appData.currentYear}_${appData.currentMonth}_L${l}`;
-        const excluded = appData.excludedValues[excludedKey] || [];
-        if (excluded.includes(i)) { input.classList.add('excluded'); input.title = 'Excluded from calculations (double-click to include)'; }
-        else input.title = 'Double-click to exclude from calculations';
-        applySDColoring(input, a, l, appData.currentYear, appData.currentMonth);
-        input.addEventListener('dblclick', function(e) {
-          e.preventDefault();
-          const val = parseFloat(this.value);
-          if (isNaN(val) || val === 0) return;
-          toggleExclusion(this.dataset.analyte, this.dataset.level, parseInt(this.dataset.row));
-          this.classList.toggle('excluded');
-          if (this.classList.contains('excluded')) this.title = 'Excluded from calculations (double-click to include)';
-          else this.title = 'Double-click to exclude from calculations';
-        });
-        input.addEventListener('input', autoUpdateSpreadsheet);
-        td.appendChild(input);
-        tr.appendChild(td);
-      }
-    });
-    tbody.appendChild(tr);
-  }
-  populateStatsSummary();
-  setupArrowNavigation();
+const device = appData.devices[appData.currentDevice];
+if (!device) return;
+const analyte = appData.currentAnalyte;
+const numLevels = getAnalyteLevels(analyte);
+const daysInMonth = getDaysInMonth(appData.currentYear, appData.currentMonth);
+const thead = document.getElementById('spreadsheetHead');
+const tbody = document.getElementById('spreadsheetBody');
+if (!thead || !tbody) return;
+let headerHTML = '<tr><th>Date</th>';
+device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a}.L${l}</th>`; });
+headerHTML += '</tr>';
+thead.innerHTML = headerHTML;
+tbody.innerHTML = '';
+updateDayHighlightBadge();
+for (let i = 0; i < daysInMonth; i++) {
+const tr = document.createElement('tr');
+const dateStr = formatDate(i + 1, appData.currentMonth, appData.currentYear);
+const dateTd = document.createElement('td');
+dateTd.textContent = dateStr;
+const dateObj = new Date(appData.currentYear, appData.currentMonth, i + 1);
+const dayOfWeek = dateObj.getDay();
+const dayName = DAY_NAMES_SHORT[dayOfWeek];
+const dayIndicator = document.createElement('span');
+dayIndicator.style.cssText = 'display:block; font-size:9px; color:#e74c3c; font-weight:bold; margin-top:2px;';
+dayIndicator.textContent = dayName;
+dateTd.appendChild(dayIndicator);
+tr.appendChild(dateTd);
+// Check if this row should be highlighted (multiple days supported)
+if (shouldHighlightRow(dayOfWeek)) tr.classList.add('highlighted-row');
+device.analytes.forEach(a => {
+for (let l = 1; l <= getAnalyteLevels(a); l++) {
+const td = document.createElement('td');
+const input = document.createElement('input');
+input.type = 'number'; input.step = '0.01';
+input.dataset.analyte = a; input.dataset.level = l; input.dataset.row = i;
+const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
+if (aData[`L${l}`] && aData[`L${l}`][i] !== undefined && aData[`L${l}`][i] !== null && aData[`L${l}`][i] !== 0) input.value = aData[`L${l}`][i];
+const excludedKey = `${appData.currentDevice}_${a}_${appData.currentYear}_${appData.currentMonth}_L${l}`;
+const excluded = appData.excludedValues[excludedKey] || [];
+if (excluded.includes(i)) { input.classList.add('excluded'); input.title = 'Excluded from calculations (double-click to include)'; }
+else input.title = 'Double-click to exclude from calculations';
+applySDColoring(input, a, l, appData.currentYear, appData.currentMonth);
+input.addEventListener('dblclick', function(e) {
+e.preventDefault();
+const val = parseFloat(this.value);
+if (isNaN(val) || val === 0) return;
+toggleExclusion(this.dataset.analyte, this.dataset.level, parseInt(this.dataset.row));
+this.classList.toggle('excluded');
+if (this.classList.contains('excluded')) this.title = 'Excluded from calculations (double-click to include)';
+else this.title = 'Double-click to exclude from calculations';
+});
+input.addEventListener('input', autoUpdateSpreadsheet);
+td.appendChild(input);
+tr.appendChild(td);
+}
+});
+tbody.appendChild(tr);
+}
+populateStatsSummary();
+setupArrowNavigation();
 }
 function applySDColoring(input, analyte, level, year, month) { const aData = getMonthData(appData.devices[appData.currentDevice], analyte, year, month); const val = parseFloat(input.value); if (isNaN(val) || val === 0) { input.classList.remove('sd-1', 'sd-2', 'sd-3'); return; } const mean = aData.factoryMean[`L${level}`] || 0; const sd = aData.factorySD[`L${level}`] || 0; if (sd === 0) { input.classList.remove('sd-1', 'sd-2', 'sd-3'); return; } const diff = Math.abs(val - mean); input.classList.remove('sd-1', 'sd-2', 'sd-3'); if (diff > 3 * sd) input.classList.add('sd-3'); else if (diff > 2 * sd) input.classList.add('sd-2'); else if (diff > 1 * sd) input.classList.add('sd-1'); }
 function setupArrowNavigation() { const table = document.getElementById('spreadsheetTable'); if (!table) return; table.removeEventListener('keydown', handleArrowKeys); table.addEventListener('keydown', handleArrowKeys); }
@@ -1381,213 +1355,184 @@ function populateStatsSummary() { const device = appData.devices[appData.current
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
 function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues, users: appData.users, reportSettings: appData.reportSettings })); showNotification('Data saved!'); }
 function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
-
 // ===== ENHANCED: Clear data for ALL tests in the device for selected month =====
 function clearCurrentData() {
-  const device = appData.devices[appData.currentDevice];
-  const year = appData.currentYear;
-  const month = appData.currentMonth;
-  const monthName = getMonthName();
-  
-  if (!confirm(`⚠️ Clear ALL QC RESULTS for ALL tests in "${device.name}" for ${monthName} ${year}?\n\nParameters (Mean, SD, TEa, Lot, Exp) will be kept for all tests.`)) return;
-  
-  let clearedCount = 0;
-  
-  device.analytes.forEach(analyte => {
-    if (!device.data[analyte]) device.data[analyte] = {};
-    if (!device.data[analyte][year]) device.data[analyte][year] = {};
-    
-    const currentData = getMonthData(device, analyte, year, month);
-    
-    // Save parameters
-    const savedParams = {
-      factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 },
-      factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 },
-      permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 },
-      lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' },
-      exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' }
-    };
-    
-    // Reset to empty data but keep parameters
-    device.data[analyte][year][month] = createEmptyData();
-    device.data[analyte][year][month].factoryMean = savedParams.factoryMean;
-    device.data[analyte][year][month].factorySD = savedParams.factorySD;
-    device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV;
-    device.data[analyte][year][month].lot = savedParams.lot;
-    device.data[analyte][year][month].exp = savedParams.exp;
-    
-    // Clear exclusions for this analyte
-    const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`;
-    Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
-    
-    clearedCount++;
-  });
-  
-  updateMonthBadges();
-  updateDashboard();
-  if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-  showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device.name}! Parameters retained.`);
-  window.triggerAutoSave();
+const device = appData.devices[appData.currentDevice];
+const year = appData.currentYear;
+const month = appData.currentMonth;
+const monthName = getMonthName();
+if (!confirm(`⚠️ Clear ALL QC RESULTS for ALL tests in "${device.name}" for ${monthName} ${year}?
+Parameters (Mean, SD, TEa, Lot, Exp) will be kept for all tests.`)) return;
+let clearedCount = 0;
+device.analytes.forEach(analyte => {
+if (!device.data[analyte]) device.data[analyte] = {};
+if (!device.data[analyte][year]) device.data[analyte][year] = {};
+const currentData = getMonthData(device, analyte, year, month);
+// Save parameters
+const savedParams = {
+factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 },
+factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 },
+permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 },
+lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' },
+exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' }
+};
+// Reset to empty data but keep parameters
+device.data[analyte][year][month] = createEmptyData();
+device.data[analyte][year][month].factoryMean = savedParams.factoryMean;
+device.data[analyte][year][month].factorySD = savedParams.factorySD;
+device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV;
+device.data[analyte][year][month].lot = savedParams.lot;
+device.data[analyte][year][month].exp = savedParams.exp;
+// Clear exclusions for this analyte
+const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`;
+Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
+clearedCount++;
+});
+updateMonthBadges();
+updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device.name}! Parameters retained.`);
+window.triggerAutoSave();
 }
-
 function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
-
 // ===== ENHANCED: Copy Mean & SD for ALL tests in the device from previous month =====
 function copyFromPreviousMonth() {
-  const device = appData.devices[appData.currentDevice];
-  let pm = appData.currentMonth - 1, py = appData.currentYear;
-  if (pm < 0) { pm = 11; py--; }
-  
-  const prevMonthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm];
-  
-  let copiedCount = 0;
-  let skippedCount = 0;
-  
-  device.analytes.forEach(analyte => {
-    if (hasDataForMonth(device, analyte, py, pm)) {
-      const sourceData = device.data[analyte][py][pm];
-      
-      // Ensure current month data structure exists
-      if (!device.data[analyte]) device.data[analyte] = {};
-      if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
-      if (!device.data[analyte][appData.currentYear][appData.currentMonth]) {
-        device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
-      }
-      
-      const targetData = device.data[analyte][appData.currentYear][appData.currentMonth];
-      
-      // Copy parameters (Mean, SD, TEa, Lot, Exp) — NOT QC results
-      if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
-      if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
-      if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringify(sourceData.permissibleCV));
-      if (sourceData.lot) targetData.lot = JSON.parse(JSON.stringify(sourceData.lot));
-      if (sourceData.exp) targetData.exp = JSON.parse(JSON.stringify(sourceData.exp));
-      
-      copiedCount++;
-    } else {
-      skippedCount++;
-    }
-  });
-  
-  if (copiedCount === 0) {
-    alert(`⚠️ No data found for ANY test in "${device.name}" for ${prevMonthName} ${py}.`);
-    return;
-  }
-  
-  updateMonthBadges();
-  updateDashboard();
-  populateSpreadsheet();
-  
-  let msg = `✅ Copied Mean & SD parameters for ${copiedCount} test(s) from ${prevMonthName} ${py}.`;
-  if (skippedCount > 0) msg += ` (${skippedCount} test(s) had no data to copy)`;
-  showNotification(msg);
-  window.triggerAutoSave();
+const device = appData.devices[appData.currentDevice];
+let pm = appData.currentMonth - 1, py = appData.currentYear;
+if (pm < 0) { pm = 11; py--; }
+const prevMonthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm];
+let copiedCount = 0;
+let skippedCount = 0;
+device.analytes.forEach(analyte => {
+if (hasDataForMonth(device, analyte, py, pm)) {
+const sourceData = device.data[analyte][py][pm];
+// Ensure current month data structure exists
+if (!device.data[analyte]) device.data[analyte] = {};
+if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
+if (!device.data[analyte][appData.currentYear][appData.currentMonth]) {
+device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
 }
-
+const targetData = device.data[analyte][appData.currentYear][appData.currentMonth];
+// Copy parameters (Mean, SD, TEa, Lot, Exp) — NOT QC results
+if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
+if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
+if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringify(sourceData.permissibleCV));
+if (sourceData.lot) targetData.lot = JSON.parse(JSON.stringify(sourceData.lot));
+if (sourceData.exp) targetData.exp = JSON.parse(JSON.stringify(sourceData.exp));
+copiedCount++;
+} else {
+skippedCount++;
+}
+});
+if (copiedCount === 0) {
+alert(`⚠️ No data found for ANY test in "${device.name}" for ${prevMonthName} ${py}.`);
+return;
+}
+updateMonthBadges();
+updateDashboard();
+populateSpreadsheet();
+let msg = `✅ Copied Mean & SD parameters for ${copiedCount} test(s) from ${prevMonthName} ${py}.`;
+if (skippedCount > 0) msg += ` (${skippedCount} test(s) had no data to copy)`;
+showNotification(msg);
+window.triggerAutoSave();
+}
 function copyFromPreviousYear() {
-  const device = appData.devices[appData.currentDevice];
-  const analyte = appData.currentAnalyte;
-  const py = appData.currentYear - 1;
-  if (hasDataForMonth(device, analyte, py, appData.currentMonth)) {
-    Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth])));
-    updateMonthBadges(); updateDashboard(); populateSpreadsheet();
-    showNotification(`Copied from ${getMonthName()} ${py}!`);
-    window.triggerAutoSave();
-  } else alert(`No data for ${getMonthName()} ${py}`);
+const device = appData.devices[appData.currentDevice];
+const analyte = appData.currentAnalyte;
+const py = appData.currentYear - 1;
+if (hasDataForMonth(device, analyte, py, appData.currentMonth)) {
+Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth])));
+updateMonthBadges(); updateDashboard(); populateSpreadsheet();
+showNotification(`Copied from ${getMonthName()} ${py}!`);
+window.triggerAutoSave();
+} else alert(`No data for ${getMonthName()} ${py}`);
 }
 function initImprecision() { const tbody = document.getElementById('imprecisionBody'); if (!tbody) return; tbody.innerHTML = ''; for (let i = 1; i <= 20; i++) { const tr = document.createElement('tr'); tr.innerHTML = `<td>Run ${i}</td><td><input type="number" step="0.01" class="imp-l1"></td><td><input type="number" step="0.01" class="imp-l2"></td><td style="display:none"><input type="number" step="0.01" class="imp-l3"></td>`; tbody.appendChild(tr); } }
 function calcImprecision() { const l1 = Array.from(document.querySelectorAll('.imp-l1')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l2 = Array.from(document.querySelectorAll('.imp-l2')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l3 = Array.from(document.querySelectorAll('.imp-l3')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const div = document.getElementById('imprecisionResults'); if (!div) return; div.innerHTML = ''; [{ name: 'Level 1', v: l1 }, { name: 'Level 2', v: l2 }, { name: 'Level 3', v: l3 }].forEach(level => { if (level.v.length < 2) return; const mean = calcMean(level.v), sd = calcSD(level.v, mean), cv = calcCV(sd, mean); const box = document.createElement('div'); box.className = 'imp-box'; box.innerHTML = `<h4>${level.name}</h4><div>N: ${level.v.length}</div><div>Mean: <strong>${mean.toFixed(4)}</strong></div><div>SD: <strong>${sd.toFixed(4)}</strong></div><div>CV: <strong>${cv.toFixed(2)}%</strong></div><div>Min: ${Math.min(...level.v).toFixed(4)}</div><div>Max: ${Math.max(...level.v).toFixed(4)}</div>`; div.appendChild(box); }); showNotification('Imprecision calculated!'); }
-
 function openSettings() {
-  const device = appData.devices[appData.currentDevice];
-  const data = getCurrentData();
-  document.getElementById('setInstNameAr').value = appData.institution.nameAr || '';
-  document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
-  const previewImg = document.getElementById('logoPreviewImg');
-  const previewText = document.getElementById('logoPreviewText');
-  if (previewImg && previewText) {
-    if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; }
-    else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; }
-  }
-  document.getElementById('setLogoFile').value = '';
-  document.getElementById('setLabSP').value = device.labSP || '';
-  document.getElementById('setDesignee').value = device.designee || '';
-  document.getElementById('setBranch').value = '';
-  document.getElementById('setUser').value = '';
-  document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
-  document.getElementById('setLot1').value = (data.lot && data.lot.L1) || '';
-  document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
-  document.getElementById('setLot2').value = (data.lot && data.lot.L2) || '';
-  document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
-  document.getElementById('setLot3').value = (data.lot && data.lot.L3) || '';
-  document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
-  
-  // Populate day checkboxes from array
-  const highlightDays = getHighlightDaysArray();
-  for (let i = 0; i < 7; i++) {
-    document.getElementById('dayCheck' + i).checked = highlightDays.includes(i);
-  }
-  updateHighlightPreview();
-  
-  const rs = appData.reportSettings;
-  document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', ');
-  document.getElementById('setRepQcFont').value = rs.qcFontSize;
-  document.getElementById('setRepLogDateW').value = rs.logDateWidth;
-  document.getElementById('setRepLogResW').value = rs.logResWidth;
-  document.getElementById('setRepLogFont').value = rs.logFontSize;
-  document.getElementById('setRepChartW').value = rs.chartWidth;
-  document.getElementById('setRepChartH').value = rs.chartHeight;
-  document.getElementById('settingsModal').classList.add('active');
+const device = appData.devices[appData.currentDevice];
+const data = getCurrentData();
+document.getElementById('setInstNameAr').value = appData.institution.nameAr || '';
+document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
+const previewImg = document.getElementById('logoPreviewImg');
+const previewText = document.getElementById('logoPreviewText');
+if (previewImg && previewText) {
+if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; }
+else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; }
+}
+document.getElementById('setLogoFile').value = '';
+document.getElementById('setLabSP').value = device.labSP || '';
+document.getElementById('setDesignee').value = device.designee || '';
+document.getElementById('setBranch').value = '';
+document.getElementById('setUser').value = '';
+document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
+document.getElementById('setLot1').value = (data.lot && data.lot.L1) || '';
+document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
+document.getElementById('setLot2').value = (data.lot && data.lot.L2) || '';
+document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
+document.getElementById('setLot3').value = (data.lot && data.lot.L3) || '';
+document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
+// Populate day checkboxes from array
+const highlightDays = getHighlightDaysArray();
+for (let i = 0; i < 7; i++) {
+document.getElementById('dayCheck' + i).checked = highlightDays.includes(i);
+}
+updateHighlightPreview();
+const rs = appData.reportSettings;
+document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', ');
+document.getElementById('setRepQcFont').value = rs.qcFontSize;
+document.getElementById('setRepLogDateW').value = rs.logDateWidth;
+document.getElementById('setRepLogResW').value = rs.logResWidth;
+document.getElementById('setRepLogFont').value = rs.logFontSize;
+document.getElementById('setRepChartW').value = rs.chartWidth;
+document.getElementById('setRepChartH').value = rs.chartHeight;
+document.getElementById('settingsModal').classList.add('active');
 }
 function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
 function showSettingsTab(tab) { document.getElementById('settings-general').style.display = tab === 'general' ? 'block' : 'none'; document.getElementById('settings-report').style.display = tab === 'report' ? 'block' : 'none'; document.getElementById('tab-general').style.background = tab === 'general' ? '#e74c3c' : '#0f3460'; document.getElementById('tab-report').style.background = tab === 'report' ? '#e74c3c' : '#0f3460'; }
-
 function applySettings() {
-  const device = appData.devices[appData.currentDevice];
-  appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim();
-  appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
-  const previewImg = document.getElementById('logoPreviewImg');
-  if (previewImg && previewImg.dataset.base64) appData.institution.logo = previewImg.dataset.base64;
-  updateInstitutionDisplay();
-  device.labSP = document.getElementById('setLabSP').value;
-  device.designee = document.getElementById('setDesignee').value;
-  const nl = parseInt(document.getElementById('setNumLevels').value);
-  appData.analyteLevels[appData.currentAnalyte] = nl;
-  appData.numLevels = nl;
-  const data = getCurrentData();
-  data.lot.L1 = document.getElementById('setLot1').value;
-  data.exp.L1 = document.getElementById('setExp1').value;
-  data.lot.L2 = document.getElementById('setLot2').value;
-  data.exp.L2 = document.getElementById('setExp2').value;
-  data.lot.L3 = document.getElementById('setLot3').value;
-  data.exp.L3 = document.getElementById('setExp3').value;
-  
-  // Save highlight days array from checkboxes
-  const selectedDays = [];
-  for (let i = 0; i < 7; i++) {
-    if (document.getElementById('dayCheck' + i).checked) selectedDays.push(i);
-  }
-  appData.reportSettings.highlightDaysOfWeek = selectedDays;
-  
-  const qcColsStr = document.getElementById('setRepQcCols').value;
-  appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-  appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value) || 7;
-  appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value) || 16;
-  appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value) || 18;
-  appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value) || 6;
-  appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value) || 160;
-  appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value) || 35;
-  closeSettings();
-  updateDashboard();
-  if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-  
-  if (selectedDays.length > 0) {
-    const dayNames = selectedDays.map(d => DAY_NAMES[d]).join(', ');
-    showNotification(`✅ Settings applied! ${dayNames} rows will be highlighted.`);
-  } else {
-    showNotification('Settings applied!');
-  }
-  window.triggerAutoSave();
+const device = appData.devices[appData.currentDevice];
+appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim();
+appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
+const previewImg = document.getElementById('logoPreviewImg');
+if (previewImg && previewImg.dataset.base64) appData.institution.logo = previewImg.dataset.base64;
+updateInstitutionDisplay();
+device.labSP = document.getElementById('setLabSP').value;
+device.designee = document.getElementById('setDesignee').value;
+const nl = parseInt(document.getElementById('setNumLevels').value);
+appData.analyteLevels[appData.currentAnalyte] = nl;
+appData.numLevels = nl;
+const data = getCurrentData();
+data.lot.L1 = document.getElementById('setLot1').value;
+data.exp.L1 = document.getElementById('setExp1').value;
+data.lot.L2 = document.getElementById('setLot2').value;
+data.exp.L2 = document.getElementById('setExp2').value;
+data.lot.L3 = document.getElementById('setLot3').value;
+data.exp.L3 = document.getElementById('setExp3').value;
+// Save highlight days array from checkboxes
+const selectedDays = [];
+for (let i = 0; i < 7; i++) {
+if (document.getElementById('dayCheck' + i).checked) selectedDays.push(i);
+}
+appData.reportSettings.highlightDaysOfWeek = selectedDays;
+const qcColsStr = document.getElementById('setRepQcCols').value;
+appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value) || 7;
+appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value) || 16;
+appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value) || 18;
+appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value) || 6;
+appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value) || 160;
+appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value) || 35;
+closeSettings();
+updateDashboard();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+if (selectedDays.length > 0) {
+const dayNames = selectedDays.map(d => DAY_NAMES[d]).join(', ');
+showNotification(`✅ Settings applied! ${dayNames} rows will be highlighted.`);
+} else {
+showNotification('Settings applied!');
+}
+window.triggerAutoSave();
 }
 function openAbout() { document.getElementById('aboutModal').classList.add('active'); }
 function closeAbout() { document.getElementById('aboutModal').classList.remove('active'); }
@@ -1613,7 +1558,7 @@ appData.currentDevice = device.id;
 appData.currentAnalyte = analyte;
 let currentY = 8;
 const rs = appData.reportSettings;
-function drawHeader() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('EVALUATION SUMMARY & CONFIGURATION', 12, currentY + 4); currentY += 6; pdf.rect(10, currentY, pageWidth - 20, 20); pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.text('Test Analyte:', 12, currentY + 4); pdf.text('Analyzer System:', 12, currentY + 8); pdf.text('Evaluation Date:', 12, currentY + 12); pdf.text('Designer:', 12, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(`${analyte}`, 60, currentY + 4); pdf.text(device.analyzer || 'N/A', 60, currentY + 8); pdf.text(`24/08/${appData.currentYear}`, 60, currentY + 12); pdf.text(device.designee || '-', 60, currentY + 16); pdf.setFont('helvetica', 'bold'); pdf.text('Evaluator / Lab SP:', 110, currentY + 4); pdf.text('Serial Number:', 110, currentY + 8); pdf.text('Mean Type:', 110, currentY + 12); pdf.text('Specifications:', 110, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(device.labSP || '-', 155, currentY + 4); pdf.text(device.id || 'N/A', 155, currentY + 8); const meanTypeText = Object.values(appData.meanType).every(t => t === 'lab') ? 'LAB Mean' : Object.values(appData.meanType).every(t => t === 'factory') ? 'FACTORY Mean' : 'Mixed Mean'; pdf.text(meanTypeText, 155, currentY + 12); pdf.text('Manufacturer Specifications', 155, currentY + 16); currentY += 22; }
+function drawHeader() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('EVALUATION SUMMARY & CONFIGURATION', 12, currentY + 4); currentY += 6; pdf.rect(10, currentY, pageWidth - 20, 20); pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.text('Test Analyte:', 12, currentY + 4); pdf.text('Analyzer System:', 12, currentY + 8); pdf.text('Evaluation Date:', 12, currentY + 12); pdf.text('Lab Manager:', 12, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(`${analyte}`, 60, currentY + 4); pdf.text(device.analyzer || 'N/A', 60, currentY + 8); pdf.text(`24/08/${appData.currentYear}`, 60, currentY + 12); pdf.text(device.designee || '-', 60, currentY + 16); pdf.setFont('helvetica', 'bold'); pdf.text('Evaluator / Lab SP:', 110, currentY + 4); pdf.text('Hospital Name:', 110, currentY + 8); pdf.text('Mean Type:', 110, currentY + 12); pdf.text('Specifications:', 110, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(device.labSP || '-', 155, currentY + 4); pdf.text(appData.institution.nameEn || '-', 155, currentY + 8); const meanTypeText = Object.values(appData.meanType).every(t => t === 'lab') ? 'LAB Mean' : Object.values(appData.meanType).every(t => t === 'factory') ? 'FACTORY Mean' : 'Mixed Mean'; pdf.text(meanTypeText, 155, currentY + 12); pdf.text('Manufacturer Specifications', 155, currentY + 16); currentY += 22; }
 function drawQCParameters() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION', 12, currentY + 4); currentY += 6; const colWidths = rs.qcColWidths.length === 5 ? rs.qcColWidths : [25, 30, 40, 25, 20]; const startX = 10; pdf.setFillColor(230, 230, 230); let x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 6, 'F'); x += w; } pdf.setFontSize(rs.qcFontSize); pdf.setFont('helvetica', 'bold'); pdf.text('Control Level', startX + 2, currentY + 4); pdf.text('Target QC Mean', startX + colWidths[0] + colWidths[1]/2, currentY + 4, { align: 'center' }); pdf.text('Standard Deviation (SD)', startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 4, { align: 'center' }); pdf.text('Expiration Date', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 4, { align: 'center' }); pdf.text('Lot Number', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 4, { align: 'center' }); currentY += 6; pdf.setFont('helvetica', 'normal'); pdf.setFontSize(rs.qcFontSize); for (let l = 1; l <= numLevels; l++) { x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 5); x += w; } const mean = (data.factoryMean && data.factoryMean[`L${l}`]) ? data.factoryMean[`L${l}`].toFixed(3) : '0.000'; const sd = (data.factorySD && data.factorySD[`L${l}`]) ? data.factorySD[`L${l}`].toFixed(3) : '0.000'; const exp = (data.exp && data.exp[`L${l}`]) || 'N/A'; const lot = (data.lot && data.lot[`L${l}`]) || 'N/A'; pdf.text(`Level ${l} (L${l})`, startX + 2, currentY + 3.5); pdf.text(mean, startX + colWidths[0] + colWidths[1]/2, currentY + 3.5, { align: 'center' }); pdf.text(sd, startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 3.5, { align: 'center' }); pdf.text(exp, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 3.5, { align: 'center' }); pdf.text(lot, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 3.5, { align: 'center' }); currentY += 5; } currentY += 4; }
 function drawDataTable() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4); currentY += 6; const startX = 10; const dateColWidth = 15; const dayCellWidth = (pageWidth - 20 - dateColWidth) / 31; const rowHeight = 6; const unifiedFontSize = 6; const getFontSizeForCell = (text, cellWidth, cellHeight, baseFontSize) => { if (!text) return baseFontSize; let fontSize = baseFontSize; pdf.setFontSize(fontSize); const textWidth = pdf.getTextWidth(text); while (textWidth > (cellWidth - 1) && fontSize > 3) { fontSize -= 0.5; pdf.setFontSize(fontSize); } while ((fontSize * 1.2) > (cellHeight - 0.5) && fontSize > 3) { fontSize -= 0.5; } return Math.max(3, fontSize); }; pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.setFillColor(255, 255, 255); pdf.rect(startX, currentY, pageWidth - 20, rowHeight, 'FD'); pdf.text(`${device.name} - ${analyte} (${periodStr.toUpperCase()})`, startX + (pageWidth - 20) / 2, currentY + 4, { align: 'center' }); currentY += rowHeight; pdf.setFontSize(unifiedFontSize); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.text('Date', startX + 2, currentY + 4); for (let d = 1; d <= 31; d++) { pdf.setFillColor(211, 211, 211); pdf.rect(startX + dateColWidth + (d - 1) * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); pdf.text(d.toString(), startX + dateColWidth + (d - 1) * dayCellWidth + dayCellWidth / 2, currentY + 4, { align: 'center' }); } currentY += rowHeight; const drawLevelRows = (level) => { if (numLevels < level) return; pdf.setFont('helvetica', 'bold'); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.setFontSize(unifiedFontSize); pdf.text(`LVL ${level}`, startX + 2, currentY + 4); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(0, 0, 0); for (let d = 1; d <= 31; d++) { const idx = d - 1; const val = data[`L${level}`] && data[`L${level}`][idx] !== undefined && data[`L${level}`][idx] !== null && data[`L${level}`][idx] !== 0 ? data[`L${level}`][idx].toFixed(1) : ''; pdf.setFillColor(255, 255, 255); pdf.rect(startX + dateColWidth + idx * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); if (val) { const fSize = getFontSizeForCell(val, dayCellWidth, rowHeight, 7); pdf.setFontSize(fSize); pdf.text(val, startX + dateColWidth + idx * dayCellWidth + dayCellWidth / 2, currentY + (rowHeight/2) + (fSize*0.3), { align: 'center', baseline: 'middle' }); } } currentY += rowHeight; currentY += 2; }; drawLevelRows(1); drawLevelRows(2); drawLevelRows(3); currentY += 5; }
 function drawLJCharts() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS', 12, currentY + 4); currentY += 9.8; const chartWidth = rs.chartWidth; const chartHeight = rs.chartHeight; const startX = 20; for (let l = 1; l <= numLevels; l++) { try { const values = getNonExcludedValues(analyte, l, appData.currentYear, appData.currentMonth); let mean, sd; if (appData.meanType[`L${l}`] === 'factory' && data.factoryMean[`L${l}`] && data.factorySD[`L${l}`]) { mean = data.factoryMean[`L${l}`]; sd = data.factorySD[`L${l}`]; } else { mean = calcMean(values); sd = calcSD(values, mean); } pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.text(`${analyte} - Level ${l} (Target: ${mean.toFixed(2)} ± ${sd.toFixed(2)})`, 12, currentY); currentY += 2; pdf.setDrawColor(0); pdf.setLineWidth(0.2); pdf.rect(startX, currentY, chartWidth, chartHeight); const minY = mean - 3 * sd; const maxY = mean + 3 * sd; const yRange = maxY - minY || 1; const mapY = (val) => currentY + chartHeight - ((val - minY) / yRange) * chartHeight; pdf.setLineWidth(0.1); pdf.setDrawColor(0); pdf.line(startX, mapY(mean), startX + chartWidth, mapY(mean)); pdf.setDrawColor(100); pdf.setLineDashPattern([2, 2], 0); pdf.line(startX, mapY(mean + sd), startX + chartWidth, mapY(mean + sd)); pdf.line(startX, mapY(mean - sd), startX + chartWidth, mapY(mean - sd)); pdf.line(startX, mapY(mean + 2*sd), startX + chartWidth, mapY(mean + 2*sd)); pdf.line(startX, mapY(mean - 2*sd), startX + chartWidth, mapY(mean - 2*sd)); pdf.setLineDashPattern([1, 1], 0); pdf.line(startX, mapY(mean + 3*sd), startX + chartWidth, mapY(mean + 3*sd)); pdf.line(startX, mapY(mean - 3*sd), startX + chartWidth, mapY(mean - 3*sd)); pdf.setLineDashPattern([], 0); const levelData = data[`L${l}`]; if (levelData && levelData.length > 0) { pdf.setDrawColor(0); pdf.setLineWidth(0.3); pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); let prevX = null; let prevY = null; for (let i = 0; i < levelData.length; i++) { const val = levelData[i]; if (val === undefined || val === null || val === 0 || isNaN(val)) continue; const x = startX + (i / (levelData.length - 1 || 1)) * chartWidth; const y = mapY(val); if (prevX !== null) pdf.line(prevX, prevY, x, y); pdf.circle(x, y, 0.8, 'F'); prevX = x; prevY = y; } } pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); for (let i = 0; i < data.dates.length; i++) { const x = startX + (i / (data.dates.length - 1 || 1)) * chartWidth; const dateStr = data.dates[i] || ''; const day = dateStr.substring(0, 2); if (i === 0 || i === data.dates.length - 1 || i % 2 === 0) pdf.text(day, x - 2, currentY + chartHeight + 3); } currentY += chartHeight + 8; } catch (e) { console.error('Error drawing chart:', e); } } }
