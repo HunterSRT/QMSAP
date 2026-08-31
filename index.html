@@ -68,6 +68,10 @@ appData.reportSettings.highlightDaysOfWeek = [];
 }
 delete appData.reportSettings.highlightDayOfWeek;
 }
+if (!appData.customEquations) appData.customEquations = [];
+if (!appData.customWebResources) appData.customWebResources = [];
+if (!appData.customChatQA) appData.customChatQA = [];
+
 buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 applyUserPermissions();
@@ -84,6 +88,10 @@ if (!appData.users) appData.users = {};
 if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
 if (!appData.reportSettings) appData.reportSettings = {};
 if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = [];
+if (!appData.customEquations) appData.customEquations = [];
+if (!appData.customWebResources) appData.customWebResources = [];
+if (!appData.customChatQA) appData.customChatQA = [];
+
 buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet();
 applyUserPermissions();
 showNotification('QMSAP Data loaded from Cloud! 📂');
@@ -295,7 +303,7 @@ input[type="number"] { -moz-appearance: textfield; }
 .spreadsheet-table input.sd-3 { background: rgba(255, 0, 0, 0.2); color: #ffaaaa; }
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
 .modal-overlay.active { display: flex; }
-.modal { background: #16213e; border-radius: 10px; padding: 25px; min-width: 400px; max-width: 700px; max-height: 90vh; overflow-y: auto; border: 1px solid #e74c3c; }
+.modal { background: #16213e; border-radius: 10px; padding: 25px; min-width: 400px; max-width: 700px; max-height: 90vh; overflow-y: auto; border: 1px solid #e74c3c; position: relative; }
 .modal h3 { color: #e74c3c; margin-bottom: 15px; font-size: 18px; }
 .modal label { display: block; margin: 8px 0 4px; font-size: 12px; color: #aaa; }
 .modal input, .modal select { width: 100%; padding: 8px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-size: 13px; }
@@ -304,6 +312,30 @@ input[type="number"] { -moz-appearance: textfield; }
 .modal-btn.primary { background: #e74c3c; color: #fff; }
 .modal-btn.secondary { background: #0f3460; color: #e0e0e0; }
 .modal-btn.danger { background: #c0392b; color: #fff; }
+/* ===== MODAL CLOSE BUTTON (X) ===== */
+.modal-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+.modal-close-btn:hover {
+    background: #e74c3c;
+    color: #fff;
+    transform: scale(1.1);
+}
 .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .settings-group { background: #0f3460; padding: 15px; border-radius: 6px; }
 .settings-group h4 { color: #e74c3c; margin-bottom: 10px; font-size: 14px; }
@@ -376,7 +408,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .assistant-scroll::-webkit-scrollbar { width: 8px; }
 .assistant-scroll::-webkit-scrollbar-track { background: #16213e; }
 .assistant-scroll::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
-
 /* ===== CHAT ASSISTANT STYLES ===== */
 .chat-messages { display: flex; flex-direction: column; gap: 12px; }
 .chat-msg { padding: 12px 16px; border-radius: 12px; max-width: 85%; line-height: 1.5; font-size: 13px; animation: fadeIn 0.3s ease; word-wrap: break-word; }
@@ -385,6 +416,14 @@ input[type="number"] { -moz-appearance: textfield; }
 .chat-msg.user { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
 .chat-msg strong { color: #9b59b6; }
 .chat-msg.user strong { color: #fff; }
+
+/* ===== ADMIN CONTROLS ===== */
+.admin-only { display: none !important; }
+.admin-only.show { display: block !important; }
+.admin-only.show-inline { display: inline-block !important; }
+.admin-only.show-flex { display: flex !important; }
+.admin-panel-box { margin-top: 15px; padding: 12px; background: #0f3460; border-radius: 6px; border: 1px dashed #e74c3c; }
+.admin-panel-box h4 { color: #e74c3c; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
 
 @media print { body { background: #fff; color: #000; } .sidebar, .top-bar, .bottom-bar, .exit-btn, .toolbar, .fixed-action-bar, .machine-info-bar, .fullscreen-btn-group, .user-session-bar { display: none !important; } .content-area { padding: 0; } .auto-panel { background: #fff; color: #000; border: 1px solid #ccc; } .stat-box { background: #f0f0f0; } .stat-box .stat-value { color: #000; } }
 @media (max-width: 1600px) { .dashboard-grid { grid-template-columns: fit-content(300px) fit-content(300px) 180px 200px 1fr; } }
@@ -570,6 +609,7 @@ input[type="number"] { -moz-appearance: textfield; }
 <!-- About Modal -->
 <div class="modal-overlay" id="aboutModal">
 <div class="modal" style="min-width:400px; max-width:500px; text-align:center;">
+<button class="modal-close-btn" onclick="closeAbout()" title="Close (ESC)">✕</button>
 <h3>ℹ️ About the Developer</h3>
 <div style="margin: 20px 0;">
 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://sa.linkedin.com/in/mohammed-al-mugtaba-e-b84994389" alt="LinkedIn QR Code" style="border: 2px solid #e74c3c; border-radius: 8px; padding: 5px; background: #fff;">
@@ -589,38 +629,47 @@ input[type="number"] { -moz-appearance: textfield; }
 <!-- ===== LAB ASSISTANT MODAL ===== -->
 <div class="modal-overlay" id="assistantModal">
 <div class="modal assistant-modal">
+<button class="modal-close-btn" onclick="closeAssistant()" title="Close (ESC)">✕</button>
 <h3>🧪 Lab Assistant — Equations, TEa & Web Resources</h3>
 <div class="assistant-tabs">
 <button class="assistant-tab active" onclick="showAssistantTab('chat', this)">💬 Chat Assistant</button>
 <button class="assistant-tab" onclick="showAssistantTab('equations', this)">📐 Equations</button>
 <button class="assistant-tab" onclick="showAssistantTab('tea', this)">🎯 TEa Database</button>
 <button class="assistant-tab" onclick="showAssistantTab('web', this)">🌐 Web Resources</button>
-<button class="assistant-tab" onclick="showAssistantTab('fetch', this)">⚡ Fetch Updates</button>
+<button class="assistant-tab admin-only" id="fetchTab" onclick="showAssistantTab('fetch', this)">⚡ Fetch Updates</button>
 </div>
-
 <!-- CHAT ASSISTANT TAB -->
 <div class="assistant-content active" id="assistant-chat">
-  <div style="display:flex; flex-direction:column; height:65vh;">
-    <div id="chatMessages" class="chat-messages" style="flex:1; overflow-y:auto; background:#0f3460; border-radius:8px; padding:15px; margin-bottom:10px; border:1px solid #333;">
-      <div class="chat-msg bot">
-        <strong>🧪 Lab Assistant:</strong> Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.<br><br>
-        Try asking:<br>
-        • "What is the TEa for Glucose?"<br>
-        • "How to calculate Sigma?"<br>
-        • "Explain Westgard 1-3s rule"<br>
-        • "What is QGI?"
-      </div>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <input type="text" id="chatInput" placeholder="Ask a question..." style="flex:1; padding:12px; background:#16213e; border:1px solid #333; color:#fff; border-radius:6px; font-size:13px;" onkeypress="if(event.key==='Enter') sendChatMessage()">
-      <button class="apply-tea-btn" onclick="sendChatMessage()" style="padding:12px 24px; font-size:13px;">Send 📤</button>
-    </div>
-  </div>
+<div style="display:flex; flex-direction:column; height:65vh;">
+<div id="chatMessages" class="chat-messages" style="flex:1; overflow-y:auto; background:#0f3460; border-radius:8px; padding:15px; margin-bottom:10px; border:1px solid #333;">
+<div class="chat-msg bot">
+<strong>🧪 Lab Assistant:</strong> Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.<br><br>
+Try asking:<br>
+• "What is the TEa for Glucose?"<br>
+• "How to calculate Sigma?"<br>
+• "Explain Westgard 1-3s rule"<br>
+• "What is QGI?"
 </div>
-
+</div>
+<div class="admin-only" id="chatAdminPanel" style="margin-bottom:10px; padding:10px; background:#16213e; border-radius:6px; border:1px dashed #9b59b6;">
+<h4 style="color:#9b59b6; margin-bottom:8px; font-size:12px;">🛠️ Developer Mode: Manage Chat Q&A</h4>
+<div id="customChatQAList" style="max-height:120px; overflow-y:auto; margin-bottom:8px;"></div>
+<div style="display:flex; gap:5px;">
+<input type="text" id="newQATriggers" placeholder="Triggers (comma separated)" style="flex:1; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+<input type="text" id="newQAResponse" placeholder="Response (HTML allowed)" style="flex:2; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+<button class="apply-tea-btn" onclick="addCustomChatQA()" style="background:#9b59b6; padding:6px 12px;">➕ Add</button>
+</div>
+</div>
+<div style="display:flex; gap:10px;">
+<input type="text" id="chatInput" placeholder="Ask a question..." style="flex:1; padding:12px; background:#16213e; border:1px solid #333; color:#fff; border-radius:6px; font-size:13px;" onkeypress="if(event.key==='Enter') sendChatMessage()">
+<button class="apply-tea-btn" onclick="sendChatMessage()" style="padding:12px 24px; font-size:13px;">Send 📤</button>
+</div>
+</div>
+</div>
 <!-- EQUATIONS TAB -->
 <div class="assistant-content" id="assistant-equations">
 <div class="assistant-scroll">
+<div id="customEquationsList"></div>
 <div class="equation-card">
 <h4>📊 Arithmetic Mean (x̄)</h4>
 <div class="equation-formula">x̄ = (Σ xᵢ) / n</div>
@@ -682,6 +731,13 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 </div>
 </div>
 </div>
+<div class="admin-only admin-panel-box" id="eqAdminPanel">
+<h4>🛠️ Developer Mode: Add Custom Equation</h4>
+<input type="text" id="newEqTitle" placeholder="Title (e.g. Custom Formula)" style="width:100%; margin-bottom:5px; padding:6px; background:#16213e; border:1px solid #333; color:#fff; border-radius:4px;">
+<input type="text" id="newEqFormula" placeholder="Formula (e.g. x = y + z)" style="width:100%; margin-bottom:5px; padding:6px; background:#16213e; border:1px solid #333; color:#2ecc71; border-radius:4px; font-family:monospace;">
+<textarea id="newEqDesc" placeholder="Description..." style="width:100%; margin-bottom:5px; padding:6px; background:#16213e; border:1px solid #333; color:#fff; border-radius:4px; height:60px;"></textarea>
+<button class="apply-tea-btn" onclick="addCustomEquation()" style="background:#e74c3c;">➕ Add Equation</button>
+</div>
 </div>
 <!-- TEA DATABASE TAB -->
 <div class="assistant-content" id="assistant-tea">
@@ -709,10 +765,18 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <span class="tea-source-badge tea-source-rlb">Rlb</span> German Rilibak Guidelines |
 <span class="tea-source-badge tea-source-rcpa">RCPA</span> Royal College of Pathologists of Australasia
 </div>
+<div class="admin-only admin-panel-box" id="teaAdminControls">
+<h4>🛠️ Developer Mode: Database Management</h4>
+<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+<input type="file" id="teaCsvImport" accept=".csv" onchange="importTeaCsv(event)" style="padding:6px; background:#16213e; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+<button class="apply-tea-btn" onclick="exportTeaDatabase()" style="background:#2ecc71; padding:8px 16px;">📤 Export as CSV</button>
+</div>
+</div>
 </div>
 <!-- WEB RESOURCES TAB -->
 <div class="assistant-content" id="assistant-web">
 <div class="assistant-scroll">
+<div id="customWebResourcesList"></div>
 <div class="web-resource-card">
 <div class="web-resource-icon">🧬</div>
 <div class="web-resource-info">
@@ -770,6 +834,13 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <a href="https://www.westgard.com/sigma-metrics.htm" target="_blank" class="web-resource-link">Open →</a>
 </div>
 </div>
+<div class="admin-only admin-panel-box" id="webAdminPanel">
+<h4>🛠️ Developer Mode: Add Custom Web Resource</h4>
+<input type="text" id="newWebTitle" placeholder="Title" style="width:100%; margin-bottom:5px; padding:6px; background:#16213e; border:1px solid #333; color:#fff; border-radius:4px;">
+<input type="text" id="newWebUrl" placeholder="URL (https://...)" style="width:100%; margin-bottom:5px; padding:6px; background:#16213e; border:1px solid #333; color:#3498db; border-radius:4px;">
+<textarea id="newWebDesc" placeholder="Description..." style="width:100%; margin-bottom:5px; padding:6px; background:#16213e; border:1px solid #333; color:#fff; border-radius:4px; height:50px;"></textarea>
+<button class="apply-tea-btn" onclick="addCustomWebResource()" style="background:#e74c3c;">➕ Add Resource</button>
+</div>
 </div>
 <!-- FETCH UPDATES TAB -->
 <div class="assistant-content" id="assistant-fetch">
@@ -778,38 +849,12 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <h4>⚡ Fetch Latest TEa from Web</h4>
 <div class="equation-desc">
 Click the button below to fetch the latest TEa specifications from public sources.
-The system will query the Westgard QC TEa table and update the local database.
+The system will query the Westgard QC TEa table and update the local database using multiple proxy fallbacks.
 </div>
 <button class="apply-tea-btn" onclick="fetchTeaFromWeb()" style="margin-top:10px; padding:10px 20px; font-size:13px; background:#9b59b6;">
 🌐 Fetch from Westgard.com
 </button>
 <div class="fetch-status" id="fetchStatus"></div>
-</div>
-<div class="equation-card">
-<h4>📥 Import TEa from CSV</h4>
-<div class="equation-desc">
-Upload a CSV file with columns: <code>Analyte, Name, TEa, Source</code> to extend the database.
-</div>
-<input type="file" id="teaCsvImport" accept=".csv" onchange="importTeaCsv(event)" style="margin-top:10px; padding:8px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px;">
-</div>
-<div class="equation-card">
-<h4>💾 Export Current Database</h4>
-<div class="equation-desc">
-Download the current TEa database as CSV for backup or sharing.
-</div>
-<button class="apply-tea-btn" onclick="exportTeaDatabase()" style="margin-top:10px; padding:10px 20px; font-size:13px; background:#2ecc71;">
-📤 Export as CSV
-</button>
-</div>
-<div class="equation-card">
-<h4>🔗 Direct API Endpoints</h4>
-<div class="equation-desc">
-For advanced users, these endpoints can be queried programmatically:
-</div>
-<div style="margin-top:8px; font-family:monospace; font-size:11px; background:#16213e; padding:10px; border-radius:4px; color:#2ecc71;">
-• Westgard TEa: https://www.westgard.com/teaspec.htm<br>
-• EFLM BV: https://westgard.com/biodatabase1.htm<br>
-• CLIA CDC: https://www.ecfr.gov/current/title-42/chapter-I/subchapter-F/part-493
 </div>
 </div>
 </div>
@@ -822,6 +867,7 @@ For advanced users, these endpoints can be queried programmatically:
 <!-- ===== USER MANAGEMENT MODAL ===== -->
 <div class="modal-overlay" id="userMgmtModal">
 <div class="modal" style="min-width:650px; max-width:800px;">
+<button class="modal-close-btn" onclick="closeUserManagement()" title="Close (ESC)">✕</button>
 <h3>👥 User Management & Permissions</h3>
 <div class="add-user-form">
 <h4>➕ Create New User</h4>
@@ -856,6 +902,7 @@ For advanced users, these endpoints can be queried programmatically:
 <!-- Edit User Modal -->
 <div class="modal-overlay" id="editUserModal">
 <div class="modal" style="min-width:450px;">
+<button class="modal-close-btn" onclick="closeEditUser()" title="Close (ESC)">✕</button>
 <h3>✏️ Edit User: <span id="editUserName"></span></h3>
 <div style="margin-bottom:12px;">
 <label style="font-size:11px; color:#aaa;">Role</label>
@@ -880,6 +927,7 @@ For advanced users, these endpoints can be queried programmatically:
 </div>
 <div class="modal-overlay" id="settingsModal">
 <div class="modal">
+<button class="modal-close-btn" onclick="closeSettings()" title="Close (ESC)">✕</button>
 <h3>⚙️ Settings</h3>
 <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
 <button class="modal-btn secondary" onclick="showSettingsTab('general')" id="tab-general" style="background:#e74c3c;">General</button>
@@ -937,8 +985,8 @@ Select one or more days of the week. Rows in the spreadsheet matching any select
 <div class="modal-btns"><button class="modal-btn secondary" onclick="closeSettings()">Cancel</button><button class="modal-btn primary" onclick="applySettings()">Apply</button></div>
 </div>
 </div>
-<div class="modal-overlay" id="renameModal"><div class="modal" style="min-width:300px"><h3 id="renameTitle">Rename</h3><label>New Name</label><input type="text" id="renameInput"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeRename()">Cancel</button><button class="modal-btn primary" onclick="applyRename()">Apply</button></div></div></div>
-<div class="modal-overlay" id="addTestModal"><div class="modal" style="min-width:350px"><h3>➕ Add New Test</h3><label>Test Name</label><input type="text" id="newTestName" placeholder="e.g. E2, WBC, GLU..."><label>Number of Levels</label><select id="newTestLevels"><option value="2">2 Levels (L1, L2)</option><option value="3">3 Levels (L1, L2, L3)</option></select><label>Default TEa (%)</label><input type="number" id="newTestTEa" value="10" step="0.1"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeAddTest()">Cancel</button><button class="modal-btn primary" onclick="confirmAddTest()">Add Test</button></div></div></div>
+<div class="modal-overlay" id="renameModal"><div class="modal" style="min-width:300px"><button class="modal-close-btn" onclick="closeRename()" title="Close (ESC)">✕</button><h3 id="renameTitle">Rename</h3><label>New Name</label><input type="text" id="renameInput"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeRename()">Cancel</button><button class="modal-btn primary" onclick="applyRename()">Apply</button></div></div></div>
+<div class="modal-overlay" id="addTestModal"><div class="modal" style="min-width:350px"><button class="modal-close-btn" onclick="closeAddTest()" title="Close (ESC)">✕</button><h3>➕ Add New Test</h3><label>Test Name</label><input type="text" id="newTestName" placeholder="e.g. E2, WBC, GLU..."><label>Number of Levels</label><select id="newTestLevels"><option value="2">2 Levels (L1, L2)</option><option value="3">3 Levels (L1, L2, L3)</option></select><label>Default TEa (%)</label><input type="number" id="newTestTEa" value="10" step="0.1"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeAddTest()">Cancel</button><button class="modal-btn primary" onclick="confirmAddTest()">Add Test</button></div></div></div>
 <script>
 // ===== AUTHENTICATION & USER MANAGEMENT SYSTEM =====
 let currentUser = null;
@@ -951,6 +999,9 @@ reportSettings: { qcColWidths: [25, 30, 40, 25, 20], qcFontSize: 7, logDateWidth
 users: {
 'Hunter': { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }
 },
+customEquations: [],
+customWebResources: [],
+customChatQA: [],
 devices: {
 hormones: { id: 'hormones', name: 'Hormones', analyzer: 'COBAS e411', analytes: ['E2', 'FSH', 'LH', 'PRL', 'TESTO', 'TSH', 'B-HCG'], numLevels: 2, labSP: 'Mohammed El Desoqy', designee: 'Mohammed El Desoqy', data: {} },
 chemistry: { id: 'chemistry', name: 'Chemistry', analyzer: 'AU5800', analytes: ['GLU', 'UREA', 'CREA', 'ALT', 'AST'], numLevels: 2, labSP: '', designee: '', data: {} },
@@ -968,80 +1019,75 @@ device12: { id: 'device12', name: 'Device 12', analyzer: 'Analyzer 12', analytes
 };
 Object.values(appData.devices).forEach(dev => { dev.analytes.forEach(a => { appData.analyteLevels[a] = dev.numLevels; }); });
 
+// ===== ADMIN HELPER =====
+function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+
 // ===== CHAT ASSISTANT LOGIC =====
 function sendChatMessage() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  
-  addChatMessage(msg, 'user');
-  input.value = '';
-  
-  // Simulate natural typing delay
-  setTimeout(() => {
-    const response = generateChatResponse(msg);
-    addChatMessage(response, 'bot');
-  }, 600);
+const input = document.getElementById('chatInput');
+const msg = input.value.trim();
+if (!msg) return;
+addChatMessage(msg, 'user');
+input.value = '';
+setTimeout(() => {
+const response = generateChatResponse(msg);
+addChatMessage(response, 'bot');
+}, 600);
 }
-
 function addChatMessage(text, sender) {
-  const container = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = `chat-msg ${sender}`;
-  div.innerHTML = `<strong>${sender === 'bot' ? '🧪 Lab Assistant' : '👤 You'}:</strong><br>${text}`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight; // Auto-scroll to bottom
+const container = document.getElementById('chatMessages');
+const div = document.createElement('div');
+div.className = `chat-msg ${sender}`;
+div.innerHTML = `<strong>${sender === 'bot' ? '🧪 Lab Assistant' : '👤 You'}:</strong><br>${text}`;
+container.appendChild(div);
+container.scrollTop = container.scrollHeight;
 }
-
 function generateChatResponse(input) {
-  const lower = input.toLowerCase();
-  
-  // 1. Check for TEa queries (e.g., "tea for glucose", "tea wbc")
-  const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
-  if (teaMatch) {
-    const query = teaMatch[1].toUpperCase();
-    const found = Object.keys(TEA_DATABASE).find(k => 
-      k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase())
-    );
-    if (found) {
-      const d = TEA_DATABASE[found];
-      return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
-      • <strong>CLIA:</strong> ${d.clia !== null ? d.clia + '%' : 'N/A'}<br>
-      • <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
-      • <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
-      • <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
-      <em>💡 Tip: You can also go to the "TEa Database" tab to apply this directly to your current analyte.</em>`;
-    } else {
-      return `I couldn't find TEa data for "<strong>${query}</strong>". Try common analytes like Glucose, TSH, WBC, or Creatinine. You can also search the "TEa Database" tab.`;
-    }
-  }
-  
-  // 2. Check for QC Equations
-  if (lower.includes('sigma') || lower.includes('six sigma')) {
-    return "The <strong>Sigma Metric (σ)</strong> formula is:<br><strong>σ = (TEa − |Bias%|) / CV%</strong><br><br>It combines bias and imprecision into a single quality metric:<br>• σ ≥ 6: World Class 🌟<br>• 5 ≤ σ < 6: Excellent<br>• 4 ≤ σ < 5: Good<br>• 3 ≤ σ < 4: Marginal<br>• σ < 3: Unacceptable";
-  }
-  if (lower.includes('cv') || lower.includes('coefficient of variation')) {
-    return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) × 100</strong><br><br>It expresses imprecision as a percentage. A lower CV means better precision.";
-  }
-  if (lower.includes('bias')) {
-    return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</strong><br><br>It measures systematic error (accuracy).";
-  }
-  if (lower.includes('qgi') || lower.includes('quality goal index')) {
-    return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 × CV%)</strong><br><br>It diagnoses the type of error when σ < 6:<br>• QGI < 0.8 → Random Error (improve precision)<br>• 0.8 ≤ QGI ≤ 1.2 → Combined Error (improve both)<br>• QGI > 1.2 → Systematic Error (improve accuracy)";
-  }
-  
-  // 3. Check for Westgard rules
-  if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s') || lower.includes('rule')) {
-    return "<strong>Westgard Multi-Rules:</strong><br>• <strong>1-2s</strong>: Warning rule<br>• <strong>1-3s</strong>: Reject (Random error)<br>• <strong>2-2s</strong>: Reject (Systematic error)<br>• <strong>R-4s</strong>: Reject (Random error)<br>• <strong>4-1s</strong>: Reject (Systematic error)<br>• <strong>8-x</strong>: Reject (Systematic error)";
-  }
-  
-  // 4. Check for help/greeting
-  if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) {
-    return "Hello! 👋 I can help you with:<br>• <strong>TEa values</strong> (e.g., 'What is TEa for Glucose?')<br>• <strong>QC Equations</strong> (e.g., 'How to calculate Sigma?')<br>• <strong>Westgard Rules</strong><br>• <strong>QGI & Error Types</strong><br><br>What would you like to know?";
-  }
-  
-  // Default fallback
-  return "I'm not sure about that. 🤔 Try asking about:<br>• 'TEa for [Analyte]'<br>• 'How to calculate Sigma / CV / Bias'<br>• 'Westgard rules'<br>Or use the tabs above for detailed databases and resources.";
+const lower = input.toLowerCase();
+// 1. Check Custom Q&A first (Admin defined)
+for (const qa of appData.customChatQA) {
+if (qa.triggers.some(t => t && lower.includes(t))) {
+return qa.response;
+}
+}
+// 2. Check for TEa queries
+const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
+if (teaMatch) {
+const query = teaMatch[1].toUpperCase();
+const found = Object.keys(TEA_DATABASE).find(k =>
+k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase())
+);
+if (found) {
+const d = TEA_DATABASE[found];
+return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
+• <strong>CLIA:</strong> ${d.clia !== null ? d.clia + '%' : 'N/A'}<br>
+• <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
+• <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
+• <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
+<em>💡 Tip: You can also go to the "TEa Database" tab to apply this directly to your current analyte.</em>`;
+} else {
+return `I couldn't find TEa data for "<strong>${query}</strong>". Try common analytes like Glucose, TSH, WBC, or Creatinine.`;
+}
+}
+if (lower.includes('sigma') || lower.includes('six sigma')) {
+return "The <strong>Sigma Metric (σ)</strong> formula is:<br><strong>σ = (TEa − |Bias%|) / CV%</strong><br><br>• σ ≥ 6: World Class 🌟<br>• 5–6: Excellent<br>• 4–5: Good<br>• 3–4: Marginal<br>• < 3: Unacceptable";
+}
+if (lower.includes('cv') || lower.includes('coefficient of variation')) {
+return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) × 100</strong>";
+}
+if (lower.includes('bias')) {
+return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</strong>";
+}
+if (lower.includes('qgi') || lower.includes('quality goal index')) {
+return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 × CV%)</strong><br><br>• QGI < 0.8 → Random Error<br>• 0.8 ≤ QGI ≤ 1.2 → Combined Error<br>• QGI > 1.2 → Systematic Error";
+}
+if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s') || lower.includes('rule')) {
+return "<strong>Westgard Multi-Rules:</strong><br>• 1-2s: Warning<br>• 1-3s: Reject (Random)<br>• 2-2s: Reject (Systematic)<br>• R-4s: Reject (Random)<br>• 4-1s: Reject (Systematic)<br>• 8-x: Reject (Systematic)";
+}
+if (lower.includes('hello') || lower.includes('hi') || lower.includes('help')) {
+return "Hello! 👋 I can help you with TEa values, QC Equations, Westgard Rules, and QGI. What would you like to know?";
+}
+return "I'm not sure about that. 🤔 Try asking about 'TEa for [Analyte]', 'How to calculate Sigma', or 'Westgard rules'.";
 }
 
 // ===== LAB ASSISTANT SYSTEM =====
@@ -1130,10 +1176,25 @@ const TEA_DATABASE = {
 'HCV':     { name:'Hepatitis C',       clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
 'HBsAg':   { name:'HBsAg',             clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' }
 };
+
 function openAssistant() {
 document.getElementById('assistantModal').classList.add('active');
 populateTeaTable();
-showAssistantTab('chat', document.querySelector('.assistant-tab')); // Opens chat by default
+renderCustomEquations();
+renderCustomWebResources();
+renderCustomChatQA();
+
+// Handle Admin-only UI elements
+document.querySelectorAll('.admin-only').forEach(el => {
+if (isAdmin()) {
+if (el.classList.contains('assistant-tab')) el.classList.add('show-inline');
+else el.classList.add('show');
+} else {
+el.classList.remove('show', 'show-inline', 'show-flex');
+}
+});
+
+showAssistantTab('chat', document.querySelector('.assistant-tab'));
 }
 function closeAssistant() { document.getElementById('assistantModal').classList.remove('active'); }
 function showAssistantTab(tab, btn) {
@@ -1143,6 +1204,116 @@ if (btn) btn.classList.add('active');
 const content = document.getElementById('assistant-' + tab);
 if (content) content.classList.add('active');
 }
+
+// ===== CUSTOM DATA MANAGEMENT (ADMIN ONLY) =====
+function renderCustomEquations() {
+const container = document.getElementById('customEquationsList');
+if(!container) return;
+container.innerHTML = '';
+appData.customEquations.forEach((eq, idx) => {
+container.innerHTML += `
+<div class="equation-card" style="border-left-color:#e74c3c;">
+<h4 style="color:#e74c3c; justify-content:space-between;">${eq.title} <button class="remove-test-btn" onclick="deleteCustomEquation(${idx})">🗑️</button></h4>
+<div class="equation-formula">${eq.formula}</div>
+<div class="equation-desc">${eq.desc}</div>
+</div>
+`;
+});
+}
+function addCustomEquation() {
+const title = document.getElementById('newEqTitle').value.trim();
+const formula = document.getElementById('newEqFormula').value.trim();
+const desc = document.getElementById('newEqDesc').value.trim();
+if(!title || !formula) { alert('Title and Formula are required!'); return; }
+appData.customEquations.push({title, formula, desc});
+document.getElementById('newEqTitle').value = '';
+document.getElementById('newEqFormula').value = '';
+document.getElementById('newEqDesc').value = '';
+renderCustomEquations();
+window.triggerAutoSave();
+showNotification('Custom equation added!');
+}
+function deleteCustomEquation(idx) {
+if(confirm('Delete this equation?')) {
+appData.customEquations.splice(idx, 1);
+renderCustomEquations();
+window.triggerAutoSave();
+}
+}
+
+function renderCustomWebResources() {
+const container = document.getElementById('customWebResourcesList');
+if(!container) return;
+container.innerHTML = '';
+appData.customWebResources.forEach((res, idx) => {
+container.innerHTML += `
+<div class="web-resource-card">
+<div class="web-resource-icon">🔗</div>
+<div class="web-resource-info">
+<h4>${res.title} <button class="remove-test-btn" onclick="deleteCustomWebResource(${idx})" style="font-size:10px; vertical-align:middle;">🗑️</button></h4>
+<p>${res.desc}</p>
+</div>
+<a href="${res.url}" target="_blank" class="web-resource-link">Open →</a>
+</div>
+`;
+});
+}
+function addCustomWebResource() {
+const title = document.getElementById('newWebTitle').value.trim();
+const url = document.getElementById('newWebUrl').value.trim();
+const desc = document.getElementById('newWebDesc').value.trim();
+if(!title || !url) { alert('Title and URL are required!'); return; }
+appData.customWebResources.push({title, url, desc});
+document.getElementById('newWebTitle').value = '';
+document.getElementById('newWebUrl').value = '';
+document.getElementById('newWebDesc').value = '';
+renderCustomWebResources();
+window.triggerAutoSave();
+showNotification('Custom web resource added!');
+}
+function deleteCustomWebResource(idx) {
+if(confirm('Delete this resource?')) {
+appData.customWebResources.splice(idx, 1);
+renderCustomWebResources();
+window.triggerAutoSave();
+}
+}
+
+function renderCustomChatQA() {
+const container = document.getElementById('customChatQAList');
+if(!container) return;
+container.innerHTML = '';
+appData.customChatQA.forEach((qa, idx) => {
+container.innerHTML += `
+<div style="background:#0f3460; padding:6px 8px; border-radius:4px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; font-size:10px;">
+<div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+<strong style="color:#9b59b6;">[${qa.triggers.join(', ')}]</strong> ${qa.response.substring(0, 40)}...
+</div>
+<button class="remove-test-btn" onclick="deleteCustomChatQA(${idx})" style="margin-left:5px;">🗑️</button>
+</div>
+`;
+});
+}
+function addCustomChatQA() {
+const triggersStr = document.getElementById('newQATriggers').value.trim();
+const response = document.getElementById('newQAResponse').value.trim();
+if(!triggersStr || !response) { alert('Triggers and Response are required!'); return; }
+const triggers = triggersStr.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+appData.customChatQA.push({triggers, response});
+document.getElementById('newQATriggers').value = '';
+document.getElementById('newQAResponse').value = '';
+renderCustomChatQA();
+window.triggerAutoSave();
+showNotification('Custom Q&A added!');
+}
+function deleteCustomChatQA(idx) {
+if(confirm('Delete this Q&A?')) {
+appData.customChatQA.splice(idx, 1);
+renderCustomChatQA();
+window.triggerAutoSave();
+}
+}
+
 function populateTeaTable() {
 const tbody = document.getElementById('teaTableBody');
 if (!tbody) return;
@@ -1217,28 +1388,59 @@ return;
 }
 applyTeaToAnalyte(code);
 }
+
+// ===== FIXED FETCH LOGIC WITH MULTI-PROXY FALLBACK =====
 async function fetchTeaFromWeb() {
 const status = document.getElementById('fetchStatus');
 status.className = 'fetch-status loading';
-status.textContent = '⏳ Fetching latest TEa data from Westgard.com...';
+status.textContent = '⏳ Fetching latest TEa data... Trying multiple proxies...';
+
+const targetUrl = 'https://www.westgard.com/teaspec.htm';
+const proxies = [
+`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+`https://api.codetabs.com/v1/proxy?quest=${targetUrl}`
+];
+
+let html = null;
+for (const proxyUrl of proxies) {
 try {
-const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.westgard.com/teaspec.htm');
-const response = await fetch(proxyUrl);
-if (!response.ok) throw new Error('Network response was not ok');
-const html = await response.text();
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 12000);
+const response = await fetch(proxyUrl, { signal: controller.signal });
+clearTimeout(timeoutId);
+if (response.ok) {
+const text = await response.text();
+if (text && text.length > 500 && text.includes('<')) {
+html = text;
+break;
+}
+}
+} catch (e) {
+console.warn('Proxy failed:', proxyUrl, e);
+}
+}
+
+if (!html) {
+status.className = 'fetch-status error';
+status.innerHTML = `❌ All proxies failed or blocked by Cloudflare.<br><strong>Alternative:</strong> Please use the "Import CSV" feature in the TEa Database tab, or visit <a href="${targetUrl}" target="_blank" style="color:#3498db;">Westgard.com</a> directly.`;
+return;
+}
+
 const parser = new DOMParser();
 const doc = parser.parseFromString(html, 'text/html');
-const tables = doc.querySelectorAll('table');
+const rows = doc.querySelectorAll('tr');
 let foundCount = 0;
-tables.forEach(table => {
-const rows = table.querySelectorAll('tr');
+
 rows.forEach(row => {
-const cells = row.querySelectorAll('td');
+const cells = row.querySelectorAll('td, th');
 if (cells.length >= 2) {
-const name = cells[0]?.textContent.trim();
-const teaVal = parseFloat(cells[1]?.textContent.replace('%',''));
+let name = cells[0]?.textContent.trim();
+let teaStr = cells[1]?.textContent.trim();
+const teaVal = parseFloat(teaStr.replace('%', '').replace(',', '.'));
 if (name && !isNaN(teaVal) && teaVal > 0 && teaVal < 100) {
 const match = Object.keys(TEA_DATABASE).find(k =>
+TEA_DATABASE[k].name.toLowerCase() === name.toLowerCase() ||
 TEA_DATABASE[k].name.toLowerCase().includes(name.toLowerCase()) ||
 name.toLowerCase().includes(TEA_DATABASE[k].name.toLowerCase())
 );
@@ -1249,20 +1451,17 @@ foundCount++;
 }
 }
 });
-});
+
 if (foundCount > 0) {
 status.className = 'fetch-status success';
-status.innerHTML = `✅ Successfully updated ${foundCount} analytes from Westgard.com. Check the TEa Database tab.`;
+status.innerHTML = `✅ Successfully updated ${foundCount} analytes from Westgard.com.`;
 populateTeaTable();
 } else {
 status.className = 'fetch-status error';
-status.innerHTML = `⚠️ Could not parse TEa values from the page. The website structure may have changed.<br>Please visit <a href="https://www.westgard.com/teaspec.htm" target="_blank" style="color:#3498db;">Westgard.com</a> directly.`;
-}
-} catch (e) {
-status.className = 'fetch-status error';
-status.innerHTML = `❌ Error fetching data: ${e.message}<br><br><strong>Alternative:</strong> Visit the sources directly in the "Web Resources" tab, or import a CSV file.`;
+status.innerHTML = `⚠️ Connected, but could not parse TEa values. The website structure may have changed.<br>Please use the CSV import feature.`;
 }
 }
+
 function importTeaCsv(event) {
 const file = event.target.files[0];
 if (!file) return;
@@ -1289,6 +1488,7 @@ imported++;
 }
 populateTeaTable();
 showNotification(`✅ Imported ${imported} TEa values from CSV!`);
+window.triggerAutoSave();
 } catch (err) {
 alert('Error parsing CSV: ' + err.message);
 }
@@ -1311,6 +1511,7 @@ a.click();
 URL.revokeObjectURL(url);
 showNotification('📤 TEa database exported!');
 }
+
 // ===== LOGIN FUNCTIONS =====
 function attemptLogin() {
 const username = document.getElementById('loginUsername').value.trim();
@@ -1331,7 +1532,20 @@ updateUserSessionBar();
 applyUserPermissions();
 showNotification(`Welcome, ${user.name}! 👋`);
 }
-document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) attemptLogin(); });
+
+// ===== GLOBAL KEYBOARD SHORTCUTS (ESC to close modals) =====
+document.addEventListener('keydown', (e) => { 
+    if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) {
+        attemptLogin(); 
+    }
+    if (e.key === 'Escape') {
+        // Close any active modal overlay
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+        });
+    }
+});
+
 function logoutUser() {
 if (!confirm('Are you sure you want to logout?')) return;
 currentUser = null;
@@ -1956,8 +2170,8 @@ populateStatsSummary(); updateMonthBadges(); updateDashboard(); window.triggerAu
 }
 function populateStatsSummary() { const device = appData.devices[appData.currentDevice]; const head = document.getElementById('statsSummaryHead'); const body = document.getElementById('statsSummaryBody'); if (!head || !body) return; let headerHTML = '<tr><th></th>'; device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a} L${l}</th>`; }); headerHTML += '</tr>'; head.innerHTML = headerHTML; const rows = [{ name: 'Mean', type: 'mean', editable: true }, { name: 'S.D', type: 'sd', editable: true }, { name: 'F.MAX', type: 'fmax', editable: false }, { name: 'F.MIN', type: 'fmin', editable: false }, { name: 'LAB x̄', type: 'lab_mean', editable: false }, { name: 'LAB SD', type: 'lab_sd', editable: false }, { name: 'LAB MAX', type: 'lab_max', editable: false }, { name: 'LAB MIN', type: 'lab_min', editable: false }, { name: 'LAB CV%', type: 'lab_cv', editable: false }, { name: 'Factory CV%', type: 'fact_cv', editable: false }, { name: 'Bias%', type: 'bias', editable: false }, { name: 'TEa', type: 'tea', editable: true }, { name: 'Lot', type: 'lot', editable: true }, { name: 'EXP', type: 'exp', editable: true }, { name: 'Analyzer', type: 'analyzer', editable: true }]; body.innerHTML = ''; rows.forEach(rowObj => { const tr = document.createElement('tr'); const td0 = document.createElement('td'); td0.textContent = rowObj.name; td0.style.fontWeight = 'bold'; td0.style.color = '#e74c3c'; tr.appendChild(td0); device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) { const td = document.createElement('td'); const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth); const values = getNonExcludedValues(a, l, appData.currentYear, appData.currentMonth); const labMean = calcMean(values), labSD = calcSD(values, labMean), labMax = values.length > 0 ? Math.max(...values) : 0, labMin = values.length > 0 ? Math.min(...values) : 0; const labCV = calcCV(labSD, labMean); const factMean = (aData.factoryMean && aData.factoryMean[`L${l}`]) || 0; const factSD = (aData.factorySD && aData.factorySD[`L${l}`]) || 0; const factCV = factMean !== 0 ? calcCV(factSD, factMean) : 0; const fMax = factMean + 3 * factSD; const fMin = factMean - 3 * factSD; const bias = factMean !== 0 ? calcBias(labMean, factMean) : 0; const storedTEa = (aData.permissibleCV && aData.permissibleCV[`L${l}`]) || 10, storedLot = (aData.lot && aData.lot[`L${l}`]) || '', storedExp = (aData.exp && aData.exp[`L${l}`]) || ''; if (rowObj.editable) { const input = document.createElement('input'); if (rowObj.type === 'analyzer') { input.type = 'text'; input.value = device.analyzer || ''; input.style.width = '90px'; input.addEventListener('change', (e) => { device.analyzer = e.target.value; showNotification('Analyzer updated!'); }); } else { input.type = (rowObj.type === 'lot' || rowObj.type === 'exp') ? 'text' : 'number'; if (rowObj.type !== 'lot' && rowObj.type !== 'exp') input.step = rowObj.type === 'tea' ? '0.1' : '0.01'; input.style.width = '70px'; if (rowObj.type === 'mean') input.value = factMean; else if (rowObj.type === 'sd') input.value = factSD; else if (rowObj.type === 'tea') input.value = storedTEa; else if (rowObj.type === 'lot') input.value = storedLot; else if (rowObj.type === 'exp') input.value = storedExp; input.addEventListener('change', (e) => { const val = rowObj.type === 'lot' || rowObj.type === 'exp' ? e.target.value : (parseFloat(e.target.value) || 0); if (rowObj.type === 'mean') { if (!aData.factoryMean) aData.factoryMean = {}; aData.factoryMean[`L${l}`] = val; } else if (rowObj.type === 'sd') { if (!aData.factorySD) aData.factorySD = {}; aData.factorySD[`L${l}`] = val; } else if (rowObj.type === 'tea') { if (!aData.permissibleCV) aData.permissibleCV = {}; aData.permissibleCV[`L${l}`] = val; } else if (rowObj.type === 'lot') { if (!aData.lot) aData.lot = {}; aData.lot[`L${l}`] = val; } else if (rowObj.type === 'exp') { if (!aData.exp) aData.exp = {}; aData.exp[`L${l}`] = val; } updateDashboard(); populateStatsSummary(); showNotification(`${rowObj.name} updated!`); window.triggerAutoSave(); }); } input.style.textAlign = 'center'; input.style.background = 'transparent'; input.style.border = 'none'; input.style.color = '#e0e0e0'; input.style.fontSize = '11px'; input.style.padding = '2px'; input.addEventListener('focus', function() { this.style.background = '#0f3460'; this.style.outline = '1px solid #e74c3c'; }); input.addEventListener('blur', function() { this.style.background = 'transparent'; this.style.outline = 'none'; }); td.appendChild(input); } else { if (rowObj.type === 'fmax') td.textContent = fMax.toFixed(2); else if (rowObj.type === 'fmin') td.textContent = fMin.toFixed(2); else if (rowObj.type === 'lab_mean') { td.textContent = values.length > 0 ? labMean.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_sd') { td.textContent = values.length > 0 ? labSD.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_max') { td.textContent = values.length > 0 ? labMax.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_min') { td.textContent = values.length > 0 ? labMin.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_cv') { td.textContent = values.length > 0 ? labCV.toFixed(2) + '%' : '-'; td.style.color = '#2ecc71'; } else if (rowObj.type === 'fact_cv') { td.textContent = factMean !== 0 ? factCV.toFixed(2) + '%' : '-'; td.style.color = '#f39c12'; } else if (rowObj.type === 'bias') { td.textContent = (values.length > 0 && factMean !== 0 ? Math.abs(bias).toFixed(2) : '0') + '%'; td.style.color = bias > 0 ? '#e74c3c' : '#2ecc71'; } } tr.appendChild(td); } }); body.appendChild(tr); }); }
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
-function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues, users: appData.users, reportSettings: appData.reportSettings })); showNotification('Data saved!'); }
-function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
+function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues, users: appData.users, reportSettings: appData.reportSettings, customEquations: appData.customEquations, customWebResources: appData.customWebResources, customChatQA: appData.customChatQA })); showNotification('Data saved!'); }
+function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (loaded.customEquations) appData.customEquations = loaded.customEquations; if (loaded.customWebResources) appData.customWebResources = loaded.customWebResources; if (loaded.customChatQA) appData.customChatQA = loaded.customChatQA; if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; if (!appData.customEquations) appData.customEquations = []; if (!appData.customWebResources) appData.customWebResources = []; if (!appData.customChatQA) appData.customChatQA = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
 function clearCurrentData() {
 const device = appData.devices[appData.currentDevice];
 const year = appData.currentYear;
