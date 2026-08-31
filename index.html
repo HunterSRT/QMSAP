@@ -105,7 +105,6 @@ window.addEventListener('load', () => { setTimeout(() => window.loadFromCloudSil
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
 input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
-/* ===== LOGIN SCREEN ===== */
 .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 40%, #16213e 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .login-overlay.hidden { display: none; }
 .login-box { background: #16213e; border: 2px solid #e74c3c; border-radius: 16px; padding: 40px 35px; width: 400px; max-width: 95vw; box-shadow: 0 20px 60px rgba(231,76,60,0.2), 0 0 100px rgba(231,76,60,0.05); animation: loginSlideIn 0.5s ease; }
@@ -122,7 +121,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .login-btn:hover { background: linear-gradient(135deg, #c0392b, #a93226); transform: translateY(-1px); box-shadow: 0 5px 15px rgba(231,76,60,0.3); }
 .login-error { color: #e74c3c; font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; }
 .login-footer { text-align: center; margin-top: 20px; color: #555; font-size: 10px; }
-/* ===== USER SESSION BAR ===== */
 .user-session-bar { display: flex; align-items: center; gap: 8px; background: #0f3460; padding: 4px 10px; border-radius: 6px; border: 1px solid #333; margin-left: auto; }
 .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e74c3c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #fff; }
 .user-session-info { font-size: 11px; line-height: 1.3; }
@@ -133,7 +131,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .role-user { color: #3498db; }
 .logout-btn { background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.2s; }
 .logout-btn:hover { background: #e74c3c; color: #fff; }
-/* ===== USER MANAGEMENT MODAL ===== */
 .user-mgmt-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
 .user-mgmt-table th { background: #0f3460; padding: 8px 6px; text-align: left; font-size: 11px; color: #e74c3c; border-bottom: 2px solid #e74c3c; }
 .user-mgmt-table td { padding: 7px 6px; border-bottom: 1px solid #222; }
@@ -153,14 +150,12 @@ input[type="number"] { -moz-appearance: textfield; }
 .device-assign-chip { padding: 4px 10px; background: #16213e; border: 1px solid #333; border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
 .device-assign-chip.selected { background: rgba(46,204,113,0.2); border-color: #2ecc71; color: #2ecc71; }
 .device-assign-chip:hover { border-color: #e74c3c; }
-/* ===== DAY OF WEEK HIGHLIGHT ===== */
 .spreadsheet-table tbody tr.highlighted-row { background: rgba(231, 76, 60, 0.18) !important; border-left: 4px solid #e74c3c; box-shadow: inset 0 0 0 1px rgba(231, 76, 60, 0.3); }
 .spreadsheet-table tbody tr.highlighted-row td { background: rgba(231, 76, 60, 0.18) !important; color: #fff !important; font-weight: 600; }
 .spreadsheet-table tbody tr.highlighted-row td:first-child { background: #e74c3c !important; color: #fff !important; font-weight: bold; border-left: 4px solid #fff; }
 .spreadsheet-table tbody tr.highlighted-row input { color: #fff !important; font-weight: 600; background: transparent !important; }
 .spreadsheet-table tbody tr.highlighted-row:hover { background: rgba(231, 76, 60, 0.28) !important; }
 .day-highlight-indicator { display: inline-block; padding: 2px 8px; background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; border-radius: 10px; font-size: 10px; font-weight: bold; margin-left: 8px; }
-/* ===== DAY CHECKBOXES ===== */
 .day-checkbox-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
 .day-checkbox-item { position: relative; }
 .day-checkbox-item input[type="checkbox"] { display: none; }
@@ -312,30 +307,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .modal-btn.primary { background: #e74c3c; color: #fff; }
 .modal-btn.secondary { background: #0f3460; color: #e0e0e0; }
 .modal-btn.danger { background: #c0392b; color: #fff; }
-/* ===== MODAL CLOSE BUTTON (X) ===== */
-.modal-close-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: transparent;
-    border: 1px solid #e74c3c;
-    color: #e74c3c;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    z-index: 10;
-}
-.modal-close-btn:hover {
-    background: #e74c3c;
-    color: #fff;
-    transform: scale(1.1);
-}
 .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .settings-group { background: #0f3460; padding: 15px; border-radius: 6px; }
 .settings-group h4 { color: #e74c3c; margin-bottom: 10px; font-size: 14px; }
@@ -361,7 +332,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .fullscreen-ctrl-btn { background: #0f3460; border: 1px solid #333; color: #e74c3c; cursor: pointer; border-radius: 4px; font-size: 14px; padding: 4px 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
 .fullscreen-ctrl-btn:hover { background: #e74c3c; color: #fff; }
 .fullscreen-ctrl-btn.active { background: #e74c3c; color: #fff; }
-/* ===== LAB ASSISTANT STYLES ===== */
 .assistant-btn { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
 .assistant-btn:hover { background: linear-gradient(135deg, #8e44ad, #7d3c98); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(155,89,182,0.4); }
 .assistant-modal { min-width: 800px; max-width: 95vw; max-height: 92vh; }
@@ -408,7 +378,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .assistant-scroll::-webkit-scrollbar { width: 8px; }
 .assistant-scroll::-webkit-scrollbar-track { background: #16213e; }
 .assistant-scroll::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
-/* ===== CHAT ASSISTANT STYLES ===== */
 .chat-messages { display: flex; flex-direction: column; gap: 12px; }
 .chat-msg { padding: 12px 16px; border-radius: 12px; max-width: 85%; line-height: 1.5; font-size: 13px; animation: fadeIn 0.3s ease; word-wrap: break-word; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -416,15 +385,12 @@ input[type="number"] { -moz-appearance: textfield; }
 .chat-msg.user { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
 .chat-msg strong { color: #9b59b6; }
 .chat-msg.user strong { color: #fff; }
-
-/* ===== ADMIN CONTROLS ===== */
 .admin-only { display: none !important; }
 .admin-only.show { display: block !important; }
 .admin-only.show-inline { display: inline-block !important; }
 .admin-only.show-flex { display: flex !important; }
 .admin-panel-box { margin-top: 15px; padding: 12px; background: #0f3460; border-radius: 6px; border: 1px dashed #e74c3c; }
 .admin-panel-box h4 { color: #e74c3c; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
-
 @media print { body { background: #fff; color: #000; } .sidebar, .top-bar, .bottom-bar, .exit-btn, .toolbar, .fixed-action-bar, .machine-info-bar, .fullscreen-btn-group, .user-session-bar { display: none !important; } .content-area { padding: 0; } .auto-panel { background: #fff; color: #000; border: 1px solid #ccc; } .stat-box { background: #f0f0f0; } .stat-box .stat-value { color: #000; } }
 @media (max-width: 1600px) { .dashboard-grid { grid-template-columns: fit-content(300px) fit-content(300px) 180px 200px 1fr; } }
 @media (max-width: 1400px) { .dashboard-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; height: auto; max-height: none; } .qc-results-panel { grid-column: 1; } .westgard-panel { grid-column: 2; } .stats-panel { grid-column: 1; } .sigma-qgi-combined-panel { grid-column: 2; } .lj-charts-panel { grid-column: 1 / -1; } }
@@ -432,7 +398,6 @@ input[type="number"] { -moz-appearance: textfield; }
 </style>
 </head>
 <body>
-<!-- ===== LOGIN SCREEN ===== -->
 <div class="login-overlay" id="loginOverlay">
 <div class="login-box">
 <div class="login-logo">
@@ -606,10 +571,8 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="dev-info"><strong>Developer: Lab.SP Mohammed al Desoqy</strong><br><strong>Email: M.i.y.d@hotmail.com</strong></div>
 <div class="rules-info" id="rulesInfo">LEVEL 1: -<br>LEVEL 2: -</div>
 </div>
-<!-- About Modal -->
 <div class="modal-overlay" id="aboutModal">
 <div class="modal" style="min-width:400px; max-width:500px; text-align:center;">
-<button class="modal-close-btn" onclick="closeAbout()" title="Close (ESC)">✕</button>
 <h3>ℹ️ About the Developer</h3>
 <div style="margin: 20px 0;">
 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://sa.linkedin.com/in/mohammed-al-mugtaba-e-b84994389" alt="LinkedIn QR Code" style="border: 2px solid #e74c3c; border-radius: 8px; padding: 5px; background: #fff;">
@@ -626,10 +589,8 @@ input[type="number"] { -moz-appearance: textfield; }
 </div>
 </div>
 </div>
-<!-- ===== LAB ASSISTANT MODAL ===== -->
 <div class="modal-overlay" id="assistantModal">
 <div class="modal assistant-modal">
-<button class="modal-close-btn" onclick="closeAssistant()" title="Close (ESC)">✕</button>
 <h3>🧪 Lab Assistant — Equations, TEa & Web Resources</h3>
 <div class="assistant-tabs">
 <button class="assistant-tab active" onclick="showAssistantTab('chat', this)">💬 Chat Assistant</button>
@@ -638,7 +599,6 @@ input[type="number"] { -moz-appearance: textfield; }
 <button class="assistant-tab" onclick="showAssistantTab('web', this)">🌐 Web Resources</button>
 <button class="assistant-tab admin-only" id="fetchTab" onclick="showAssistantTab('fetch', this)">⚡ Fetch Updates</button>
 </div>
-<!-- CHAT ASSISTANT TAB -->
 <div class="assistant-content active" id="assistant-chat">
 <div style="display:flex; flex-direction:column; height:65vh;">
 <div id="chatMessages" class="chat-messages" style="flex:1; overflow-y:auto; background:#0f3460; border-radius:8px; padding:15px; margin-bottom:10px; border:1px solid #333;">
@@ -653,10 +613,10 @@ Try asking:<br>
 </div>
 <div class="admin-only" id="chatAdminPanel" style="margin-bottom:10px; padding:10px; background:#16213e; border-radius:6px; border:1px dashed #9b59b6;">
 <h4 style="color:#9b59b6; margin-bottom:8px; font-size:12px;">🛠️ Developer Mode: Manage Chat Q&A</h4>
-<div id="customChatQAList" style="max-height:120px; overflow-y:auto; margin-bottom:8px;"></div>
+<div id="customChatQAList" style="max-height:100px; overflow-y:auto; margin-bottom:8px;"></div>
 <div style="display:flex; gap:5px;">
-<input type="text" id="newQATriggers" placeholder="Triggers (comma separated)" style="flex:1; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
-<input type="text" id="newQAResponse" placeholder="Response (HTML allowed)" style="flex:2; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+<input type="text" id="newQATriggers" placeholder="Local Triggers (comma separated)" style="flex:1; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+<input type="text" id="newQAResponse" placeholder="Local Response (HTML allowed)" style="flex:2; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
 <button class="apply-tea-btn" onclick="addCustomChatQA()" style="background:#9b59b6; padding:6px 12px;">➕ Add</button>
 </div>
 </div>
@@ -666,7 +626,6 @@ Try asking:<br>
 </div>
 </div>
 </div>
-<!-- EQUATIONS TAB -->
 <div class="assistant-content" id="assistant-equations">
 <div class="assistant-scroll">
 <div id="customEquationsList"></div>
@@ -739,7 +698,6 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <button class="apply-tea-btn" onclick="addCustomEquation()" style="background:#e74c3c;">➕ Add Equation</button>
 </div>
 </div>
-<!-- TEA DATABASE TAB -->
 <div class="assistant-content" id="assistant-tea">
 <div class="tea-search-box">
 <input type="text" id="teaSearchInput" placeholder="🔍 Search analyte (e.g. GLU, TSH, WBC, Creatinine...)" oninput="filterTeaTable()">
@@ -773,7 +731,6 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 </div>
 </div>
 </div>
-<!-- WEB RESOURCES TAB -->
 <div class="assistant-content" id="assistant-web">
 <div class="assistant-scroll">
 <div id="customWebResourcesList"></div>
@@ -842,20 +799,34 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <button class="apply-tea-btn" onclick="addCustomWebResource()" style="background:#e74c3c;">➕ Add Resource</button>
 </div>
 </div>
-<!-- FETCH UPDATES TAB -->
 <div class="assistant-content" id="assistant-fetch">
 <div class="assistant-scroll">
 <div class="equation-card">
 <h4>⚡ Fetch Latest TEa from Web</h4>
 <div class="equation-desc">
 Click the button below to fetch the latest TEa specifications from public sources.
-The system will query the Westgard QC TEa table and update the local database using multiple proxy fallbacks.
+The system will query the Westgard QC TEa table and update the local database.
 </div>
 <button class="apply-tea-btn" onclick="fetchTeaFromWeb()" style="margin-top:10px; padding:10px 20px; font-size:13px; background:#9b59b6;">
 🌐 Fetch from Westgard.com
 </button>
 <div class="fetch-status" id="fetchStatus"></div>
 </div>
+<div class="equation-card">
+<h4>📥 Import TEa from CSV</h4>
+<div class="equation-desc">
+Upload a CSV file with columns: <code>Analyte, Name, TEa, Source</code> to extend the database.
+</div>
+<input type="file" id="teaCsvImport" accept=".csv" onchange="importTeaCsv(event)" style="margin-top:10px; padding:8px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px;">
+</div>
+<div class="equation-card">
+<h4>💾 Export Current Database</h4>
+<div class="equation-desc">
+Download the current TEa database as CSV for backup or sharing.
+</div>
+<button class="apply-tea-btn" onclick="exportTeaDatabase()" style="margin-top:10px; padding:10px 20px; font-size:13px; background:#2ecc71;">
+📤 Export as CSV
+</button>
 </div>
 </div>
 </div>
@@ -864,10 +835,8 @@ The system will query the Westgard QC TEa table and update the local database us
 </div>
 </div>
 </div>
-<!-- ===== USER MANAGEMENT MODAL ===== -->
 <div class="modal-overlay" id="userMgmtModal">
 <div class="modal" style="min-width:650px; max-width:800px;">
-<button class="modal-close-btn" onclick="closeUserManagement()" title="Close (ESC)">✕</button>
 <h3>👥 User Management & Permissions</h3>
 <div class="add-user-form">
 <h4>➕ Create New User</h4>
@@ -899,10 +868,8 @@ The system will query the Westgard QC TEa table and update the local database us
 </div>
 </div>
 </div>
-<!-- Edit User Modal -->
 <div class="modal-overlay" id="editUserModal">
 <div class="modal" style="min-width:450px;">
-<button class="modal-close-btn" onclick="closeEditUser()" title="Close (ESC)">✕</button>
 <h3>✏️ Edit User: <span id="editUserName"></span></h3>
 <div style="margin-bottom:12px;">
 <label style="font-size:11px; color:#aaa;">Role</label>
@@ -927,7 +894,6 @@ The system will query the Westgard QC TEa table and update the local database us
 </div>
 <div class="modal-overlay" id="settingsModal">
 <div class="modal">
-<button class="modal-close-btn" onclick="closeSettings()" title="Close (ESC)">✕</button>
 <h3>⚙️ Settings</h3>
 <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
 <button class="modal-btn secondary" onclick="showSettingsTab('general')" id="tab-general" style="background:#e74c3c;">General</button>
@@ -947,7 +913,6 @@ The system will query the Westgard QC TEa table and update the local database us
 <div class="settings-group"><h4>Branch & User</h4><label>Branch Name</label><input type="text" id="setBranch"><label>User Name</label><input type="text" id="setUser"><label>Printer</label><select id="setPrinter"><option>Default Printer</option><option>HP LaserJet Pro</option><option>Canon PIXMA</option><option>Epson L3150</option></select></div>
 <div class="settings-group"><h4>QC Levels</h4><label>Number of Levels</label><select id="setNumLevels"><option value="2">2 Levels</option><option value="3">3 Levels</option></select><label>LOT-1</label><input type="text" id="setLot1"><label>EXP-1</label><input type="text" id="setExp1"><label>LOT-2</label><input type="text" id="setLot2"><label>EXP-2</label><input type="text" id="setExp2"></div>
 <div class="settings-group"><h4>LOT 3 (if applicable)</h4><label>LOT-3</label><input type="text" id="setLot3"><label>EXP-3</label><input type="text" id="setExp3"></div>
-<!-- ===== DAY OF WEEK HIGHLIGHT - CHECKBOXES ===== -->
 <div class="settings-group" style="grid-column: 1 / -1; background: linear-gradient(135deg, #0f3460 0%, #1a3a5c 100%); border: 1px solid #e74c3c;">
 <h4>📅 Spreadsheet Day Highlight (Multiple Selection)</h4>
 <p style="font-size:11px; color:#aaa; margin-bottom:10px; line-height:1.5;">
@@ -985,10 +950,9 @@ Select one or more days of the week. Rows in the spreadsheet matching any select
 <div class="modal-btns"><button class="modal-btn secondary" onclick="closeSettings()">Cancel</button><button class="modal-btn primary" onclick="applySettings()">Apply</button></div>
 </div>
 </div>
-<div class="modal-overlay" id="renameModal"><div class="modal" style="min-width:300px"><button class="modal-close-btn" onclick="closeRename()" title="Close (ESC)">✕</button><h3 id="renameTitle">Rename</h3><label>New Name</label><input type="text" id="renameInput"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeRename()">Cancel</button><button class="modal-btn primary" onclick="applyRename()">Apply</button></div></div></div>
-<div class="modal-overlay" id="addTestModal"><div class="modal" style="min-width:350px"><button class="modal-close-btn" onclick="closeAddTest()" title="Close (ESC)">✕</button><h3>➕ Add New Test</h3><label>Test Name</label><input type="text" id="newTestName" placeholder="e.g. E2, WBC, GLU..."><label>Number of Levels</label><select id="newTestLevels"><option value="2">2 Levels (L1, L2)</option><option value="3">3 Levels (L1, L2, L3)</option></select><label>Default TEa (%)</label><input type="number" id="newTestTEa" value="10" step="0.1"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeAddTest()">Cancel</button><button class="modal-btn primary" onclick="confirmAddTest()">Add Test</button></div></div></div>
+<div class="modal-overlay" id="renameModal"><div class="modal" style="min-width:300px"><h3 id="renameTitle">Rename</h3><label>New Name</label><input type="text" id="renameInput"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeRename()">Cancel</button><button class="modal-btn primary" onclick="applyRename()">Apply</button></div></div></div>
+<div class="modal-overlay" id="addTestModal"><div class="modal" style="min-width:350px"><h3>➕ Add New Test</h3><label>Test Name</label><input type="text" id="newTestName" placeholder="e.g. E2, WBC, GLU..."><label>Number of Levels</label><select id="newTestLevels"><option value="2">2 Levels (L1, L2)</option><option value="3">3 Levels (L1, L2, L3)</option></select><label>Default TEa (%)</label><input type="number" id="newTestTEa" value="10" step="0.1"><div class="modal-btns"><button class="modal-btn secondary" onclick="closeAddTest()">Cancel</button><button class="modal-btn primary" onclick="confirmAddTest()">Add Test</button></div></div></div>
 <script>
-// ===== AUTHENTICATION & USER MANAGEMENT SYSTEM =====
 let currentUser = null;
 let editingUser = null;
 const appData = {
@@ -996,9 +960,7 @@ currentDevice: 'hormones', currentAnalyte: 'E2', currentMonth: new Date().getMon
 meanType: { L1: 'lab', L2: 'lab', L3: 'lab' }, analyteLevels: {}, excludedValues: {},
 institution: { nameAr: 'نسخة تجريبية', nameEn: 'trial version', logo: '' },
 reportSettings: { qcColWidths: [25, 30, 40, 25, 20], qcFontSize: 7, logDateWidth: 16, logResWidth: 18, logFontSize: 6, chartWidth: 160, chartHeight: 35, highlightDaysOfWeek: [] },
-users: {
-'Hunter': { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }
-},
+users: { 'Hunter': { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] } },
 customEquations: [],
 customWebResources: [],
 customChatQA: [],
@@ -1019,10 +981,8 @@ device12: { id: 'device12', name: 'Device 12', analyzer: 'Analyzer 12', analytes
 };
 Object.values(appData.devices).forEach(dev => { dev.analytes.forEach(a => { appData.analyteLevels[a] = dev.numLevels; }); });
 
-// ===== ADMIN HELPER =====
 function isAdmin() { return currentUser && currentUser.role === 'admin'; }
 
-// ===== CHAT ASSISTANT LOGIC =====
 function sendChatMessage() {
 const input = document.getElementById('chatInput');
 const msg = input.value.trim();
@@ -1042,139 +1002,200 @@ div.innerHTML = `<strong>${sender === 'bot' ? '🧪 Lab Assistant' : '👤 You'}
 container.appendChild(div);
 container.scrollTop = container.scrollHeight;
 }
-function generateChatResponse(input) {
-const lower = input.toLowerCase();
-// 1. Check Custom Q&A first (Admin defined)
-for (const qa of appData.customChatQA) {
-if (qa.triggers.some(t => t && lower.includes(t))) {
-return qa.response;
-}
-}
-// 2. Check for TEa queries
-const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
-if (teaMatch) {
-const query = teaMatch[1].toUpperCase();
-const found = Object.keys(TEA_DATABASE).find(k =>
-k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase())
-);
-if (found) {
-const d = TEA_DATABASE[found];
-return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
-• <strong>CLIA:</strong> ${d.clia !== null ? d.clia + '%' : 'N/A'}<br>
-• <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
-• <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
-• <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
-<em>💡 Tip: You can also go to the "TEa Database" tab to apply this directly to your current analyte.</em>`;
-} else {
-return `I couldn't find TEa data for "<strong>${query}</strong>". Try common analytes like Glucose, TSH, WBC, or Creatinine.`;
-}
-}
-if (lower.includes('sigma') || lower.includes('six sigma')) {
-return "The <strong>Sigma Metric (σ)</strong> formula is:<br><strong>σ = (TEa − |Bias%|) / CV%</strong><br><br>• σ ≥ 6: World Class 🌟<br>• 5–6: Excellent<br>• 4–5: Good<br>• 3–4: Marginal<br>• < 3: Unacceptable";
-}
-if (lower.includes('cv') || lower.includes('coefficient of variation')) {
-return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) × 100</strong>";
-}
-if (lower.includes('bias')) {
-return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</strong>";
-}
-if (lower.includes('qgi') || lower.includes('quality goal index')) {
-return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 × CV%)</strong><br><br>• QGI < 0.8 → Random Error<br>• 0.8 ≤ QGI ≤ 1.2 → Combined Error<br>• QGI > 1.2 → Systematic Error";
-}
-if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s') || lower.includes('rule')) {
-return "<strong>Westgard Multi-Rules:</strong><br>• 1-2s: Warning<br>• 1-3s: Reject (Random)<br>• 2-2s: Reject (Systematic)<br>• R-4s: Reject (Random)<br>• 4-1s: Reject (Systematic)<br>• 8-x: Reject (Systematic)";
-}
-if (lower.includes('hello') || lower.includes('hi') || lower.includes('help')) {
-return "Hello! 👋 I can help you with TEa values, QC Equations, Westgard Rules, and QGI. What would you like to know?";
-}
-return "I'm not sure about that. 🤔 Try asking about 'TEa for [Analyte]', 'How to calculate Sigma', or 'Westgard rules'.";
+
+function generateGlobalQcReport() {
+    let html = "<strong>📊 Global QC Violation & Performance Summary (All Devices & Tests)</strong><br><br>";
+    let totalViolations = 0;
+    let allSigmaIssues = [];
+    let allViolationItems = [];
+
+    for (const [devId, device] of Object.entries(appData.devices)) {
+        for (const analyte of device.analytes) {
+            const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
+            if (!data || !data.dates || data.dates.length === 0) continue;
+
+            const levelsToCheck = (appData.analyteLevels[analyte] >= 3) ? [1, 2, 3] : [1, 2];
+
+            for (const lvl of levelsToCheck) {
+                const values = data["L" + lvl] || [];
+                const validData = [];
+                for (let i = 0; i < values.length; i++) {
+                    const v = values[i];
+                    if (v !== null && v !== undefined && v !== 0 && !isNaN(v)) validData.push({ index: i, value: v });
+                }
+
+                if (validData.length > 0) {
+                    const mean = (appData.meanType["L" + lvl] === 'factory' && data.factoryMean["L" + lvl]) ? data.factoryMean["L" + lvl] : calcMean(validData.map(d => d.value));
+                    const sd = (appData.meanType["L" + lvl] === 'factory' && data.factorySD["L" + lvl]) ? data.factorySD["L" + lvl] : calcSD(validData.map(d => d.value), mean);
+
+                    if (sd > 0) {
+                        const rules = westgardRules(validData.map(d => d.value), mean, sd);
+                        if (rules.length > 0) {
+                            rules.forEach(r => {
+                                const date = data.dates[r.index] || 'Unknown';
+                                const val = validData.find(d => d.index === r.index);
+                                const resultVal = val ? val.value : 0;
+                                allViolationItems.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: " + date + " | Result = <strong>" + resultVal.toFixed(2) + "</strong> | Rule: <span style='color:#e74c3c; font-weight:bold;'>" + r.rule.toUpperCase() + "</span></li>");
+                                totalViolations++;
+                            });
+                        }
+                    }
+                }
+
+                const validForSigma = values.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
+                if (validForSigma.length > 0) {
+                    const labMean = calcMean(validForSigma);
+                    const labSD = calcSD(validForSigma, labMean);
+                    const labCV = calcCV(labSD, labMean);
+                    const factMean = data.factoryMean["L" + lvl] || labMean;
+                    const bias = calcBias(labMean, factMean);
+                    const tea = data.permissibleCV["L" + lvl] || 10;
+                    const sigma = calcSigma(tea, Math.abs(bias), labCV);
+                    const qgi = calcQGI(Math.abs(bias), labCV);
+                    const sigmaClass = getSigmaClass(sigma);
+                    const qgiClass = getQGIClass(qgi, sigma);
+
+                    if (sigma < 6 || qgiClass.recCls !== 'good') {
+                        allSigmaIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: \u03c3 = " + sigma.toFixed(2) + " (" + sigmaClass.label + ") | QGI = " + qgi.toFixed(2) + " (" + qgiClass.label + ")</li>");
+                    }
+                }
+            }
+        }
+    }
+
+    if (totalViolations === 0 && allSigmaIssues.length === 0) {
+        return "<div style='background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; padding:10px; border-radius:4px;'><strong style='color:#2ecc71;'>\u2705 Excellent!</strong> No Westgard violations or Sigma/QGI issues detected across any device or test for the current period.</div>";
+    }
+
+    if (allViolationItems.length > 0) {
+        html += "<div style='background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e74c3c;'>\ud83d\udea8 Total Violations Found: " + totalViolations + "</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allViolationItems.join('') + "</ul></div>";
+    }
+
+    if (allSigmaIssues.length > 0) {
+        html += "<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#f39c12;'>\u26a0\ufe0f Sigma / QGI Performance Issues:</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allSigmaIssues.join('') + "</ul></div>";
+    }
+
+    html += "<strong>\ud83d\udee0\ufe0f Recommended Corrective Actions (Global):</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles in samples/reagents.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate affected devices using fresh calibrators. Verify calibration curve and reagent lot expiration.</li><li><strong>For Combined Errors (0.8 \u2264 QGI \u2264 1.2):</strong> Full preventive maintenance (PM) and consider new QC material lot.</li><li><strong>General:</strong> Review specific dates and rules above in the respective device dashboards.</li></ul>";
+
+    return html;
 }
 
-// ===== LAB ASSISTANT SYSTEM =====
+
+function generateChatResponse(input) {
+    const lower = input.toLowerCase();
+
+    for (const qa of appData.customChatQA) {
+        if (qa.triggers.some(t => t && lower.includes(t))) return qa.response;
+    }
+
+    if (lower.includes('find and correct') || lower.includes('all devices') || lower.includes('all tests') || lower.includes('global summary') || lower.includes('check all') || (lower.includes('violation') && lower.includes('all'))) {
+        return generateGlobalQcReport();
+    }
+
+    const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
+    if (teaMatch) {
+        const query = teaMatch[1].toUpperCase();
+        const found = Object.keys(TEA_DATABASE).find(k => k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase()));
+        if (found) {
+            const d = TEA_DATABASE[found];
+            return "Here are the TEa specifications for <strong>" + found + " (" + d.name + ")</strong>:<br>\u2022 <strong>CLIA:</strong> " + (d.clia !== null ? d.clia + '%' : 'N/A') + "<br>\u2022 <strong>Bio. Variation:</strong> " + (d.bv !== null ? d.bv + '%' : 'N/A') + "<br>\u2022 <strong>Rilibak:</strong> " + (d.rlb !== null ? d.rlb + '%' : 'N/A') + "<br>\u2022 <strong>RCPA:</strong> " + (d.rcpa !== null ? d.rcpa + '%' : 'N/A') + "<br><br><em>\ud83d\udca1 Tip: Go to the TEa Database tab to apply directly.</em>";
+        }
+        return "I couldn't find TEa data for \"<strong>" + query + "</strong>\". Try Glucose, TSH, WBC, or Creatinine.";
+    }
+
+    if (lower.includes('sigma') || lower.includes('six sigma')) return "The <strong>Sigma Metric (\u03c3)</strong> formula is:<br><strong>\u03c3 = (TEa \u2212 |Bias%|) / CV%</strong><br><br>\u2022 \u03c3 \u2265 6: World Class \ud83c\udf1f<br>\u2022 5\u20136: Excellent<br>\u2022 4\u20135: Good<br>\u2022 3\u20134: Marginal<br>\u2022 < 3: Unacceptable";
+    if (lower.includes('cv') || lower.includes('coefficient of variation')) return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) \u00d7 100</strong>";
+    if (lower.includes('bias')) return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean \u2212 Target Mean) / Target Mean | \u00d7 100</strong>";
+    if (lower.includes('qgi') || lower.includes('quality goal index')) return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 \u00d7 CV%)</strong><br><br>\u2022 QGI < 0.8 \u2192 Random Error<br>\u2022 0.8 \u2264 QGI \u2264 1.2 \u2192 Combined Error<br>\u2022 QGI > 1.2 \u2192 Systematic Error";
+    if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s') || lower.includes('rule')) return "<strong>Westgard Multi-Rules:</strong><br>\u2022 1-2s: Warning<br>\u2022 1-3s: Reject (Random)<br>\u2022 2-2s: Reject (Systematic)<br>\u2022 R-4s: Reject (Random)<br>\u2022 4-1s: Reject (Systematic)<br>\u2022 8-x: Reject (Systematic)";
+    if (lower.includes('hello') || lower.includes('hi') || lower.includes('help')) return "Hello! \ud83d\udc4b Try asking:<br>\u2022 'Find and correct all devices'<br>\u2022 'TEa for [Analyte]'<br>\u2022 'How to calculate Sigma?'<br>\u2022 'Westgard rules'";
+    return "I'm not sure about that. \ud83e\udd14 Try: 'Find and correct all devices', 'TEa for [Analyte]', or 'Westgard rules'.";
+}
+
 const TEA_DATABASE = {
-'GLU':     { name:'Glucose',           clia:10,   bv:5.7,  rlb:6,   rcpa:10,   unit:'%' },
-'UREA':    { name:'Urea',              clia:21,   bv:11.5, rlb:8,   rcpa:15,   unit:'%' },
-'BUN':     { name:'Urea Nitrogen',     clia:17,   bv:11.5, rlb:8,   rcpa:12,   unit:'%' },
-'CREA':    { name:'Creatinine',        clia:15,   bv:5.5,  rlb:8,   rcpa:15,   unit:'%' },
-'URIC':    { name:'Uric Acid',         clia:17,   bv:6.8,  rlb:8,   rcpa:13,   unit:'%' },
-'TPRO':    { name:'Total Protein',     clia:10,   bv:3.9,  rlb:5,   rcpa:8,    unit:'%' },
-'ALB':     { name:'Albumin',           clia:10,   bv:3.5,  rlb:5,   rcpa:10,   unit:'%' },
-'TBIL':    { name:'Total Bilirubin',   clia:27,   bv:15.2, rlb:15,  rcpa:20,   unit:'%' },
-'DBIL':    { name:'Direct Bilirubin',  clia:27,   bv:17.5, rlb:15,  rcpa:20,   unit:'%' },
-'ALP':     { name:'Alk. Phosphatase',  clia:30,   bv:8.0,  rlb:12,  rcpa:20,   unit:'%' },
-'ALT':     { name:'ALT (SGPT)',        clia:30,   bv:14.7, rlb:15,  rcpa:25,   unit:'%' },
-'AST':     { name:'AST (SGOT)',        clia:30,   bv:12.0, rlb:12,  rcpa:25,   unit:'%' },
-'GGT':     { name:'GGT',               clia:30,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
-'LDH':     { name:'LDH',               clia:20,   bv:7.5,  rlb:10,  rcpa:15,   unit:'%' },
-'CK':      { name:'CK (CPK)',          clia:30,   bv:12.5, rlb:15,  rcpa:20,   unit:'%' },
-'AMY':     { name:'Amylase',           clia:30,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
-'LIP':     { name:'Lipase',            clia:30,   bv:13.5, rlb:20,  rcpa:25,   unit:'%' },
-'CHOL':    { name:'Cholesterol',       clia:10,   bv:6.0,  rlb:8,   rcpa:10,   unit:'%' },
-'TG':      { name:'Triglycerides',     clia:15,   bv:13.0, rlb:12,  rcpa:15,   unit:'%' },
-'HDL':     { name:'HDL Cholesterol',   clia:13,   bv:7.0,  rlb:10,  rcpa:13,   unit:'%' },
-'LDL':     { name:'LDL Cholesterol',   clia:12,   bv:7.5,  rlb:10,  rcpa:12,   unit:'%' },
-'CA':      { name:'Calcium',           clia:10,   bv:2.0,  rlb:3,   rcpa:6,    unit:'%' },
-'PHOS':    { name:'Phosphorus',        clia:18,   bv:6.5,  rlb:8,   rcpa:12,   unit:'%' },
-'MG':      { name:'Magnesium',         clia:25,   bv:6.0,  rlb:8,   rcpa:15,   unit:'%' },
-'IRON':    { name:'Iron',              clia:30,   bv:12.0, rlb:15,  rcpa:20,   unit:'%' },
-'NA':      { name:'Sodium',            clia:8,    bv:0.8,  rlb:1.2, rcpa:4,    unit:'%' },
-'K':       { name:'Potassium',         clia:11,   bv:4.8,  rlb:5,   rcpa:6,    unit:'%' },
-'CL':      { name:'Chloride',          clia:11,   bv:1.2,  rlb:2,   rcpa:4,    unit:'%' },
-'CO2':     { name:'Bicarbonate',       clia:25,   bv:3.5,  rlb:5,   rcpa:8,    unit:'%' },
-'AG':      { name:'Anion Gap',         clia:25,   bv:15,   rlb:15,  rcpa:20,   unit:'%' },
-'TSH':     { name:'TSH',               clia:25,   bv:18.0, rlb:15,  rcpa:20,   unit:'%' },
-'FT4':     { name:'Free T4',           clia:25,   bv:7.5,  rlb:10,  rcpa:15,   unit:'%' },
-'FT3':     { name:'Free T3',           clia:25,   bv:8.0,  rlb:10,  rcpa:15,   unit:'%' },
-'T4':      { name:'Total T4',          clia:20,   bv:7.0,  rlb:10,  rcpa:15,   unit:'%' },
-'T3':      { name:'Total T3',          clia:25,   bv:8.5,  rlb:12,  rcpa:18,   unit:'%' },
-'E2':      { name:'Estradiol',         clia:25,   bv:12.5, rlb:15,  rcpa:20,   unit:'%' },
-'FSH':     { name:'FSH',               clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
-'LH':      { name:'LH',                clia:25,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
-'PRL':     { name:'Prolactin',         clia:25,   bv:11.5, rlb:15,  rcpa:20,   unit:'%' },
-'TESTO':   { name:'Testosterone',      clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
-'PROG':    { name:'Progesterone',      clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
-'CORT':    { name:'Cortisol',          clia:25,   bv:10.5, rlb:12,  rcpa:18,   unit:'%' },
-'INS':     { name:'Insulin',           clia:25,   bv:13.0, rlb:15,  rcpa:20,   unit:'%' },
-'B-HCG':   { name:'Beta-hCG',          clia:25,   bv:10.0, rlb:15,  rcpa:20,   unit:'%' },
-'PTH':     { name:'PTH',               clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
-'ACTH':    { name:'ACTH',              clia:25,   bv:15.0, rlb:20,  rcpa:25,   unit:'%' },
-'GH':      { name:'Growth Hormone',    clia:25,   bv:14.0, rlb:15,  rcpa:20,   unit:'%' },
-'DHEAS':   { name:'DHEA-S',            clia:25,   bv:12.0, rlb:15,  rcpa:20,   unit:'%' },
-'SHBG':    { name:'SHBG',              clia:25,   bv:11.5, rlb:15,  rcpa:20,   unit:'%' },
-'WBC':     { name:'WBC',               clia:15,   bv:10.5, rlb:10,  rcpa:12,   unit:'%' },
-'RBC':     { name:'RBC',               clia:10,   bv:3.5,  rlb:5,   rcpa:8,    unit:'%' },
-'HGB':     { name:'Hemoglobin',        clia:10,   bv:3.2,  rlb:4,   rcpa:7,    unit:'%' },
-'HCT':     { name:'Hematocrit',        clia:10,   bv:3.5,  rlb:5,   rcpa:7,    unit:'%' },
-'PLT':     { name:'Platelets',         clia:25,   bv:10.0, rlb:12,  rcpa:15,   unit:'%' },
-'MCV':     { name:'MCV',               clia:8,    bv:2.5,  rlb:3,   rcpa:5,    unit:'%' },
-'MCH':     { name:'MCH',               clia:7,    bv:2.8,  rlb:3,   rcpa:5,    unit:'%' },
-'MCHC':    { name:'MCHC',              clia:6,    bv:1.8,  rlb:2,   rcpa:4,    unit:'%' },
-'RDW':     { name:'RDW',               clia:13,   bv:3.5,  rlb:5,   rcpa:8,    unit:'%' },
-'MPV':     { name:'MPV',               clia:15,   bv:8.0,  rlb:10,  rcpa:12,   unit:'%' },
-'PT':      { name:'Prothrombin Time',  clia:15,   bv:5.0,  rlb:8,   rcpa:12,   unit:'%' },
-'APTT':    { name:'aPTT',              clia:15,   bv:5.5,  rlb:8,   rcpa:12,   unit:'%' },
-'INR':     { name:'INR',               clia:15,   bv:5.0,  rlb:8,   rcpa:12,   unit:'%' },
-'FIB':     { name:'Fibrinogen',        clia:20,   bv:8.0,  rlb:12,  rcpa:15,   unit:'%' },
-'PSA':     { name:'PSA',               clia:25,   bv:13.0, rlb:15,  rcpa:20,   unit:'%' },
-'CEA':     { name:'CEA',               clia:25,   bv:12.5, rlb:15,  rcpa:20,   unit:'%' },
-'AFP':     { name:'AFP',               clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
-'CA125':   { name:'CA-125',            clia:25,   bv:14.0, rlb:15,  rcpa:20,   unit:'%' },
-'CA199':   { name:'CA 19-9',           clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
-'CRP':     { name:'CRP',               clia:30,   bv:20.0, rlb:20,  rcpa:25,   unit:'%' },
-'FER':     { name:'Ferritin',          clia:25,   bv:13.0, rlb:15,  rcpa:20,   unit:'%' },
-'B12':     { name:'Vitamin B12',       clia:25,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
-'FOL':     { name:'Folate',            clia:25,   bv:12.0, rlb:15,  rcpa:20,   unit:'%' },
-'VD':      { name:'Vitamin D',         clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
-'TNNT':    { name:'Troponin T',        clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
-'TNI':     { name:'Troponin I',        clia:25,   bv:14.0, rlb:15,  rcpa:20,   unit:'%' },
-'BNP':     { name:'BNP',               clia:25,   bv:15.0, rlb:18,  rcpa:22,   unit:'%' },
-'HBA1C':   { name:'HbA1c',             clia:12,   bv:3.0,  rlb:5,   rcpa:8,    unit:'%' },
-'UPRO':    { name:'Urine Protein',     clia:30,   bv:18.0, rlb:20,  rcpa:25,   unit:'%' },
-'UALB':    { name:'Urine Albumin',     clia:30,   bv:20.0, rlb:20,  rcpa:25,   unit:'%' },
-'UCA':     { name:'Urine Calcium',     clia:30,   bv:15.0, rlb:18,  rcpa:22,   unit:'%' },
-'HIV':     { name:'HIV',               clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
-'HCV':     { name:'Hepatitis C',       clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
-'HBsAg':   { name:'HBsAg',             clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' }
+'GLU': { name:'Glucose', clia:10, bv:5.7, rlb:6, rcpa:10, unit:'%' },
+'UREA': { name:'Urea', clia:21, bv:11.5, rlb:8, rcpa:15, unit:'%' },
+'BUN': { name:'Urea Nitrogen', clia:17, bv:11.5, rlb:8, rcpa:12, unit:'%' },
+'CREA': { name:'Creatinine', clia:15, bv:5.5, rlb:8, rcpa:15, unit:'%' },
+'URIC': { name:'Uric Acid', clia:17, bv:6.8, rlb:8, rcpa:13, unit:'%' },
+'TPRO': { name:'Total Protein', clia:10, bv:3.9, rlb:5, rcpa:8, unit:'%' },
+'ALB': { name:'Albumin', clia:10, bv:3.5, rlb:5, rcpa:10, unit:'%' },
+'TBIL': { name:'Total Bilirubin', clia:27, bv:15.2, rlb:15, rcpa:20, unit:'%' },
+'DBIL': { name:'Direct Bilirubin', clia:27, bv:17.5, rlb:15, rcpa:20, unit:'%' },
+'ALP': { name:'Alk. Phosphatase', clia:30, bv:8.0, rlb:12, rcpa:20, unit:'%' },
+'ALT': { name:'ALT (SGPT)', clia:30, bv:14.7, rlb:15, rcpa:25, unit:'%' },
+'AST': { name:'AST (SGOT)', clia:30, bv:12.0, rlb:12, rcpa:25, unit:'%' },
+'GGT': { name:'GGT', clia:30, bv:10.5, rlb:15, rcpa:20, unit:'%' },
+'LDH': { name:'LDH', clia:20, bv:7.5, rlb:10, rcpa:15, unit:'%' },
+'CK': { name:'CK (CPK)', clia:30, bv:12.5, rlb:15, rcpa:20, unit:'%' },
+'AMY': { name:'Amylase', clia:30, bv:10.5, rlb:15, rcpa:20, unit:'%' },
+'LIP': { name:'Lipase', clia:30, bv:13.5, rlb:20, rcpa:25, unit:'%' },
+'CHOL': { name:'Cholesterol', clia:10, bv:6.0, rlb:8, rcpa:10, unit:'%' },
+'TG': { name:'Triglycerides', clia:15, bv:13.0, rlb:12, rcpa:15, unit:'%' },
+'HDL': { name:'HDL Cholesterol', clia:13, bv:7.0, rlb:10, rcpa:13, unit:'%' },
+'LDL': { name:'LDL Cholesterol', clia:12, bv:7.5, rlb:10, rcpa:12, unit:'%' },
+'CA': { name:'Calcium', clia:10, bv:2.0, rlb:3, rcpa:6, unit:'%' },
+'PHOS': { name:'Phosphorus', clia:18, bv:6.5, rlb:8, rcpa:12, unit:'%' },
+'MG': { name:'Magnesium', clia:25, bv:6.0, rlb:8, rcpa:15, unit:'%' },
+'IRON': { name:'Iron', clia:30, bv:12.0, rlb:15, rcpa:20, unit:'%' },
+'NA': { name:'Sodium', clia:8, bv:0.8, rlb:1.2, rcpa:4, unit:'%' },
+'K': { name:'Potassium', clia:11, bv:4.8, rlb:5, rcpa:6, unit:'%' },
+'CL': { name:'Chloride', clia:11, bv:1.2, rlb:2, rcpa:4, unit:'%' },
+'CO2': { name:'Bicarbonate', clia:25, bv:3.5, rlb:5, rcpa:8, unit:'%' },
+'AG': { name:'Anion Gap', clia:25, bv:15, rlb:15, rcpa:20, unit:'%' },
+'TSH': { name:'TSH', clia:25, bv:18.0, rlb:15, rcpa:20, unit:'%' },
+'FT4': { name:'Free T4', clia:25, bv:7.5, rlb:10, rcpa:15, unit:'%' },
+'FT3': { name:'Free T3', clia:25, bv:8.0, rlb:10, rcpa:15, unit:'%' },
+'T4': { name:'Total T4', clia:20, bv:7.0, rlb:10, rcpa:15, unit:'%' },
+'T3': { name:'Total T3', clia:25, bv:8.5, rlb:12, rcpa:18, unit:'%' },
+'E2': { name:'Estradiol', clia:25, bv:12.5, rlb:15, rcpa:20, unit:'%' },
+'FSH': { name:'FSH', clia:25, bv:11.0, rlb:15, rcpa:20, unit:'%' },
+'LH': { name:'LH', clia:25, bv:10.5, rlb:15, rcpa:20, unit:'%' },
+'PRL': { name:'Prolactin', clia:25, bv:11.5, rlb:15, rcpa:20, unit:'%' },
+'TESTO': { name:'Testosterone', clia:25, bv:11.0, rlb:15, rcpa:20, unit:'%' },
+'PROG': { name:'Progesterone', clia:25, bv:13.5, rlb:15, rcpa:20, unit:'%' },
+'CORT': { name:'Cortisol', clia:25, bv:10.5, rlb:12, rcpa:18, unit:'%' },
+'INS': { name:'Insulin', clia:25, bv:13.0, rlb:15, rcpa:20, unit:'%' },
+'B-HCG': { name:'Beta-hCG', clia:25, bv:10.0, rlb:15, rcpa:20, unit:'%' },
+'PTH': { name:'PTH', clia:25, bv:13.5, rlb:15, rcpa:20, unit:'%' },
+'ACTH': { name:'ACTH', clia:25, bv:15.0, rlb:20, rcpa:25, unit:'%' },
+'GH': { name:'Growth Hormone', clia:25, bv:14.0, rlb:15, rcpa:20, unit:'%' },
+'DHEAS': { name:'DHEA-S', clia:25, bv:12.0, rlb:15, rcpa:20, unit:'%' },
+'SHBG': { name:'SHBG', clia:25, bv:11.5, rlb:15, rcpa:20, unit:'%' },
+'WBC': { name:'WBC', clia:15, bv:10.5, rlb:10, rcpa:12, unit:'%' },
+'RBC': { name:'RBC', clia:10, bv:3.5, rlb:5, rcpa:8, unit:'%' },
+'HGB': { name:'Hemoglobin', clia:10, bv:3.2, rlb:4, rcpa:7, unit:'%' },
+'HCT': { name:'Hematocrit', clia:10, bv:3.5, rlb:5, rcpa:7, unit:'%' },
+'PLT': { name:'Platelets', clia:25, bv:10.0, rlb:12, rcpa:15, unit:'%' },
+'MCV': { name:'MCV', clia:8, bv:2.5, rlb:3, rcpa:5, unit:'%' },
+'MCH': { name:'MCH', clia:7, bv:2.8, rlb:3, rcpa:5, unit:'%' },
+'MCHC': { name:'MCHC', clia:6, bv:1.8, rlb:2, rcpa:4, unit:'%' },
+'RDW': { name:'RDW', clia:13, bv:3.5, rlb:5, rcpa:8, unit:'%' },
+'MPV': { name:'MPV', clia:15, bv:8.0, rlb:10, rcpa:12, unit:'%' },
+'PT': { name:'Prothrombin Time', clia:15, bv:5.0, rlb:8, rcpa:12, unit:'%' },
+'APTT': { name:'aPTT', clia:15, bv:5.5, rlb:8, rcpa:12, unit:'%' },
+'INR': { name:'INR', clia:15, bv:5.0, rlb:8, rcpa:12, unit:'%' },
+'FIB': { name:'Fibrinogen', clia:20, bv:8.0, rlb:12, rcpa:15, unit:'%' },
+'PSA': { name:'PSA', clia:25, bv:13.0, rlb:15, rcpa:20, unit:'%' },
+'CEA': { name:'CEA', clia:25, bv:12.5, rlb:15, rcpa:20, unit:'%' },
+'AFP': { name:'AFP', clia:25, bv:11.0, rlb:15, rcpa:20, unit:'%' },
+'CA125': { name:'CA-125', clia:25, bv:14.0, rlb:15, rcpa:20, unit:'%' },
+'CA199': { name:'CA 19-9', clia:25, bv:13.5, rlb:15, rcpa:20, unit:'%' },
+'CRP': { name:'CRP', clia:30, bv:20.0, rlb:20, rcpa:25, unit:'%' },
+'FER': { name:'Ferritin', clia:25, bv:13.0, rlb:15, rcpa:20, unit:'%' },
+'B12': { name:'Vitamin B12', clia:25, bv:10.5, rlb:15, rcpa:20, unit:'%' },
+'FOL': { name:'Folate', clia:25, bv:12.0, rlb:15, rcpa:20, unit:'%' },
+'VD': { name:'Vitamin D', clia:25, bv:11.0, rlb:15, rcpa:20, unit:'%' },
+'TNNT': { name:'Troponin T', clia:25, bv:13.5, rlb:15, rcpa:20, unit:'%' },
+'TNI': { name:'Troponin I', clia:25, bv:14.0, rlb:15, rcpa:20, unit:'%' },
+'BNP': { name:'BNP', clia:25, bv:15.0, rlb:18, rcpa:22, unit:'%' },
+'HBA1C': { name:'HbA1c', clia:12, bv:3.0, rlb:5, rcpa:8, unit:'%' },
+'UPRO': { name:'Urine Protein', clia:30, bv:18.0, rlb:20, rcpa:25, unit:'%' },
+'UALB': { name:'Urine Albumin', clia:30, bv:20.0, rlb:20, rcpa:25, unit:'%' },
+'UCA': { name:'Urine Calcium', clia:30, bv:15.0, rlb:18, rcpa:22, unit:'%' },
+'HIV': { name:'HIV', clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
+'HCV': { name:'Hepatitis C', clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
+'HBsAg': { name:'HBsAg', clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' }
 };
 
 function openAssistant() {
@@ -1184,7 +1205,6 @@ renderCustomEquations();
 renderCustomWebResources();
 renderCustomChatQA();
 
-// Handle Admin-only UI elements
 document.querySelectorAll('.admin-only').forEach(el => {
 if (isAdmin()) {
 if (el.classList.contains('assistant-tab')) el.classList.add('show-inline');
@@ -1205,19 +1225,12 @@ const content = document.getElementById('assistant-' + tab);
 if (content) content.classList.add('active');
 }
 
-// ===== CUSTOM DATA MANAGEMENT (ADMIN ONLY) =====
 function renderCustomEquations() {
 const container = document.getElementById('customEquationsList');
 if(!container) return;
 container.innerHTML = '';
 appData.customEquations.forEach((eq, idx) => {
-container.innerHTML += `
-<div class="equation-card" style="border-left-color:#e74c3c;">
-<h4 style="color:#e74c3c; justify-content:space-between;">${eq.title} <button class="remove-test-btn" onclick="deleteCustomEquation(${idx})">🗑️</button></h4>
-<div class="equation-formula">${eq.formula}</div>
-<div class="equation-desc">${eq.desc}</div>
-</div>
-`;
+container.innerHTML += `<div class="equation-card" style="border-left-color:#e74c3c;"><h4 style="color:#e74c3c; justify-content:space-between;">${eq.title} <button class="remove-test-btn" onclick="deleteCustomEquation(${idx})">🗑️</button></h4><div class="equation-formula">${eq.formula}</div><div class="equation-desc">${eq.desc}</div></div>`;
 });
 }
 function addCustomEquation() {
@@ -1226,19 +1239,11 @@ const formula = document.getElementById('newEqFormula').value.trim();
 const desc = document.getElementById('newEqDesc').value.trim();
 if(!title || !formula) { alert('Title and Formula are required!'); return; }
 appData.customEquations.push({title, formula, desc});
-document.getElementById('newEqTitle').value = '';
-document.getElementById('newEqFormula').value = '';
-document.getElementById('newEqDesc').value = '';
-renderCustomEquations();
-window.triggerAutoSave();
-showNotification('Custom equation added!');
+document.getElementById('newEqTitle').value = ''; document.getElementById('newEqFormula').value = ''; document.getElementById('newEqDesc').value = '';
+renderCustomEquations(); window.triggerAutoSave(); showNotification('Custom equation added!');
 }
 function deleteCustomEquation(idx) {
-if(confirm('Delete this equation?')) {
-appData.customEquations.splice(idx, 1);
-renderCustomEquations();
-window.triggerAutoSave();
-}
+if(confirm('Delete this equation?')) { appData.customEquations.splice(idx, 1); renderCustomEquations(); window.triggerAutoSave(); }
 }
 
 function renderCustomWebResources() {
@@ -1246,16 +1251,7 @@ const container = document.getElementById('customWebResourcesList');
 if(!container) return;
 container.innerHTML = '';
 appData.customWebResources.forEach((res, idx) => {
-container.innerHTML += `
-<div class="web-resource-card">
-<div class="web-resource-icon">🔗</div>
-<div class="web-resource-info">
-<h4>${res.title} <button class="remove-test-btn" onclick="deleteCustomWebResource(${idx})" style="font-size:10px; vertical-align:middle;">🗑️</button></h4>
-<p>${res.desc}</p>
-</div>
-<a href="${res.url}" target="_blank" class="web-resource-link">Open →</a>
-</div>
-`;
+container.innerHTML += `<div class="web-resource-card"><div class="web-resource-icon">🔗</div><div class="web-resource-info"><h4>${res.title} <button class="remove-test-btn" onclick="deleteCustomWebResource(${idx})" style="font-size:10px; vertical-align:middle;">🗑️</button></h4><p>${res.desc}</p></div><a href="${res.url}" target="_blank" class="web-resource-link">Open →</a></div>`;
 });
 }
 function addCustomWebResource() {
@@ -1264,19 +1260,11 @@ const url = document.getElementById('newWebUrl').value.trim();
 const desc = document.getElementById('newWebDesc').value.trim();
 if(!title || !url) { alert('Title and URL are required!'); return; }
 appData.customWebResources.push({title, url, desc});
-document.getElementById('newWebTitle').value = '';
-document.getElementById('newWebUrl').value = '';
-document.getElementById('newWebDesc').value = '';
-renderCustomWebResources();
-window.triggerAutoSave();
-showNotification('Custom web resource added!');
+document.getElementById('newWebTitle').value = ''; document.getElementById('newWebUrl').value = ''; document.getElementById('newWebDesc').value = '';
+renderCustomWebResources(); window.triggerAutoSave(); showNotification('Custom web resource added!');
 }
 function deleteCustomWebResource(idx) {
-if(confirm('Delete this resource?')) {
-appData.customWebResources.splice(idx, 1);
-renderCustomWebResources();
-window.triggerAutoSave();
-}
+if(confirm('Delete this resource?')) { appData.customWebResources.splice(idx, 1); renderCustomWebResources(); window.triggerAutoSave(); }
 }
 
 function renderCustomChatQA() {
@@ -1284,14 +1272,7 @@ const container = document.getElementById('customChatQAList');
 if(!container) return;
 container.innerHTML = '';
 appData.customChatQA.forEach((qa, idx) => {
-container.innerHTML += `
-<div style="background:#0f3460; padding:6px 8px; border-radius:4px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; font-size:10px;">
-<div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-<strong style="color:#9b59b6;">[${qa.triggers.join(', ')}]</strong> ${qa.response.substring(0, 40)}...
-</div>
-<button class="remove-test-btn" onclick="deleteCustomChatQA(${idx})" style="margin-left:5px;">🗑️</button>
-</div>
-`;
+container.innerHTML += `<div style="background:#0f3460; padding:6px 8px; border-radius:4px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; font-size:10px;"><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong style="color:#9b59b6;">[${qa.triggers.join(', ')}]</strong> ${qa.response.substring(0, 40)}...</div><button class="remove-test-btn" onclick="deleteCustomChatQA(${idx})" style="margin-left:5px;">🗑️</button></div>`;
 });
 }
 function addCustomChatQA() {
@@ -1300,18 +1281,11 @@ const response = document.getElementById('newQAResponse').value.trim();
 if(!triggersStr || !response) { alert('Triggers and Response are required!'); return; }
 const triggers = triggersStr.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
 appData.customChatQA.push({triggers, response});
-document.getElementById('newQATriggers').value = '';
-document.getElementById('newQAResponse').value = '';
-renderCustomChatQA();
-window.triggerAutoSave();
-showNotification('Custom Q&A added!');
+document.getElementById('newQATriggers').value = ''; document.getElementById('newQAResponse').value = '';
+renderCustomChatQA(); window.triggerAutoSave(); showNotification('Custom Q&A added!');
 }
 function deleteCustomChatQA(idx) {
-if(confirm('Delete this Q&A?')) {
-appData.customChatQA.splice(idx, 1);
-renderCustomChatQA();
-window.triggerAutoSave();
-}
+if(confirm('Delete this Q&A?')) { appData.customChatQA.splice(idx, 1); renderCustomChatQA(); window.triggerAutoSave(); }
 }
 
 function populateTeaTable() {
@@ -1323,18 +1297,8 @@ Object.keys(TEA_DATABASE).sort().forEach(code => {
 const d = TEA_DATABASE[code];
 const tr = document.createElement('tr');
 if (code === currentAnalyte) tr.classList.add('matched');
-tr.innerHTML = `
-<td><strong style="color:#9b59b6;">${code}</strong></td>
-<td>${d.name}</td>
-<td style="color:#aaa;">${d.unit}</td>
-<td>${d.clia !== null ? `<span class="tea-source-badge tea-source-clia">${d.clia}%</span>` : '<span style="color:#555;">—</span>'}</td>
-<td>${d.bv !== null ? `<span class="tea-source-badge tea-source-bv">${d.bv}%</span>` : '<span style="color:#555;">—</span>'}</td>
-<td>${d.rlb !== null ? `<span class="tea-source-badge tea-source-rlb">${d.rlb}%</span>` : '<span style="color:#555;">—</span>'}</td>
-<td>${d.rcpa !== null ? `<span class="tea-source-badge tea-source-rcpa">${d.rcpa}%</span>` : '<span style="color:#555;">—</span>'}</td>
-<td><button class="apply-tea-btn" onclick="applyTeaToAnalyte('${code}')">Apply</button></td>
-`;
-tr.dataset.analyte = code;
-tr.dataset.name = d.name.toLowerCase();
+tr.innerHTML = `<td><strong style="color:#9b59b6;">${code}</strong></td><td>${d.name}</td><td style="color:#aaa;">${d.unit}</td><td>${d.clia !== null ? `<span class="tea-source-badge tea-source-clia">${d.clia}%</span>` : '<span style="color:#555;">—</span>'}</td><td>${d.bv !== null ? `<span class="tea-source-badge tea-source-bv">${d.bv}%</span>` : '<span style="color:#555;">—</span>'}</td><td>${d.rlb !== null ? `<span class="tea-source-badge tea-source-rlb">${d.rlb}%</span>` : '<span style="color:#555;">—</span>'}</td><td>${d.rcpa !== null ? `<span class="tea-source-badge tea-source-rcpa">${d.rcpa}%</span>` : '<span style="color:#555;">—</span>'}</td><td><button class="apply-tea-btn" onclick="applyTeaToAnalyte('${code}')">Apply</button></td>`;
+tr.dataset.analyte = code; tr.dataset.name = d.name.toLowerCase();
 tbody.appendChild(tr);
 });
 }
@@ -1344,19 +1308,14 @@ const src = document.getElementById('teaSourceFilter').value;
 document.querySelectorAll('#teaTableBody tr').forEach(tr => {
 const matchText = (tr.dataset.analyte + ' ' + tr.dataset.name).includes(q);
 let matchSrc = true;
-if (src !== 'all') {
-const d = TEA_DATABASE[tr.dataset.analyte];
-matchSrc = d && d[src] !== null && d[src] !== undefined;
-}
+if (src !== 'all') { const d = TEA_DATABASE[tr.dataset.analyte]; matchSrc = d && d[src] !== null && d[src] !== undefined; }
 tr.style.display = (matchText && matchSrc) ? '' : 'none';
 });
 }
 function applyTeaToAnalyte(code) {
-const d = TEA_DATABASE[code];
-if (!d) return;
+const d = TEA_DATABASE[code]; if (!d) return;
 const src = document.getElementById('teaSourceFilter').value;
-let teaValue = null;
-let sourceName = '';
+let teaValue = null, sourceName = '';
 if (src === 'clia' && d.clia) { teaValue = d.clia; sourceName = 'CLIA'; }
 else if (src === 'bv' && d.bv) { teaValue = d.bv; sourceName = 'Biological Variation'; }
 else if (src === 'rlb' && d.rlb) { teaValue = d.rlb; sourceName = 'Rilibak'; }
@@ -1374,73 +1333,39 @@ for (let l = 1; l <= getAnalyteLevels(appData.currentAnalyte); l++) {
 if (!data.permissibleCV) data.permissibleCV = {};
 data.permissibleCV[`L${l}`] = teaValue;
 }
-updateDashboard();
-populateStatsSummary();
+updateDashboard(); populateStatsSummary();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 showNotification(`✅ TEa ${teaValue}% (${sourceName}) applied to ${appData.currentAnalyte}!`);
 window.triggerAutoSave();
 }
 function applyCurrentTea() {
 const code = appData.currentAnalyte;
-if (!TEA_DATABASE[code]) {
-alert(`Analyte "${code}" not found in database. Please search and select manually.`);
-return;
-}
+if (!TEA_DATABASE[code]) { alert(`Analyte "${code}" not found in database. Please search and select manually.`); return; }
 applyTeaToAnalyte(code);
 }
 
-// ===== FIXED FETCH LOGIC WITH MULTI-PROXY FALLBACK =====
 async function fetchTeaFromWeb() {
 const status = document.getElementById('fetchStatus');
 status.className = 'fetch-status loading';
-status.textContent = '⏳ Fetching latest TEa data... Trying multiple proxies...';
-
-const targetUrl = 'https://www.westgard.com/teaspec.htm';
-const proxies = [
-`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-`https://api.codetabs.com/v1/proxy?quest=${targetUrl}`
-];
-
-let html = null;
-for (const proxyUrl of proxies) {
+status.textContent = '⏳ Fetching latest TEa data from Westgard.com...';
 try {
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 12000);
-const response = await fetch(proxyUrl, { signal: controller.signal });
-clearTimeout(timeoutId);
-if (response.ok) {
-const text = await response.text();
-if (text && text.length > 500 && text.includes('<')) {
-html = text;
-break;
-}
-}
-} catch (e) {
-console.warn('Proxy failed:', proxyUrl, e);
-}
-}
-
-if (!html) {
-status.className = 'fetch-status error';
-status.innerHTML = `❌ All proxies failed or blocked by Cloudflare.<br><strong>Alternative:</strong> Please use the "Import CSV" feature in the TEa Database tab, or visit <a href="${targetUrl}" target="_blank" style="color:#3498db;">Westgard.com</a> directly.`;
-return;
-}
-
+const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.westgard.com/teaspec.htm');
+const response = await fetch(proxyUrl);
+if (!response.ok) throw new Error('Network response was not ok');
+const html = await response.text();
 const parser = new DOMParser();
 const doc = parser.parseFromString(html, 'text/html');
-const rows = doc.querySelectorAll('tr');
+const tables = doc.querySelectorAll('table');
 let foundCount = 0;
-
+tables.forEach(table => {
+const rows = table.querySelectorAll('tr');
 rows.forEach(row => {
-const cells = row.querySelectorAll('td, th');
+const cells = row.querySelectorAll('td');
 if (cells.length >= 2) {
-let name = cells[0]?.textContent.trim();
-let teaStr = cells[1]?.textContent.trim();
-const teaVal = parseFloat(teaStr.replace('%', '').replace(',', '.'));
+const name = cells[0]?.textContent.trim();
+const teaVal = parseFloat(cells[1]?.textContent.replace('%',''));
 if (name && !isNaN(teaVal) && teaVal > 0 && teaVal < 100) {
 const match = Object.keys(TEA_DATABASE).find(k =>
-TEA_DATABASE[k].name.toLowerCase() === name.toLowerCase() ||
 TEA_DATABASE[k].name.toLowerCase().includes(name.toLowerCase()) ||
 name.toLowerCase().includes(TEA_DATABASE[k].name.toLowerCase())
 );
@@ -1451,20 +1376,22 @@ foundCount++;
 }
 }
 });
-
+});
 if (foundCount > 0) {
 status.className = 'fetch-status success';
-status.innerHTML = `✅ Successfully updated ${foundCount} analytes from Westgard.com.`;
+status.innerHTML = `✅ Successfully updated ${foundCount} analytes from Westgard.com. Check the TEa Database tab.`;
 populateTeaTable();
 } else {
 status.className = 'fetch-status error';
-status.innerHTML = `⚠️ Connected, but could not parse TEa values. The website structure may have changed.<br>Please use the CSV import feature.`;
+status.innerHTML = `⚠️ Could not parse TEa values from the page. The website structure may have changed.<br>Please visit <a href="https://www.westgard.com/teaspec.htm" target="_blank" style="color:#3498db;">Westgard.com</a> directly.`;
+}
+} catch (e) {
+status.className = 'fetch-status error';
+status.innerHTML = `❌ Error fetching data: ${e.message}<br><br><strong>Alternative:</strong> Visit the sources directly in the "Web Resources" tab, or import a CSV file.`;
 }
 }
-
 function importTeaCsv(event) {
-const file = event.target.files[0];
-if (!file) return;
+const file = event.target.files[0]; if (!file) return;
 const reader = new FileReader();
 reader.onload = (e) => {
 try {
@@ -1473,28 +1400,17 @@ let imported = 0;
 for (let i = 1; i < lines.length; i++) {
 const cols = lines[i].split(',').map(c => c.trim());
 if (cols.length >= 3) {
-const code = cols[0].toUpperCase();
-const name = cols[1];
-const tea = parseFloat(cols[2]);
-const source = (cols[3] || 'clia').toLowerCase();
+const code = cols[0].toUpperCase(), name = cols[1], tea = parseFloat(cols[2]), source = (cols[3] || 'clia').toLowerCase();
 if (!isNaN(tea)) {
-if (!TEA_DATABASE[code]) {
-TEA_DATABASE[code] = { name: name, clia: null, bv: null, rlb: null, rcpa: null, unit: '%' };
-}
-TEA_DATABASE[code][source] = tea;
-imported++;
+if (!TEA_DATABASE[code]) TEA_DATABASE[code] = { name: name, clia: null, bv: null, rlb: null, rcpa: null, unit: '%' };
+TEA_DATABASE[code][source] = tea; imported++;
 }
 }
 }
-populateTeaTable();
-showNotification(`✅ Imported ${imported} TEa values from CSV!`);
-window.triggerAutoSave();
-} catch (err) {
-alert('Error parsing CSV: ' + err.message);
-}
+populateTeaTable(); showNotification(`✅ Imported ${imported} TEa values from CSV!`); window.triggerAutoSave();
+} catch (err) { alert('Error parsing CSV: ' + err.message); }
 };
-reader.readAsText(file);
-event.target.value = '';
+reader.readAsText(file); event.target.value = '';
 }
 function exportTeaDatabase() {
 let csv = 'Analyte,Name,Unit,CLIA,BiologicalVariation,Rilibak,RCPA\n';
@@ -1504,15 +1420,10 @@ csv += `${code},"${d.name}",${d.unit},${d.clia||''},${d.bv||''},${d.rlb||''},${d
 });
 const blob = new Blob([csv], { type: 'text/csv' });
 const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = `TEA_Database_${new Date().toISOString().slice(0,10)}.csv`;
-a.click();
-URL.revokeObjectURL(url);
-showNotification('📤 TEa database exported!');
+const a = document.createElement('a'); a.href = url; a.download = `TEA_Database_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+URL.revokeObjectURL(url); showNotification('📤 TEa database exported!');
 }
 
-// ===== LOGIN FUNCTIONS =====
 function attemptLogin() {
 const username = document.getElementById('loginUsername').value.trim();
 const password = document.getElementById('loginPassword').value;
@@ -1528,24 +1439,10 @@ document.getElementById('loginOverlay').classList.add('hidden');
 document.getElementById('topBar').style.display = 'flex';
 document.getElementById('mainLayout').style.display = 'flex';
 document.getElementById('bottomBar').style.display = 'flex';
-updateUserSessionBar();
-applyUserPermissions();
+updateUserSessionBar(); applyUserPermissions();
 showNotification(`Welcome, ${user.name}! 👋`);
 }
-
-// ===== GLOBAL KEYBOARD SHORTCUTS (ESC to close modals) =====
-document.addEventListener('keydown', (e) => { 
-    if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) {
-        attemptLogin(); 
-    }
-    if (e.key === 'Escape') {
-        // Close any active modal overlay
-        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-            modal.classList.remove('active');
-        });
-    }
-});
-
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) attemptLogin(); });
 function logoutUser() {
 if (!confirm('Are you sure you want to logout?')) return;
 currentUser = null;
@@ -1553,9 +1450,7 @@ document.getElementById('loginOverlay').classList.remove('hidden');
 document.getElementById('topBar').style.display = 'none';
 document.getElementById('mainLayout').style.display = 'none';
 document.getElementById('bottomBar').style.display = 'none';
-document.getElementById('loginUsername').value = '';
-document.getElementById('loginPassword').value = '';
-document.getElementById('loginError').textContent = '';
+document.getElementById('loginUsername').value = ''; document.getElementById('loginPassword').value = ''; document.getElementById('loginError').textContent = '';
 }
 function updateUserSessionBar() {
 if (!currentUser) return;
@@ -1592,15 +1487,10 @@ document.getElementById('newUserRole').onchange = function() { document.getEleme
 }
 function closeUserManagement() { document.getElementById('userMgmtModal').classList.remove('active'); }
 function populateNewUserDeviceGrid() {
-const grid = document.getElementById('newUserDeviceGrid');
-grid.innerHTML = '';
+const grid = document.getElementById('newUserDeviceGrid'); grid.innerHTML = '';
 Object.values(appData.devices).forEach(dev => {
-const chip = document.createElement('div');
-chip.className = 'device-assign-chip';
-chip.textContent = dev.name;
-chip.dataset.deviceId = dev.id;
-chip.addEventListener('click', () => chip.classList.toggle('selected'));
-grid.appendChild(chip);
+const chip = document.createElement('div'); chip.className = 'device-assign-chip'; chip.textContent = dev.name; chip.dataset.deviceId = dev.id;
+chip.addEventListener('click', () => chip.classList.toggle('selected')); grid.appendChild(chip);
 });
 }
 function createNewUser() {
@@ -1618,33 +1508,26 @@ assignedDevices = Array.from(selected).map(c => c.dataset.deviceId);
 if (assignedDevices.length === 0) { alert('Please assign at least one device to the user!'); return; }
 }
 appData.users[username] = { password, role, name: fullName, assignedDevices };
-document.getElementById('newUsername').value = '';
-document.getElementById('newUserFullName').value = '';
-document.getElementById('newUserPassword').value = '';
+document.getElementById('newUsername').value = ''; document.getElementById('newUserFullName').value = ''; document.getElementById('newUserPassword').value = '';
 document.getElementById('newUserRole').value = 'user';
 document.querySelectorAll('#newUserDeviceGrid .device-assign-chip').forEach(c => c.classList.remove('selected'));
 document.getElementById('newUserDeviceSection').style.display = 'block';
-populateUserMgmtTable();
-showNotification(`User "${fullName}" created successfully! ✅`);
-window.triggerAutoSave();
+populateUserMgmtTable(); showNotification(`User "${fullName}" created successfully! ✅`); window.triggerAutoSave();
 }
 function populateUserMgmtTable() {
-const tbody = document.getElementById('userMgmtTableBody');
-tbody.innerHTML = '';
+const tbody = document.getElementById('userMgmtTableBody'); tbody.innerHTML = '';
 Object.entries(appData.users).forEach(([username, user]) => {
 const tr = document.createElement('tr');
 const isAdmin = user.role === 'admin';
 const roleBadgeClass = user.role === 'admin' ? 'admin' : user.role === 'manager' ? 'manager' : 'user';
 const roleLabel = user.role === 'admin' ? '🛡️ Admin' : user.role === 'manager' ? '🔸 Manager' : '🔹 User';
 let devicesHTML = '';
-if (user.role === 'admin' || user.role === 'manager') {
-devicesHTML = '<span style="color:#2ecc71; font-size:10px;">✅ All Devices</span>';
-} else if (user.assignedDevices && user.assignedDevices.length > 0) {
-devicesHTML = user.assignedDevices.map(dId => { const dev = appData.devices[dId]; return `<span class="device-chip assigned">${dev ? dev.name : dId}</span>`; }).join('');
-} else { devicesHTML = '<span style="color:#e74c3c; font-size:10px;">⚠️ None</span>'; }
+if (user.role === 'admin' || user.role === 'manager') devicesHTML = '<span style="color:#2ecc71; font-size:10px;">✅ All Devices</span>';
+else if (user.assignedDevices && user.assignedDevices.length > 0) devicesHTML = user.assignedDevices.map(dId => { const dev = appData.devices[dId]; return `<span class="device-chip assigned">${dev ? dev.name : dId}</span>`; }).join('');
+else devicesHTML = '<span style="color:#e74c3c; font-size:10px;">⚠️ None</span>';
 let actionsHTML = '';
-if (isAdmin) { actionsHTML = '<span style="color:#888; font-size:10px;">🔒 Protected</span>'; }
-else { actionsHTML = `<button class="modal-btn secondary" style="padding:3px 8px; font-size:10px;" onclick="openEditUser('${username}')">✏️ Edit</button> <button class="modal-btn danger" style="padding:3px 8px; font-size:10px;" onclick="deleteUser('${username}')">🗑️</button>`; }
+if (isAdmin) actionsHTML = '<span style="color:#888; font-size:10px;">🔒 Protected</span>';
+else actionsHTML = `<button class="modal-btn secondary" style="padding:3px 8px; font-size:10px;" onclick="openEditUser('${username}')">✏️ Edit</button> <button class="modal-btn danger" style="padding:3px 8px; font-size:10px;" onclick="deleteUser('${username}')">🗑️</button>`;
 tr.innerHTML = `<td><strong style="color:#fff;">${username}</strong></td><td>${user.name}</td><td><span class="role-badge ${roleBadgeClass}">${roleLabel}</span></td><td>${devicesHTML}</td><td>${actionsHTML}</td>`;
 tbody.appendChild(tr);
 });
@@ -1655,21 +1538,15 @@ if (currentUser && currentUser.username === username) { alert('Cannot delete you
 if (confirm(`Delete user "${username}"?`)) { delete appData.users[username]; populateUserMgmtTable(); showNotification(`User "${username}" deleted.`); window.triggerAutoSave(); }
 }
 function openEditUser(username) {
-editingUser = username;
-const user = appData.users[username];
-if (!user) return;
+editingUser = username; const user = appData.users[username]; if (!user) return;
 document.getElementById('editUserName').textContent = `${user.name} (${username})`;
-document.getElementById('editUserRole').value = user.role;
-document.getElementById('editUserPassword').value = '';
-const grid = document.getElementById('editUserDeviceGrid');
-grid.innerHTML = '';
+document.getElementById('editUserRole').value = user.role; document.getElementById('editUserPassword').value = '';
+const grid = document.getElementById('editUserDeviceGrid'); grid.innerHTML = '';
 Object.values(appData.devices).forEach(dev => {
 const chip = document.createElement('div');
 chip.className = 'device-assign-chip' + (user.assignedDevices && user.assignedDevices.includes(dev.id) ? ' selected' : '');
-chip.textContent = dev.name;
-chip.dataset.deviceId = dev.id;
-chip.addEventListener('click', () => chip.classList.toggle('selected'));
-grid.appendChild(chip);
+chip.textContent = dev.name; chip.dataset.deviceId = dev.id;
+chip.addEventListener('click', () => chip.classList.toggle('selected')); grid.appendChild(chip);
 });
 document.getElementById('editUserDeviceSection').style.display = user.role === 'user' ? 'block' : 'none';
 document.getElementById('editUserRole').onchange = function() { document.getElementById('editUserDeviceSection').style.display = this.value === 'user' ? 'block' : 'none'; };
@@ -1690,27 +1567,18 @@ user.assignedDevices = Array.from(selected).map(c => c.dataset.deviceId);
 if (user.assignedDevices.length === 0) { alert('Please assign at least one device!'); return; }
 } else user.assignedDevices = [];
 closeEditUser(); populateUserMgmtTable(); applyUserPermissions();
-showNotification(`User "${editingUser}" updated! ✅`);
-window.triggerAutoSave();
+showNotification(`User "${editingUser}" updated! ✅`); window.triggerAutoSave();
 }
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-function getHighlightDaysArray() {
-if (!appData.reportSettings.highlightDaysOfWeek) appData.reportSettings.highlightDaysOfWeek = [];
-return appData.reportSettings.highlightDaysOfWeek;
-}
-function shouldHighlightRow(dayOfWeek) {
-const days = getHighlightDaysArray();
-if (!days || days.length === 0) return false;
-return days.includes(dayOfWeek);
-}
+function getHighlightDaysArray() { if (!appData.reportSettings.highlightDaysOfWeek) appData.reportSettings.highlightDaysOfWeek = []; return appData.reportSettings.highlightDaysOfWeek; }
+function shouldHighlightRow(dayOfWeek) { const days = getHighlightDaysArray(); if (!days || days.length === 0) return false; return days.includes(dayOfWeek); }
 function selectAllDays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = true; updateHighlightPreview(); }
 function selectWeekendDays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i === 5 || i === 6); updateHighlightPreview(); }
 function selectWorkdays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i >= 0 && i <= 4); updateHighlightPreview(); }
 function clearAllDays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = false; updateHighlightPreview(); }
 function updateHighlightPreview() {
-const previewText = document.getElementById('highlightPreviewText');
-if (!previewText) return;
+const previewText = document.getElementById('highlightPreviewText'); if (!previewText) return;
 const selected = [];
 for (let i = 0; i < 7; i++) { if (document.getElementById('dayCheck' + i).checked) selected.push(DAY_NAMES[i]); }
 if (selected.length === 0) previewText.innerHTML = '<span style="color:#888;">No days selected — highlighting disabled</span>';
@@ -1718,8 +1586,7 @@ else previewText.innerHTML = `<strong style="color:#e74c3c;">${selected.join(', 
 }
 function setupHighlightPreview() { for (let i = 0; i < 7; i++) { const cb = document.getElementById('dayCheck' + i); if (cb) cb.addEventListener('change', updateHighlightPreview); } }
 function updateDayHighlightBadge() {
-const badge = document.getElementById('dayHighlightBadge');
-if (!badge) return;
+const badge = document.getElementById('dayHighlightBadge'); if (!badge) return;
 const days = getHighlightDaysArray();
 if (!days || days.length === 0) badge.style.display = 'none';
 else { badge.textContent = `🔴 ${days.map(d => DAY_NAMES_SHORT[d]).join(', ')}`; badge.style.display = 'inline-block'; }
@@ -1753,61 +1620,38 @@ function updateMonthHasData(span, month) { const device = appData.devices[appDat
 function changeYear(delta) { appData.currentYear += delta; updateDateDisplay(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }
 function updateDateDisplay() { const yp = document.getElementById('yearPrev'); const yc = document.getElementById('yearCurr'); const pb = document.getElementById('periodBadge'); if (yp) yp.textContent = appData.currentYear - 1; if (yc) yc.textContent = appData.currentYear; if (pb) pb.textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`; }
 function buildSidebar() {
-const sidebar = document.getElementById('sidebar');
-if (!sidebar) return;
-sidebar.innerHTML = '';
+const sidebar = document.getElementById('sidebar'); if (!sidebar) return; sidebar.innerHTML = '';
 const accessibleDevices = getAccessibleDevices();
 if (accessibleDevices.length === 0) { sidebar.innerHTML = '<div style="color:#e74c3c; font-size:11px; text-align:center; padding:20px 5px;">⛔ No devices assigned.<br>Contact admin.</div>'; return; }
 if (!canAccessDevice(appData.currentDevice) && accessibleDevices.length > 0) { appData.currentDevice = accessibleDevices[0].id; appData.currentAnalyte = accessibleDevices[0].analytes[0] || ''; }
 const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
 accessibleDevices.forEach(dev => {
-const item = document.createElement('div');
-item.className = 'sidebar-item' + (dev.id === appData.currentDevice ? ' active' : '');
-item.dataset.device = dev.id;
-const nameSpan = document.createElement('span');
-nameSpan.className = 'device-name';
-nameSpan.textContent = dev.name;
+const item = document.createElement('div'); item.className = 'sidebar-item' + (dev.id === appData.currentDevice ? ' active' : ''); item.dataset.device = dev.id;
+const nameSpan = document.createElement('span'); nameSpan.className = 'device-name'; nameSpan.textContent = dev.name;
 nameSpan.addEventListener('click', () => {
 if (appData.currentDevice === dev.id) return;
-document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-item.classList.add('active');
-appData.currentDevice = dev.id;
-const d = appData.devices[dev.id];
-appData.currentAnalyte = d.analytes[0] || '';
-appData.numLevels = d.numLevels || 2;
+document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active')); item.classList.add('active');
+appData.currentDevice = dev.id; const d = appData.devices[dev.id];
+appData.currentAnalyte = d.analytes[0] || ''; appData.numLevels = d.numLevels || 2;
 buildAnalyteBar(); updateMonthBadges(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 });
 if (canModify) {
-const actionsDiv = document.createElement('div');
-actionsDiv.className = 'device-actions';
-const editBtn = document.createElement('button');
-editBtn.className = 'action-btn';
-editBtn.innerHTML = '✏️';
-editBtn.addEventListener('click', (e) => { e.stopPropagation(); openRename('device', dev.id); });
-const removeBtn = document.createElement('button');
-removeBtn.className = 'action-btn';
-removeBtn.innerHTML = '🗑️';
-removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeDevice(dev.id); });
-actionsDiv.appendChild(editBtn);
-actionsDiv.appendChild(removeBtn);
-item.appendChild(nameSpan);
-item.appendChild(actionsDiv);
+const actionsDiv = document.createElement('div'); actionsDiv.className = 'device-actions';
+const editBtn = document.createElement('button'); editBtn.className = 'action-btn'; editBtn.innerHTML = '✏️'; editBtn.addEventListener('click', (e) => { e.stopPropagation(); openRename('device', dev.id); });
+const removeBtn = document.createElement('button'); removeBtn.className = 'action-btn'; removeBtn.innerHTML = '🗑️'; removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeDevice(dev.id); });
+actionsDiv.appendChild(editBtn); actionsDiv.appendChild(removeBtn); item.appendChild(nameSpan); item.appendChild(actionsDiv);
 } else item.appendChild(nameSpan);
 sidebar.appendChild(item);
 });
 if (canModify) {
-const addBtn = document.createElement('button');
-addBtn.className = 'add-device-btn';
-addBtn.textContent = '➕ Add Device';
+const addBtn = document.createElement('button'); addBtn.className = 'add-device-btn'; addBtn.textContent = '➕ Add Device';
 addBtn.addEventListener('click', () => {
 const name = prompt('Enter new device name:');
 if (name && name.trim()) {
 const id = 'device_' + Date.now();
 appData.devices[id] = { id, name: name.trim(), analyzer: '', analytes: ['Analyte1'], numLevels: 2, labSP: '', designee: '', data: {} };
-appData.analyteLevels['Analyte1'] = 2;
-buildSidebar(); showNotification('Device added!');
-window.triggerAutoSave();
+appData.analyteLevels['Analyte1'] = 2; buildSidebar(); showNotification('Device added!'); window.triggerAutoSave();
 }
 });
 sidebar.appendChild(addBtn);
@@ -1817,64 +1661,40 @@ function removeDevice(deviceId) {
 if (Object.keys(appData.devices).length <= 1) { alert('Cannot remove the last device!'); return; }
 if (confirm(`Remove "${appData.devices[deviceId].name}"?`)) {
 delete appData.devices[deviceId];
-if (appData.currentDevice === deviceId) {
-const accessible = getAccessibleDevices();
-if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
-}
-buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Device removed!');
-window.triggerAutoSave();
+if (appData.currentDevice === deviceId) { const accessible = getAccessibleDevices(); if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; } }
+buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Device removed!'); window.triggerAutoSave();
 }
 }
 function buildAnalyteBar() {
-const device = appData.devices[appData.currentDevice];
-if (!device) return;
-const bar = document.getElementById('analyteBar');
-if (!bar) return;
-bar.innerHTML = '';
+const device = appData.devices[appData.currentDevice]; if (!device) return;
+const bar = document.getElementById('analyteBar'); if (!bar) return; bar.innerHTML = '';
 const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
 device.analytes.forEach(a => {
-const btn = document.createElement('button');
-const lvl = getAnalyteLevels(a);
-btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : '');
-btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
+const btn = document.createElement('button'); const lvl = getAnalyteLevels(a);
+btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : ''); btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
 btn.addEventListener('click', () => {
 if (appData.currentAnalyte === a) return;
-document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active'));
-btn.classList.add('active');
-appData.currentAnalyte = a;
-updateMonthBadges(); updateDashboard();
+document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+appData.currentAnalyte = a; updateMonthBadges(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 });
 bar.appendChild(btn);
 });
 if (canModify) {
-const addBtn = document.createElement('button');
-addBtn.className = 'analyte-btn';
-addBtn.textContent = '➕ Add Test';
-addBtn.style.background = '#2ecc71';
-addBtn.style.color = '#fff';
+const addBtn = document.createElement('button'); addBtn.className = 'analyte-btn'; addBtn.textContent = '➕ Add Test'; addBtn.style.background = '#2ecc71'; addBtn.style.color = '#fff';
 addBtn.addEventListener('click', () => {
-document.getElementById('newTestName').value = '';
-document.getElementById('newTestLevels').value = '2';
-document.getElementById('newTestTEa').value = '10';
-document.getElementById('addTestModal').classList.add('active');
-setTimeout(() => document.getElementById('newTestName').focus(), 100);
+document.getElementById('newTestName').value = ''; document.getElementById('newTestLevels').value = '2'; document.getElementById('newTestTEa').value = '10';
+document.getElementById('addTestModal').classList.add('active'); setTimeout(() => document.getElementById('newTestName').focus(), 100);
 });
 bar.appendChild(addBtn);
-const removeBtn = document.createElement('button');
-removeBtn.className = 'remove-test-btn';
-removeBtn.textContent = '🗑️ Remove Test';
+const removeBtn = document.createElement('button'); removeBtn.className = 'remove-test-btn'; removeBtn.textContent = '🗑️ Remove Test';
 removeBtn.addEventListener('click', () => {
 const device = appData.devices[appData.currentDevice];
 if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; }
 if (confirm(`Remove "${appData.currentAnalyte}"?`)) {
-const idx = device.analytes.indexOf(appData.currentAnalyte);
-device.analytes.splice(idx, 1);
-delete device.data[appData.currentAnalyte];
-delete appData.analyteLevels[appData.currentAnalyte];
-appData.currentAnalyte = device.analytes[0];
-buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Test removed!');
-window.triggerAutoSave();
+const idx = device.analytes.indexOf(appData.currentAnalyte); device.analytes.splice(idx, 1);
+delete device.data[appData.currentAnalyte]; delete appData.analyteLevels[appData.currentAnalyte];
+appData.currentAnalyte = device.analytes[0]; buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Test removed!'); window.triggerAutoSave();
 }
 });
 bar.appendChild(removeBtn);
@@ -1886,22 +1706,13 @@ const name = document.getElementById('newTestName').value.trim();
 const levels = parseInt(document.getElementById('newTestLevels').value);
 const tea = parseFloat(document.getElementById('newTestTEa').value) || 10;
 if (!name) { alert('Please enter a test name!'); return; }
-const device = appData.devices[appData.currentDevice];
-if (!device) { alert('No device selected!'); return; }
+const device = appData.devices[appData.currentDevice]; if (!device) { alert('No device selected!'); return; }
 if (device.analytes.includes(name)) { alert('Test already exists!'); return; }
-device.analytes.push(name);
-appData.analyteLevels[name] = levels;
-device.data[name] = {};
-appData.currentAnalyte = name;
-appData.numLevels = levels;
-closeAddTest();
-buildSidebar();
-buildAnalyteBar();
-updateMonthBadges();
-updateDashboard();
+device.analytes.push(name); appData.analyteLevels[name] = levels; device.data[name] = {};
+appData.currentAnalyte = name; appData.numLevels = levels; closeAddTest();
+buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-showNotification(`✅ Test "${name}" added with ${levels} level(s)!`);
-window.triggerAutoSave();
+showNotification(`✅ Test "${name}" added with ${levels} level(s)!`); window.triggerAutoSave();
 }
 function setupNavButtons() { document.querySelectorAll('.nav-btn[data-view]').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); showView(btn.dataset.view); }); }); }
 function setupLevelSelect() { document.getElementById('levelSelect').addEventListener('change', function() { const nl = parseInt(this.value); appData.numLevels = nl; appData.devices[appData.currentDevice].numLevels = nl; appData.analyteLevels[appData.currentAnalyte] = nl; if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }); }
@@ -1965,8 +1776,7 @@ setTxt('qcL1Mean', '-'); setTxt('qcL2Mean', '-'); setTxt('qcL3Mean', '-');
 showEmptyChart('ljChart1', 'No data'); showEmptyChart('ljChart2', 'No data'); if (showL3) showEmptyChart('ljChart3', 'No data');
 const sir = document.getElementById('sigmaInterpRows'); if (sir) sir.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">No data</div>';
 const qr = document.getElementById('qgiRows'); if (qr) qr.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">No data</div>';
-setTxt('rulesInfo', 'LEVEL 1: -<br>LEVEL 2: -');
-return;
+setTxt('rulesInfo', 'LEVEL 1: -<br>LEVEL 2: -'); return;
 }
 updateQCResultsTable(data, numLevels); updateWestgardTable(data, numLevels); updateStats(data, numLevels, analyte); updateLJCharts(data, numLevels); updateSigmaChart(data, numLevels);
 updateSigmaInterpretation(data, numLevels); updateQGIInterpretation(data, numLevels); updateBottomRulesBar(data, numLevels);
@@ -2086,40 +1896,27 @@ makeChart('ljChart3', rawValuesL3, rangeL3);
 }
 function updateSigmaChart(data, numLevels) { const canvas = document.getElementById('sigmaChart'); if (!canvas) return; const analyte = appData.currentAnalyte; const labels = ['Level 1', 'Level 2']; const values = []; const v1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); const m1 = calcMean(v1), s1 = calcSD(v1, m1), cv1 = calcCV(s1, m1), b1 = calcBias(m1, data.factoryMean.L1 || m1); values.push(calcSigma(data.permissibleCV.L1 || 10, b1, cv1)); const v2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); const m2 = calcMean(v2), s2 = calcSD(v2, m2), cv2 = calcCV(s2, m2), b2 = calcBias(m2, data.factoryMean.L2 || m2); values.push(calcSigma(data.permissibleCV.L2 || 10, b2, cv2)); if (numLevels >= 3 && data.L3) { labels.push('Level 3'); const v3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); const m3 = calcMean(v3), s3 = calcSD(v3, m3), cv3 = calcCV(s3, m3), b3 = calcBias(m3, data.factoryMean.L3 || m3); values.push(calcSigma(data.permissibleCV.L3 || 10, b3, cv3)); } if (sigmaChart) sigmaChart.destroy(); try { sigmaChart = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels, datasets: [{ data: values, backgroundColor: values.map(v => v >= 6 ? '#2ecc71' : v >= 4 ? '#f39c12' : v >= 3 ? '#e67e22' : '#e74c3c'), borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#aaa' }, grid: { color: '#333' } }, y: { min: 0, max: 6, ticks: { color: '#aaa', stepSize: 1 }, grid: { color: '#333' } } } } }); } catch (e) { console.error('Error creating sigma chart:', e); } }
 function populateSpreadsheet() {
-const device = appData.devices[appData.currentDevice];
-if (!device) return;
-const analyte = appData.currentAnalyte;
-const numLevels = getAnalyteLevels(analyte);
+const device = appData.devices[appData.currentDevice]; if (!device) return;
+const analyte = appData.currentAnalyte; const numLevels = getAnalyteLevels(analyte);
 const daysInMonth = getDaysInMonth(appData.currentYear, appData.currentMonth);
-const thead = document.getElementById('spreadsheetHead');
-const tbody = document.getElementById('spreadsheetBody');
+const thead = document.getElementById('spreadsheetHead'); const tbody = document.getElementById('spreadsheetBody');
 if (!thead || !tbody) return;
 let headerHTML = '<tr><th>Date</th>';
 device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a}.L${l}</th>`; });
-headerHTML += '</tr>';
-thead.innerHTML = headerHTML;
-tbody.innerHTML = '';
-updateDayHighlightBadge();
+headerHTML += '</tr>'; thead.innerHTML = headerHTML; tbody.innerHTML = ''; updateDayHighlightBadge();
 for (let i = 0; i < daysInMonth; i++) {
 const tr = document.createElement('tr');
 const dateStr = formatDate(i + 1, appData.currentMonth, appData.currentYear);
-const dateTd = document.createElement('td');
-dateTd.textContent = dateStr;
+const dateTd = document.createElement('td'); dateTd.textContent = dateStr;
 const dateObj = new Date(appData.currentYear, appData.currentMonth, i + 1);
-const dayOfWeek = dateObj.getDay();
-const dayName = DAY_NAMES_SHORT[dayOfWeek];
-const dayIndicator = document.createElement('span');
-dayIndicator.style.cssText = 'display:block; font-size:9px; color:#e74c3c; font-weight:bold; margin-top:2px;';
-dayIndicator.textContent = dayName;
-dateTd.appendChild(dayIndicator);
-tr.appendChild(dateTd);
+const dayOfWeek = dateObj.getDay(); const dayName = DAY_NAMES_SHORT[dayOfWeek];
+const dayIndicator = document.createElement('span'); dayIndicator.style.cssText = 'display:block; font-size:9px; color:#e74c3c; font-weight:bold; margin-top:2px;';
+dayIndicator.textContent = dayName; dateTd.appendChild(dayIndicator); tr.appendChild(dateTd);
 if (shouldHighlightRow(dayOfWeek)) tr.classList.add('highlighted-row');
 device.analytes.forEach(a => {
 for (let l = 1; l <= getAnalyteLevels(a); l++) {
-const td = document.createElement('td');
-const input = document.createElement('input');
-input.type = 'number'; input.step = '0.01';
-input.dataset.analyte = a; input.dataset.level = l; input.dataset.row = i;
+const td = document.createElement('td'); const input = document.createElement('input');
+input.type = 'number'; input.step = '0.01'; input.dataset.analyte = a; input.dataset.level = l; input.dataset.row = i;
 const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
 if (aData[`L${l}`] && aData[`L${l}`][i] !== undefined && aData[`L${l}`][i] !== null && aData[`L${l}`][i] !== 0) input.value = aData[`L${l}`][i];
 const excludedKey = `${appData.currentDevice}_${a}_${appData.currentYear}_${appData.currentMonth}_L${l}`;
@@ -2128,23 +1925,18 @@ if (excluded.includes(i)) { input.classList.add('excluded'); input.title = 'Excl
 else input.title = 'Double-click to exclude from calculations';
 applySDColoring(input, a, l, appData.currentYear, appData.currentMonth);
 input.addEventListener('dblclick', function(e) {
-e.preventDefault();
-const val = parseFloat(this.value);
-if (isNaN(val) || val === 0) return;
+e.preventDefault(); const val = parseFloat(this.value); if (isNaN(val) || val === 0) return;
 toggleExclusion(this.dataset.analyte, this.dataset.level, parseInt(this.dataset.row));
 this.classList.toggle('excluded');
 if (this.classList.contains('excluded')) this.title = 'Excluded from calculations (double-click to include)';
 else this.title = 'Double-click to exclude from calculations';
 });
-input.addEventListener('input', autoUpdateSpreadsheet);
-td.appendChild(input);
-tr.appendChild(td);
+input.addEventListener('input', autoUpdateSpreadsheet); td.appendChild(input); tr.appendChild(td);
 }
 });
 tbody.appendChild(tr);
 }
-populateStatsSummary();
-setupArrowNavigation();
+populateStatsSummary(); setupArrowNavigation();
 }
 function applySDColoring(input, analyte, level, year, month) { const aData = getMonthData(appData.devices[appData.currentDevice], analyte, year, month); const val = parseFloat(input.value); if (isNaN(val) || val === 0) { input.classList.remove('sd-1', 'sd-2', 'sd-3'); return; } const mean = aData.factoryMean[`L${level}`] || 0; const sd = aData.factorySD[`L${level}`] || 0; if (sd === 0) { input.classList.remove('sd-1', 'sd-2', 'sd-3'); return; } const diff = Math.abs(val - mean); input.classList.remove('sd-1', 'sd-2', 'sd-3'); if (diff > 3 * sd) input.classList.add('sd-3'); else if (diff > 2 * sd) input.classList.add('sd-2'); else if (diff > 1 * sd) input.classList.add('sd-1'); }
 function setupArrowNavigation() { const table = document.getElementById('spreadsheetTable'); if (!table) return; table.removeEventListener('keydown', handleArrowKeys); table.addEventListener('keydown', handleArrowKeys); }
@@ -2153,16 +1945,13 @@ function autoUpdateSpreadsheet() {
 const device = appData.devices[appData.currentDevice];
 device.analytes.forEach(a => { const aLevels = getAnalyteLevels(a); const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth); for (let l = 1; l <= aLevels; l++) { if (!aData[`L${l}`]) aData[`L${l}`] = []; } aData.dates = []; });
 document.querySelectorAll('#spreadsheetBody tr').forEach((tr, i) => {
-const dateCell = tr.querySelector('td:first-child');
-const dateValue = dateCell ? dateCell.childNodes[0].nodeValue.trim() : '';
+const dateCell = tr.querySelector('td:first-child'); const dateValue = dateCell ? dateCell.childNodes[0].nodeValue.trim() : '';
 tr.querySelectorAll('input').forEach(input => {
-const a = input.dataset.analyte, l = input.dataset.level;
-if (!a || !l) return;
+const a = input.dataset.analyte, l = input.dataset.level; if (!a || !l) return;
 const rawVal = input.value.trim(); const val = parseFloat(rawVal);
 const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
 if (!aData[`L${l}`]) aData[`L${l}`] = [];
-if (rawVal === '' || isNaN(val) || val === 0) aData[`L${l}`][i] = null;
-else aData[`L${l}`][i] = val;
+if (rawVal === '' || isNaN(val) || val === 0) aData[`L${l}`][i] = null; else aData[`L${l}`][i] = val;
 aData.dates[i] = dateValue;
 });
 });
@@ -2171,58 +1960,32 @@ populateStatsSummary(); updateMonthBadges(); updateDashboard(); window.triggerAu
 function populateStatsSummary() { const device = appData.devices[appData.currentDevice]; const head = document.getElementById('statsSummaryHead'); const body = document.getElementById('statsSummaryBody'); if (!head || !body) return; let headerHTML = '<tr><th></th>'; device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a} L${l}</th>`; }); headerHTML += '</tr>'; head.innerHTML = headerHTML; const rows = [{ name: 'Mean', type: 'mean', editable: true }, { name: 'S.D', type: 'sd', editable: true }, { name: 'F.MAX', type: 'fmax', editable: false }, { name: 'F.MIN', type: 'fmin', editable: false }, { name: 'LAB x̄', type: 'lab_mean', editable: false }, { name: 'LAB SD', type: 'lab_sd', editable: false }, { name: 'LAB MAX', type: 'lab_max', editable: false }, { name: 'LAB MIN', type: 'lab_min', editable: false }, { name: 'LAB CV%', type: 'lab_cv', editable: false }, { name: 'Factory CV%', type: 'fact_cv', editable: false }, { name: 'Bias%', type: 'bias', editable: false }, { name: 'TEa', type: 'tea', editable: true }, { name: 'Lot', type: 'lot', editable: true }, { name: 'EXP', type: 'exp', editable: true }, { name: 'Analyzer', type: 'analyzer', editable: true }]; body.innerHTML = ''; rows.forEach(rowObj => { const tr = document.createElement('tr'); const td0 = document.createElement('td'); td0.textContent = rowObj.name; td0.style.fontWeight = 'bold'; td0.style.color = '#e74c3c'; tr.appendChild(td0); device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) { const td = document.createElement('td'); const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth); const values = getNonExcludedValues(a, l, appData.currentYear, appData.currentMonth); const labMean = calcMean(values), labSD = calcSD(values, labMean), labMax = values.length > 0 ? Math.max(...values) : 0, labMin = values.length > 0 ? Math.min(...values) : 0; const labCV = calcCV(labSD, labMean); const factMean = (aData.factoryMean && aData.factoryMean[`L${l}`]) || 0; const factSD = (aData.factorySD && aData.factorySD[`L${l}`]) || 0; const factCV = factMean !== 0 ? calcCV(factSD, factMean) : 0; const fMax = factMean + 3 * factSD; const fMin = factMean - 3 * factSD; const bias = factMean !== 0 ? calcBias(labMean, factMean) : 0; const storedTEa = (aData.permissibleCV && aData.permissibleCV[`L${l}`]) || 10, storedLot = (aData.lot && aData.lot[`L${l}`]) || '', storedExp = (aData.exp && aData.exp[`L${l}`]) || ''; if (rowObj.editable) { const input = document.createElement('input'); if (rowObj.type === 'analyzer') { input.type = 'text'; input.value = device.analyzer || ''; input.style.width = '90px'; input.addEventListener('change', (e) => { device.analyzer = e.target.value; showNotification('Analyzer updated!'); }); } else { input.type = (rowObj.type === 'lot' || rowObj.type === 'exp') ? 'text' : 'number'; if (rowObj.type !== 'lot' && rowObj.type !== 'exp') input.step = rowObj.type === 'tea' ? '0.1' : '0.01'; input.style.width = '70px'; if (rowObj.type === 'mean') input.value = factMean; else if (rowObj.type === 'sd') input.value = factSD; else if (rowObj.type === 'tea') input.value = storedTEa; else if (rowObj.type === 'lot') input.value = storedLot; else if (rowObj.type === 'exp') input.value = storedExp; input.addEventListener('change', (e) => { const val = rowObj.type === 'lot' || rowObj.type === 'exp' ? e.target.value : (parseFloat(e.target.value) || 0); if (rowObj.type === 'mean') { if (!aData.factoryMean) aData.factoryMean = {}; aData.factoryMean[`L${l}`] = val; } else if (rowObj.type === 'sd') { if (!aData.factorySD) aData.factorySD = {}; aData.factorySD[`L${l}`] = val; } else if (rowObj.type === 'tea') { if (!aData.permissibleCV) aData.permissibleCV = {}; aData.permissibleCV[`L${l}`] = val; } else if (rowObj.type === 'lot') { if (!aData.lot) aData.lot = {}; aData.lot[`L${l}`] = val; } else if (rowObj.type === 'exp') { if (!aData.exp) aData.exp = {}; aData.exp[`L${l}`] = val; } updateDashboard(); populateStatsSummary(); showNotification(`${rowObj.name} updated!`); window.triggerAutoSave(); }); } input.style.textAlign = 'center'; input.style.background = 'transparent'; input.style.border = 'none'; input.style.color = '#e0e0e0'; input.style.fontSize = '11px'; input.style.padding = '2px'; input.addEventListener('focus', function() { this.style.background = '#0f3460'; this.style.outline = '1px solid #e74c3c'; }); input.addEventListener('blur', function() { this.style.background = 'transparent'; this.style.outline = 'none'; }); td.appendChild(input); } else { if (rowObj.type === 'fmax') td.textContent = fMax.toFixed(2); else if (rowObj.type === 'fmin') td.textContent = fMin.toFixed(2); else if (rowObj.type === 'lab_mean') { td.textContent = values.length > 0 ? labMean.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_sd') { td.textContent = values.length > 0 ? labSD.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_max') { td.textContent = values.length > 0 ? labMax.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_min') { td.textContent = values.length > 0 ? labMin.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_cv') { td.textContent = values.length > 0 ? labCV.toFixed(2) + '%' : '-'; td.style.color = '#2ecc71'; } else if (rowObj.type === 'fact_cv') { td.textContent = factMean !== 0 ? factCV.toFixed(2) + '%' : '-'; td.style.color = '#f39c12'; } else if (rowObj.type === 'bias') { td.textContent = (values.length > 0 && factMean !== 0 ? Math.abs(bias).toFixed(2) : '0') + '%'; td.style.color = bias > 0 ? '#e74c3c' : '#2ecc71'; } } tr.appendChild(td); } }); body.appendChild(tr); }); }
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
 function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues, users: appData.users, reportSettings: appData.reportSettings, customEquations: appData.customEquations, customWebResources: appData.customWebResources, customChatQA: appData.customChatQA })); showNotification('Data saved!'); }
-function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (loaded.customEquations) appData.customEquations = loaded.customEquations; if (loaded.customWebResources) appData.customWebResources = loaded.customWebResources; if (loaded.customChatQA) appData.customChatQA = loaded.customChatQA; if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; if (!appData.customEquations) appData.customEquations = []; if (!appData.customWebResources) appData.customWebResources = []; if (!appData.customChatQA) appData.customChatQA = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
+function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (loaded.customEquations) appData.customEquations = loaded.customEquations; if (loaded.customWebResources) appData.customWebResources = loaded.customWebResources; if (loaded.customChatQA) appData.customChatQA = loaded.customChatQA; if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
 function clearCurrentData() {
-const device = appData.devices[appData.currentDevice];
-const year = appData.currentYear;
-const month = appData.currentMonth;
-const monthName = getMonthName();
-if (!confirm(`⚠️ Clear ALL QC RESULTS for ALL tests in "${device.name}" for ${monthName} ${year}?
-Parameters (Mean, SD, TEa, Lot, Exp) will be kept for all tests.`)) return;
+const device = appData.devices[appData.currentDevice]; const year = appData.currentYear; const month = appData.currentMonth; const monthName = getMonthName();
+if (!confirm(`⚠️ Clear ALL QC RESULTS for ALL tests in "${device.name}" for ${monthName} ${year}?\nParameters (Mean, SD, TEa, Lot, Exp) will be kept for all tests.`)) return;
 let clearedCount = 0;
 device.analytes.forEach(analyte => {
-if (!device.data[analyte]) device.data[analyte] = {};
-if (!device.data[analyte][year]) device.data[analyte][year] = {};
+if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][year]) device.data[analyte][year] = {};
 const currentData = getMonthData(device, analyte, year, month);
-const savedParams = {
-factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 },
-factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 },
-permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 },
-lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' },
-exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' }
-};
-device.data[analyte][year][month] = createEmptyData();
-device.data[analyte][year][month].factoryMean = savedParams.factoryMean;
-device.data[analyte][year][month].factorySD = savedParams.factorySD;
-device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV;
-device.data[analyte][year][month].lot = savedParams.lot;
-device.data[analyte][year][month].exp = savedParams.exp;
-const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`;
-Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
+const savedParams = { factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 }, factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 }, permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 }, lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' }, exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' } };
+device.data[analyte][year][month] = createEmptyData(); device.data[analyte][year][month].factoryMean = savedParams.factoryMean; device.data[analyte][year][month].factorySD = savedParams.factorySD; device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV; device.data[analyte][year][month].lot = savedParams.lot; device.data[analyte][year][month].exp = savedParams.exp;
+const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`; Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
 clearedCount++;
 });
-updateMonthBadges();
-updateDashboard();
-if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device.name}! Parameters retained.`);
-window.triggerAutoSave();
+updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device.name}! Parameters retained.`); window.triggerAutoSave();
 }
 function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
 function copyFromPreviousMonth() {
-const device = appData.devices[appData.currentDevice];
-let pm = appData.currentMonth - 1, py = appData.currentYear;
-if (pm < 0) { pm = 11; py--; }
+const device = appData.devices[appData.currentDevice]; let pm = appData.currentMonth - 1, py = appData.currentYear; if (pm < 0) { pm = 11; py--; }
 const prevMonthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm];
-let copiedCount = 0;
-let skippedCount = 0;
+let copiedCount = 0, skippedCount = 0;
 device.analytes.forEach(analyte => {
 if (hasDataForMonth(device, analyte, py, pm)) {
 const sourceData = device.data[analyte][py][pm];
-if (!device.data[analyte]) device.data[analyte] = {};
-if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
-if (!device.data[analyte][appData.currentYear][appData.currentMonth]) {
-device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
-}
+if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
+if (!device.data[analyte][appData.currentYear][appData.currentMonth]) device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
 const targetData = device.data[analyte][appData.currentYear][appData.currentMonth];
 if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
 if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
@@ -2230,116 +1993,58 @@ if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringi
 if (sourceData.lot) targetData.lot = JSON.parse(JSON.stringify(sourceData.lot));
 if (sourceData.exp) targetData.exp = JSON.parse(JSON.stringify(sourceData.exp));
 copiedCount++;
-} else {
-skippedCount++;
-}
+} else skippedCount++;
 });
-if (copiedCount === 0) {
-alert(`⚠️ No data found for ANY test in "${device.name}" for ${prevMonthName} ${py}.`);
-return;
-}
-updateMonthBadges();
-updateDashboard();
-populateSpreadsheet();
+if (copiedCount === 0) { alert(`⚠️ No data found for ANY test in "${device.name}" for ${prevMonthName} ${py}.`); return; }
+updateMonthBadges(); updateDashboard(); populateSpreadsheet();
 let msg = `✅ Copied Mean & SD parameters for ${copiedCount} test(s) from ${prevMonthName} ${py}.`;
 if (skippedCount > 0) msg += ` (${skippedCount} test(s) had no data to copy)`;
-showNotification(msg);
-window.triggerAutoSave();
+showNotification(msg); window.triggerAutoSave();
 }
 function copyFromPreviousYear() {
-const device = appData.devices[appData.currentDevice];
-const analyte = appData.currentAnalyte;
-const py = appData.currentYear - 1;
+const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const py = appData.currentYear - 1;
 if (hasDataForMonth(device, analyte, py, appData.currentMonth)) {
 Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth])));
-updateMonthBadges(); updateDashboard(); populateSpreadsheet();
-showNotification(`Copied from ${getMonthName()} ${py}!`);
-window.triggerAutoSave();
+updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${getMonthName()} ${py}!`); window.triggerAutoSave();
 } else alert(`No data for ${getMonthName()} ${py}`);
 }
 function initImprecision() { const tbody = document.getElementById('imprecisionBody'); if (!tbody) return; tbody.innerHTML = ''; for (let i = 1; i <= 20; i++) { const tr = document.createElement('tr'); tr.innerHTML = `<td>Run ${i}</td><td><input type="number" step="0.01" class="imp-l1"></td><td><input type="number" step="0.01" class="imp-l2"></td><td style="display:none"><input type="number" step="0.01" class="imp-l3"></td>`; tbody.appendChild(tr); } }
 function calcImprecision() { const l1 = Array.from(document.querySelectorAll('.imp-l1')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l2 = Array.from(document.querySelectorAll('.imp-l2')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l3 = Array.from(document.querySelectorAll('.imp-l3')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const div = document.getElementById('imprecisionResults'); if (!div) return; div.innerHTML = ''; [{ name: 'Level 1', v: l1 }, { name: 'Level 2', v: l2 }, { name: 'Level 3', v: l3 }].forEach(level => { if (level.v.length < 2) return; const mean = calcMean(level.v), sd = calcSD(level.v, mean), cv = calcCV(sd, mean); const box = document.createElement('div'); box.className = 'imp-box'; box.innerHTML = `<h4>${level.name}</h4><div>N: ${level.v.length}</div><div>Mean: <strong>${mean.toFixed(4)}</strong></div><div>SD: <strong>${sd.toFixed(4)}</strong></div><div>CV: <strong>${cv.toFixed(2)}%</strong></div><div>Min: ${Math.min(...level.v).toFixed(4)}</div><div>Max: ${Math.max(...level.v).toFixed(4)}</div>`; div.appendChild(box); }); showNotification('Imprecision calculated!'); }
 function openSettings() {
-const device = appData.devices[appData.currentDevice];
-const data = getCurrentData();
-document.getElementById('setInstNameAr').value = appData.institution.nameAr || '';
-document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
-const previewImg = document.getElementById('logoPreviewImg');
-const previewText = document.getElementById('logoPreviewText');
-if (previewImg && previewText) {
-if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; }
-else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; }
-}
-document.getElementById('setLogoFile').value = '';
-document.getElementById('setLabSP').value = device.labSP || '';
-document.getElementById('setDesignee').value = device.designee || '';
-document.getElementById('setBranch').value = '';
-document.getElementById('setUser').value = '';
-document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
-document.getElementById('setLot1').value = (data.lot && data.lot.L1) || '';
-document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
-document.getElementById('setLot2').value = (data.lot && data.lot.L2) || '';
-document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
-document.getElementById('setLot3').value = (data.lot && data.lot.L3) || '';
-document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
-const highlightDays = getHighlightDaysArray();
-for (let i = 0; i < 7; i++) {
-document.getElementById('dayCheck' + i).checked = highlightDays.includes(i);
-}
-updateHighlightPreview();
-const rs = appData.reportSettings;
-document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', ');
-document.getElementById('setRepQcFont').value = rs.qcFontSize;
-document.getElementById('setRepLogDateW').value = rs.logDateWidth;
-document.getElementById('setRepLogResW').value = rs.logResWidth;
-document.getElementById('setRepLogFont').value = rs.logFontSize;
-document.getElementById('setRepChartW').value = rs.chartWidth;
-document.getElementById('setRepChartH').value = rs.chartHeight;
+const device = appData.devices[appData.currentDevice]; const data = getCurrentData();
+document.getElementById('setInstNameAr').value = appData.institution.nameAr || ''; document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
+const previewImg = document.getElementById('logoPreviewImg'); const previewText = document.getElementById('logoPreviewText');
+if (previewImg && previewText) { if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; } else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; } }
+document.getElementById('setLogoFile').value = ''; document.getElementById('setLabSP').value = device.labSP || ''; document.getElementById('setDesignee').value = device.designee || '';
+document.getElementById('setBranch').value = ''; document.getElementById('setUser').value = ''; document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
+document.getElementById('setLot1').value = (data.lot && data.lot.L1) || ''; document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
+document.getElementById('setLot2').value = (data.lot && data.lot.L2) || ''; document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
+document.getElementById('setLot3').value = (data.lot && data.lot.L3) || ''; document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
+const highlightDays = getHighlightDaysArray(); for (let i = 0; i < 7; i++) { document.getElementById('dayCheck' + i).checked = highlightDays.includes(i); }
+updateHighlightPreview(); const rs = appData.reportSettings;
+document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', '); document.getElementById('setRepQcFont').value = rs.qcFontSize;
+document.getElementById('setRepLogDateW').value = rs.logDateWidth; document.getElementById('setRepLogResW').value = rs.logResWidth; document.getElementById('setRepLogFont').value = rs.logFontSize;
+document.getElementById('setRepChartW').value = rs.chartWidth; document.getElementById('setRepChartH').value = rs.chartHeight;
 document.getElementById('settingsModal').classList.add('active');
 }
 function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
 function showSettingsTab(tab) { document.getElementById('settings-general').style.display = tab === 'general' ? 'block' : 'none'; document.getElementById('settings-report').style.display = tab === 'report' ? 'block' : 'none'; document.getElementById('tab-general').style.background = tab === 'general' ? '#e74c3c' : '#0f3460'; document.getElementById('tab-report').style.background = tab === 'report' ? '#e74c3c' : '#0f3460'; }
 function applySettings() {
 const device = appData.devices[appData.currentDevice];
-appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim();
-appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
-const previewImg = document.getElementById('logoPreviewImg');
-if (previewImg && previewImg.dataset.base64) appData.institution.logo = previewImg.dataset.base64;
-updateInstitutionDisplay();
-device.labSP = document.getElementById('setLabSP').value;
-device.designee = document.getElementById('setDesignee').value;
-const nl = parseInt(document.getElementById('setNumLevels').value);
-appData.analyteLevels[appData.currentAnalyte] = nl;
-appData.numLevels = nl;
-const data = getCurrentData();
-data.lot.L1 = document.getElementById('setLot1').value;
-data.exp.L1 = document.getElementById('setExp1').value;
-data.lot.L2 = document.getElementById('setLot2').value;
-data.exp.L2 = document.getElementById('setExp2').value;
-data.lot.L3 = document.getElementById('setLot3').value;
-data.exp.L3 = document.getElementById('setExp3').value;
-const selectedDays = [];
-for (let i = 0; i < 7; i++) {
-if (document.getElementById('dayCheck' + i).checked) selectedDays.push(i);
-}
+appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim(); appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
+const previewImg = document.getElementById('logoPreviewImg'); if (previewImg && previewImg.dataset.base64) appData.institution.logo = previewImg.dataset.base64;
+updateInstitutionDisplay(); device.labSP = document.getElementById('setLabSP').value; device.designee = document.getElementById('setDesignee').value;
+const nl = parseInt(document.getElementById('setNumLevels').value); appData.analyteLevels[appData.currentAnalyte] = nl; appData.numLevels = nl;
+const data = getCurrentData(); data.lot.L1 = document.getElementById('setLot1').value; data.exp.L1 = document.getElementById('setExp1').value;
+data.lot.L2 = document.getElementById('setLot2').value; data.exp.L2 = document.getElementById('setExp2').value; data.lot.L3 = document.getElementById('setLot3').value; data.exp.L3 = document.getElementById('setExp3').value;
+const selectedDays = []; for (let i = 0; i < 7; i++) { if (document.getElementById('dayCheck' + i).checked) selectedDays.push(i); }
 appData.reportSettings.highlightDaysOfWeek = selectedDays;
-const qcColsStr = document.getElementById('setRepQcCols').value;
-appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value) || 7;
-appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value) || 16;
-appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value) || 18;
-appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value) || 6;
-appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value) || 160;
-appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value) || 35;
-closeSettings();
-updateDashboard();
-if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-if (selectedDays.length > 0) {
-const dayNames = selectedDays.map(d => DAY_NAMES[d]).join(', ');
-showNotification(`✅ Settings applied! ${dayNames} rows will be highlighted.`);
-} else {
-showNotification('Settings applied!');
-}
+const qcColsStr = document.getElementById('setRepQcCols').value; appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value) || 7; appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value) || 16;
+appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value) || 18; appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value) || 6;
+appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value) || 160; appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value) || 35;
+closeSettings(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+if (selectedDays.length > 0) { const dayNames = selectedDays.map(d => DAY_NAMES[d]).join(', '); showNotification(`✅ Settings applied! ${dayNames} rows will be highlighted.`); } else { showNotification('Settings applied!'); }
 window.triggerAutoSave();
 }
 function openAbout() { document.getElementById('aboutModal').classList.add('active'); }
@@ -2347,37 +2052,24 @@ function closeAbout() { document.getElementById('aboutModal').classList.remove('
 function printCurrent() { const itemsToPrint = [{ device: appData.devices[appData.currentDevice], analyte: appData.currentAnalyte }]; generatePDFReport(itemsToPrint); }
 function printAll() { const itemsToPrint = []; Object.values(appData.devices).forEach(dev => { if (!canAccessDevice(dev.id)) return; dev.analytes.forEach(a => { const data = getMonthData(dev, a, appData.currentYear, appData.currentMonth); if (data && data.dates && data.dates.length > 0) itemsToPrint.push({ device: dev, analyte: a }); }); }); if (itemsToPrint.length === 0) { alert('No data available for this period across any device!'); return; } generatePDFReport(itemsToPrint); }
 async function generatePDFReport(itemsToPrint) {
-const { jsPDF } = window.jspdf;
-const periodStr = `${getMonthName()} ${appData.currentYear}`;
-const pdf = new jsPDF('p', 'mm', 'a4');
-const pageWidth = pdf.internal.pageSize.getWidth();
-const pageHeight = pdf.internal.pageSize.getHeight();
+const { jsPDF } = window.jspdf; const periodStr = `${getMonthName()} ${appData.currentYear}`;
+const pdf = new jsPDF('p', 'mm', 'a4'); const pageWidth = pdf.internal.pageSize.getWidth(); const pageHeight = pdf.internal.pageSize.getHeight();
 for (let idx = 0; idx < itemsToPrint.length; idx++) {
-const item = itemsToPrint[idx];
-const device = item.device;
-const analyte = item.analyte;
-const numLevels = getAnalyteLevels(analyte);
+const item = itemsToPrint[idx]; const device = item.device; const analyte = item.analyte; const numLevels = getAnalyteLevels(analyte);
 const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
 if (!data || !data.dates || data.dates.length === 0) continue;
 if (idx > 0) pdf.addPage();
-const prevDevice = appData.currentDevice;
-const prevAnalyte = appData.currentAnalyte;
-appData.currentDevice = device.id;
-appData.currentAnalyte = analyte;
-let currentY = 8;
-const rs = appData.reportSettings;
+const prevDevice = appData.currentDevice; const prevAnalyte = appData.currentAnalyte;
+appData.currentDevice = device.id; appData.currentAnalyte = analyte; let currentY = 8; const rs = appData.reportSettings;
 function drawHeader() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('EVALUATION SUMMARY & CONFIGURATION', 12, currentY + 4); currentY += 6; pdf.rect(10, currentY, pageWidth - 20, 20); pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.text('Test Analyte:', 12, currentY + 4); pdf.text('Analyzer System:', 12, currentY + 8); pdf.text('Evaluation Date:', 12, currentY + 12); pdf.text('Lab Manager:', 12, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(`${analyte}`, 60, currentY + 4); pdf.text(device.analyzer || 'N/A', 60, currentY + 8); pdf.text(`24/08/${appData.currentYear}`, 60, currentY + 12); pdf.text(device.designee || '-', 60, currentY + 16); pdf.setFont('helvetica', 'bold'); pdf.text('Evaluator / Lab SP:', 110, currentY + 4); pdf.text('Hospital Name:', 110, currentY + 8); pdf.text('Mean Type:', 110, currentY + 12); pdf.text('Specifications:', 110, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(device.labSP || '-', 155, currentY + 4); pdf.text(appData.institution.nameEn || '-', 155, currentY + 8); const meanTypeText = Object.values(appData.meanType).every(t => t === 'lab') ? 'LAB Mean' : Object.values(appData.meanType).every(t => t === 'factory') ? 'FACTORY Mean' : 'Mixed Mean'; pdf.text(meanTypeText, 155, currentY + 12); pdf.text('Manufacturer Specifications', 155, currentY + 16); currentY += 22; }
 function drawQCParameters() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION', 12, currentY + 4); currentY += 6; const colWidths = rs.qcColWidths.length === 5 ? rs.qcColWidths : [25, 30, 40, 25, 20]; const startX = 10; pdf.setFillColor(230, 230, 230); let x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 6, 'F'); x += w; } pdf.setFontSize(rs.qcFontSize); pdf.setFont('helvetica', 'bold'); pdf.text('Control Level', startX + 2, currentY + 4); pdf.text('Target QC Mean', startX + colWidths[0] + colWidths[1]/2, currentY + 4, { align: 'center' }); pdf.text('Standard Deviation (SD)', startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 4, { align: 'center' }); pdf.text('Expiration Date', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 4, { align: 'center' }); pdf.text('Lot Number', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 4, { align: 'center' }); currentY += 6; pdf.setFont('helvetica', 'normal'); pdf.setFontSize(rs.qcFontSize); for (let l = 1; l <= numLevels; l++) { x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 5); x += w; } const mean = (data.factoryMean && data.factoryMean[`L${l}`]) ? data.factoryMean[`L${l}`].toFixed(3) : '0.000'; const sd = (data.factorySD && data.factorySD[`L${l}`]) ? data.factorySD[`L${l}`].toFixed(3) : '0.000'; const exp = (data.exp && data.exp[`L${l}`]) || 'N/A'; const lot = (data.lot && data.lot[`L${l}`]) || 'N/A'; pdf.text(`Level ${l} (L${l})`, startX + 2, currentY + 3.5); pdf.text(mean, startX + colWidths[0] + colWidths[1]/2, currentY + 3.5, { align: 'center' }); pdf.text(sd, startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 3.5, { align: 'center' }); pdf.text(exp, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 3.5, { align: 'center' }); pdf.text(lot, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 3.5, { align: 'center' }); currentY += 5; } currentY += 4; }
 function drawDataTable() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4); currentY += 6; const startX = 10; const dateColWidth = 15; const dayCellWidth = (pageWidth - 20 - dateColWidth) / 31; const rowHeight = 6; const unifiedFontSize = 6; const getFontSizeForCell = (text, cellWidth, cellHeight, baseFontSize) => { if (!text) return baseFontSize; let fontSize = baseFontSize; pdf.setFontSize(fontSize); const textWidth = pdf.getTextWidth(text); while (textWidth > (cellWidth - 1) && fontSize > 3) { fontSize -= 0.5; pdf.setFontSize(fontSize); } while ((fontSize * 1.2) > (cellHeight - 0.5) && fontSize > 3) { fontSize -= 0.5; } return Math.max(3, fontSize); }; pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.setFillColor(255, 255, 255); pdf.rect(startX, currentY, pageWidth - 20, rowHeight, 'FD'); pdf.text(`${device.name} - ${analyte} (${periodStr.toUpperCase()})`, startX + (pageWidth - 20) / 2, currentY + 4, { align: 'center' }); currentY += rowHeight; pdf.setFontSize(unifiedFontSize); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.text('Date', startX + 2, currentY + 4); for (let d = 1; d <= 31; d++) { pdf.setFillColor(211, 211, 211); pdf.rect(startX + dateColWidth + (d - 1) * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); pdf.text(d.toString(), startX + dateColWidth + (d - 1) * dayCellWidth + dayCellWidth / 2, currentY + 4, { align: 'center' }); } currentY += rowHeight; const drawLevelRows = (level) => { if (numLevels < level) return; pdf.setFont('helvetica', 'bold'); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.setFontSize(unifiedFontSize); pdf.text(`LVL ${level}`, startX + 2, currentY + 4); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(0, 0, 0); for (let d = 1; d <= 31; d++) { const idx = d - 1; const val = data[`L${level}`] && data[`L${level}`][idx] !== undefined && data[`L${level}`][idx] !== null && data[`L${level}`][idx] !== 0 ? data[`L${level}`][idx].toFixed(1) : ''; pdf.setFillColor(255, 255, 255); pdf.rect(startX + dateColWidth + idx * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); if (val) { const fSize = getFontSizeForCell(val, dayCellWidth, rowHeight, 7); pdf.setFontSize(fSize); pdf.text(val, startX + dateColWidth + idx * dayCellWidth + dayCellWidth / 2, currentY + (rowHeight/2) + (fSize*0.3), { align: 'center', baseline: 'middle' }); } } currentY += rowHeight; currentY += 2; }; drawLevelRows(1); drawLevelRows(2); drawLevelRows(3); currentY += 5; }
 function drawLJCharts() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS', 12, currentY + 4); currentY += 9.8; const chartWidth = rs.chartWidth; const chartHeight = rs.chartHeight; const startX = 20; for (let l = 1; l <= numLevels; l++) { try { const values = getNonExcludedValues(analyte, l, appData.currentYear, appData.currentMonth); let mean, sd; if (appData.meanType[`L${l}`] === 'factory' && data.factoryMean[`L${l}`] && data.factorySD[`L${l}`]) { mean = data.factoryMean[`L${l}`]; sd = data.factorySD[`L${l}`]; } else { mean = calcMean(values); sd = calcSD(values, mean); } pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.text(`${analyte} - Level ${l} (Target: ${mean.toFixed(2)} ± ${sd.toFixed(2)})`, 12, currentY); currentY += 2; pdf.setDrawColor(0); pdf.setLineWidth(0.2); pdf.rect(startX, currentY, chartWidth, chartHeight); const minY = mean - 3 * sd; const maxY = mean + 3 * sd; const yRange = maxY - minY || 1; const mapY = (val) => currentY + chartHeight - ((val - minY) / yRange) * chartHeight; pdf.setLineWidth(0.1); pdf.setDrawColor(0); pdf.line(startX, mapY(mean), startX + chartWidth, mapY(mean)); pdf.setDrawColor(100); pdf.setLineDashPattern([2, 2], 0); pdf.line(startX, mapY(mean + sd), startX + chartWidth, mapY(mean + sd)); pdf.line(startX, mapY(mean - sd), startX + chartWidth, mapY(mean - sd)); pdf.line(startX, mapY(mean + 2*sd), startX + chartWidth, mapY(mean + 2*sd)); pdf.line(startX, mapY(mean - 2*sd), startX + chartWidth, mapY(mean - 2*sd)); pdf.setLineDashPattern([1, 1], 0); pdf.line(startX, mapY(mean + 3*sd), startX + chartWidth, mapY(mean + 3*sd)); pdf.line(startX, mapY(mean - 3*sd), startX + chartWidth, mapY(mean - 3*sd)); pdf.setLineDashPattern([], 0); const levelData = data[`L${l}`]; if (levelData && levelData.length > 0) { pdf.setDrawColor(0); pdf.setLineWidth(0.3); pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); let prevX = null; let prevY = null; for (let i = 0; i < levelData.length; i++) { const val = levelData[i]; if (val === undefined || val === null || val === 0 || isNaN(val)) continue; const x = startX + (i / (levelData.length - 1 || 1)) * chartWidth; const y = mapY(val); if (prevX !== null) pdf.line(prevX, prevY, x, y); pdf.circle(x, y, 0.8, 'F'); prevX = x; prevY = y; } } pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); for (let i = 0; i < data.dates.length; i++) { const x = startX + (i / (data.dates.length - 1 || 1)) * chartWidth; const dateStr = data.dates[i] || ''; const day = dateStr.substring(0, 2); if (i === 0 || i === data.dates.length - 1 || i % 2 === 0) pdf.text(day, x - 2, currentY + chartHeight + 3); } currentY += chartHeight + 8; } catch (e) { console.error('Error drawing chart:', e); } } }
 function drawFooter() { pdf.setFontSize(8); pdf.setFont('helvetica', 'italic'); pdf.text('QC Management By LAB SP. Mohammed Al Desoqy', pageWidth - 50, pageHeight - 10, { align: 'right' }); }
 drawHeader(); drawQCParameters(); drawDataTable(); drawLJCharts(); drawFooter();
-appData.currentDevice = prevDevice;
-appData.currentAnalyte = prevAnalyte;
+appData.currentDevice = prevDevice; appData.currentAnalyte = prevAnalyte;
 }
-const filename = `QC_Report_All_${periodStr.replace(' ', '_')}.pdf`;
-pdf.save(filename);
-showNotification('PDF report generated!');
+const filename = `QC_Report_All_${periodStr.replace(' ', '_')}.pdf`; pdf.save(filename); showNotification('PDF report generated!');
 }
 function exportExcel() { const wb = XLSX.utils.book_new(); const device = appData.devices[appData.currentDevice]; const wsData = [['Date']]; device.analytes.forEach(analyte => { const numLevels = getAnalyteLevels(analyte); for (let l = 1; l <= numLevels; l++) wsData[0].push(`${analyte}.L${l}`); }); let maxDates = 0; device.analytes.forEach(analyte => { const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth); if (data && data.dates.length > maxDates) maxDates = data.dates.length; }); for (let i = 0; i < maxDates; i++) { const row = [i < maxDates ? (device.analytes[0] ? getMonthData(device, device.analytes[0], appData.currentYear, appData.currentMonth).dates[i] || '' : '') : '']; device.analytes.forEach(analyte => { const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth); const numLevels = getAnalyteLevels(analyte); for (let l = 1; l <= numLevels; l++) row.push(data && data[`L${l}`] && data[`L${l}`][i] !== undefined ? data[`L${l}`][i] : ''); }); wsData.push(row); } const ws = XLSX.utils.aoa_to_sheet(wsData); const sheetName = `QC_${getMonthName()}${appData.currentYear}`.substring(0, 31); XLSX.utils.book_append_sheet(wb, ws, sheetName); const filename = `QC_${device.name}_${getMonthName()}_${appData.currentYear}.xlsx`; XLSX.writeFile(wb, filename); showNotification('Excel exported!'); }
 function importExcel(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const wb = XLSX.read(e.target.result, { type: 'array' }); const device = appData.devices[appData.currentDevice]; let importedCount = 0; wb.SheetNames.forEach(sheetName => { const ws = wb.Sheets[sheetName]; const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }); if (jsonData.length < 2) return; const header = jsonData[0].map(h => String(h).trim()); const analyteCols = {}; header.forEach((h, idx) => { if (idx === 0) return; const match = h.match(/^(.+)\.L(\d+)$/); if (match) { const analyteName = match[1]; const level = parseInt(match[2]); if (!analyteCols[analyteName]) analyteCols[analyteName] = {}; analyteCols[analyteName][level] = idx; if (!device.analytes.includes(analyteName)) { device.analytes.push(analyteName); appData.analyteLevels[analyteName] = 2; } } }); for (let i = 1; i < jsonData.length; i++) { const row = jsonData[i]; if (!row || row.length === 0) continue; const dateVal = String(row[0] || '').trim(); if (!dateVal) continue; Object.keys(analyteCols).forEach(analyteName => { const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth); const levels = analyteCols[analyteName]; if (!data.dates.includes(dateVal)) data.dates.push(dateVal); const dateIndex = data.dates.indexOf(dateVal); Object.keys(levels).forEach(lvl => { const colIdx = levels[lvl]; const val = parseFloat(row[colIdx]); if (!data[`L${lvl}`]) data[`L${lvl}`] = []; while (data[`L${lvl}`].length <= dateIndex) data[`L${lvl}`].push(null); if (!isNaN(val) && val !== 0) data[`L${lvl}`][dateIndex] = val; else data[`L${lvl}`][dateIndex] = null; }); const maxLvl = Math.max(...Object.keys(levels).map(Number)); appData.analyteLevels[analyteName] = maxLvl; }); } importedCount++; }); if (importedCount === 0) { alert('No valid data found in the Excel file!'); return; } buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); showNotification(`Excel imported! (${importedCount} sheet(s))`); window.triggerAutoSave(); } catch (err) { console.error('Import error:', err); alert('Error importing file: ' + err.message); } }; reader.readAsArrayBuffer(file); event.target.value = ''; }
