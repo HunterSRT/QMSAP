@@ -61,7 +61,6 @@ if (!appData.users) appData.users = {};
 if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
 if (!appData.reportSettings) appData.reportSettings = {};
 if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) {
-// Migrate old single-day setting to array
 if (appData.reportSettings.highlightDayOfWeek && appData.reportSettings.highlightDayOfWeek !== 'none') {
 appData.reportSettings.highlightDaysOfWeek = [parseInt(appData.reportSettings.highlightDayOfWeek)];
 } else {
@@ -330,6 +329,63 @@ input[type="number"] { -moz-appearance: textfield; }
 .fullscreen-ctrl-btn { background: #0f3460; border: 1px solid #333; color: #e74c3c; cursor: pointer; border-radius: 4px; font-size: 14px; padding: 4px 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
 .fullscreen-ctrl-btn:hover { background: #e74c3c; color: #fff; }
 .fullscreen-ctrl-btn.active { background: #e74c3c; color: #fff; }
+/* ===== LAB ASSISTANT STYLES ===== */
+.assistant-btn { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+.assistant-btn:hover { background: linear-gradient(135deg, #8e44ad, #7d3c98); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(155,89,182,0.4); }
+.assistant-modal { min-width: 800px; max-width: 95vw; max-height: 92vh; }
+.assistant-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 8px; flex-wrap: wrap; }
+.assistant-tab { padding: 8px 16px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; cursor: pointer; border-radius: 6px 6px 0 0; font-size: 12px; font-weight: bold; transition: all 0.2s; }
+.assistant-tab.active { background: #9b59b6; color: #fff; border-color: #9b59b6; }
+.assistant-tab:hover:not(.active) { background: #1a5276; }
+.assistant-content { display: none; }
+.assistant-content.active { display: block; }
+.equation-card { background: #0f3460; border-radius: 8px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #9b59b6; }
+.equation-card h4 { color: #9b59b6; margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.equation-formula { background: #16213e; padding: 10px 14px; border-radius: 6px; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; color: #2ecc71; margin: 8px 0; border: 1px solid #333; letter-spacing: 0.5px; }
+.equation-desc { color: #aaa; font-size: 11px; line-height: 1.6; margin-top: 6px; }
+.equation-desc strong { color: #e74c3c; }
+.tea-search-box { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+.tea-search-box input { flex: 1; min-width: 200px; padding: 10px 14px; background: #0f3460; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 13px; }
+.tea-search-box input:focus { outline: none; border-color: #9b59b6; }
+.tea-search-box select { padding: 10px; background: #0f3460; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 12px; }
+.tea-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+.tea-table th { background: #9b59b6; color: #fff; padding: 8px; text-align: left; font-size: 11px; position: sticky; top: 0; }
+.tea-table td { padding: 7px 8px; border-bottom: 1px solid #222; }
+.tea-table tr:hover { background: #1a3a5c; }
+.tea-table tr.matched { background: rgba(155, 89, 182, 0.15); }
+.tea-source-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: bold; margin: 1px 2px; }
+.tea-source-clia { background: rgba(52,152,219,0.2); color: #3498db; border: 1px solid #3498db; }
+.tea-source-bv { background: rgba(46,204,113,0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+.tea-source-rlb { background: rgba(243,156,18,0.2); color: #f39c12; border: 1px solid #f39c12; }
+.tea-source-rcpa { background: rgba(155,89,182,0.2); color: #9b59b6; border: 1px solid #9b59b6; }
+.apply-tea-btn { background: #2ecc71; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; }
+.apply-tea-btn:hover { background: #27ae60; }
+.web-resource-card { background: #0f3460; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border: 1px solid #333; }
+.web-resource-card:hover { border-color: #9b59b6; transform: translateX(3px); }
+.web-resource-icon { font-size: 28px; min-width: 40px; text-align: center; }
+.web-resource-info { flex: 1; }
+.web-resource-info h4 { color: #fff; font-size: 13px; margin-bottom: 3px; }
+.web-resource-info p { color: #aaa; font-size: 11px; line-height: 1.4; }
+.web-resource-link { background: #9b59b6; color: #fff; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold; transition: all 0.2s; }
+.web-resource-link:hover { background: #8e44ad; }
+.fetch-status { padding: 8px 12px; border-radius: 6px; font-size: 11px; margin-top: 10px; display: none; }
+.fetch-status.success { background: rgba(46,204,113,0.2); color: #2ecc71; border: 1px solid #2ecc71; display: block; }
+.fetch-status.error { background: rgba(231,76,60,0.2); color: #e74c3c; border: 1px solid #e74c3c; display: block; }
+.fetch-status.loading { background: rgba(52,152,219,0.2); color: #3498db; border: 1px solid #3498db; display: block; }
+.assistant-scroll { max-height: 65vh; overflow-y: auto; padding-right: 5px; }
+.assistant-scroll::-webkit-scrollbar { width: 8px; }
+.assistant-scroll::-webkit-scrollbar-track { background: #16213e; }
+.assistant-scroll::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
+
+/* ===== CHAT ASSISTANT STYLES ===== */
+.chat-messages { display: flex; flex-direction: column; gap: 12px; }
+.chat-msg { padding: 12px 16px; border-radius: 12px; max-width: 85%; line-height: 1.5; font-size: 13px; animation: fadeIn 0.3s ease; word-wrap: break-word; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.chat-msg.bot { background: #1a3a5c; color: #e0e0e0; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #333; }
+.chat-msg.user { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
+.chat-msg strong { color: #9b59b6; }
+.chat-msg.user strong { color: #fff; }
+
 @media print { body { background: #fff; color: #000; } .sidebar, .top-bar, .bottom-bar, .exit-btn, .toolbar, .fixed-action-bar, .machine-info-bar, .fullscreen-btn-group, .user-session-bar { display: none !important; } .content-area { padding: 0; } .auto-panel { background: #fff; color: #000; border: 1px solid #ccc; } .stat-box { background: #f0f0f0; } .stat-box .stat-value { color: #000; } }
 @media (max-width: 1600px) { .dashboard-grid { grid-template-columns: fit-content(300px) fit-content(300px) 180px 200px 1fr; } }
 @media (max-width: 1400px) { .dashboard-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; height: auto; max-height: none; } .qc-results-panel { grid-column: 1; } .westgard-panel { grid-column: 2; } .stats-panel { grid-column: 1; } .sigma-qgi-combined-panel { grid-column: 2; } .lj-charts-panel { grid-column: 1 / -1; } }
@@ -405,6 +461,7 @@ input[type="number"] { -moz-appearance: textfield; }
 </div>
 <div class="fullscreen-btn-group"><button class="fullscreen-ctrl-btn" id="fullscreenExpandBtn" onclick="toggleFullscreen()" title="Full Browser (F11)">⛶</button></div>
 <button class="nav-btn" onclick="openSettings()" style="font-size:18px" title="Settings">⚙️</button>
+<button class="assistant-btn" onclick="openAssistant()" title="Lab Assistant">🧪 Assistant</button>
 <button class="nav-btn" id="userMgmtBtn" onclick="openUserManagement()" style="font-size:18px; display:none;" title="User Management">👥</button>
 <button class="nav-btn" onclick="openAbout()" style="font-size:18px" title="About Developer">ℹ️</button>
 <div class="user-session-bar" id="userSessionBar">
@@ -526,6 +583,239 @@ input[type="number"] { -moz-appearance: textfield; }
 </div>
 <div class="modal-btns" style="justify-content:center; margin-top:20px;">
 <button class="modal-btn primary" onclick="closeAbout()">Close</button>
+</div>
+</div>
+</div>
+<!-- ===== LAB ASSISTANT MODAL ===== -->
+<div class="modal-overlay" id="assistantModal">
+<div class="modal assistant-modal">
+<h3>🧪 Lab Assistant — Equations, TEa & Web Resources</h3>
+<div class="assistant-tabs">
+<button class="assistant-tab active" onclick="showAssistantTab('chat', this)">💬 Chat Assistant</button>
+<button class="assistant-tab" onclick="showAssistantTab('equations', this)">📐 Equations</button>
+<button class="assistant-tab" onclick="showAssistantTab('tea', this)">🎯 TEa Database</button>
+<button class="assistant-tab" onclick="showAssistantTab('web', this)">🌐 Web Resources</button>
+<button class="assistant-tab" onclick="showAssistantTab('fetch', this)">⚡ Fetch Updates</button>
+</div>
+
+<!-- CHAT ASSISTANT TAB -->
+<div class="assistant-content active" id="assistant-chat">
+  <div style="display:flex; flex-direction:column; height:65vh;">
+    <div id="chatMessages" class="chat-messages" style="flex:1; overflow-y:auto; background:#0f3460; border-radius:8px; padding:15px; margin-bottom:10px; border:1px solid #333;">
+      <div class="chat-msg bot">
+        <strong>🧪 Lab Assistant:</strong> Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.<br><br>
+        Try asking:<br>
+        • "What is the TEa for Glucose?"<br>
+        • "How to calculate Sigma?"<br>
+        • "Explain Westgard 1-3s rule"<br>
+        • "What is QGI?"
+      </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <input type="text" id="chatInput" placeholder="Ask a question..." style="flex:1; padding:12px; background:#16213e; border:1px solid #333; color:#fff; border-radius:6px; font-size:13px;" onkeypress="if(event.key==='Enter') sendChatMessage()">
+      <button class="apply-tea-btn" onclick="sendChatMessage()" style="padding:12px 24px; font-size:13px;">Send 📤</button>
+    </div>
+  </div>
+</div>
+
+<!-- EQUATIONS TAB -->
+<div class="assistant-content" id="assistant-equations">
+<div class="assistant-scroll">
+<div class="equation-card">
+<h4>📊 Arithmetic Mean (x̄)</h4>
+<div class="equation-formula">x̄ = (Σ xᵢ) / n</div>
+<div class="equation-desc">The average of all QC values. Used as the <strong>lab mean</strong> for performance evaluation.</div>
+</div>
+<div class="equation-card">
+<h4>📏 Standard Deviation (SD)</h4>
+<div class="equation-formula">SD = √[ Σ(xᵢ - x̄)² / (n - 1) ]</div>
+<div class="equation-desc">Measures the dispersion of values around the mean. Uses <strong>sample SD</strong> (n-1 denominator).</div>
+</div>
+<div class="equation-card">
+<h4>📈 Coefficient of Variation (CV%)</h4>
+<div class="equation-formula">CV% = (SD / |Mean|) × 100</div>
+<div class="equation-desc">Expresses imprecision as a percentage. <strong>Lower CV = better precision</strong>. Compared against permissible CV and factory CV.</div>
+</div>
+<div class="equation-card">
+<h4>⚖️ Bias%</h4>
+<div class="equation-formula">Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</div>
+<div class="equation-desc">Measures <strong>systematic error (accuracy)</strong>. Target can be factory mean or peer group mean.</div>
+</div>
+<div class="equation-card">
+<h4>🎯 Sigma Metric (σ)</h4>
+<div class="equation-formula">σ = (TEa − |Bias%|) / CV%</div>
+<div class="equation-desc">
+Combines bias and imprecision into a single quality metric.<br>
+<strong>σ ≥ 6</strong>: World Class &nbsp;|&nbsp; <strong>5–6</strong>: Excellent &nbsp;|&nbsp; <strong>4–5</strong>: Good &nbsp;|&nbsp; <strong>3–4</strong>: Marginal &nbsp;|&nbsp; <strong>&lt; 3</strong>: Unacceptable
+</div>
+</div>
+<div class="equation-card">
+<h4>🔍 Quality Goal Index (QGI)</h4>
+<div class="equation-formula">QGI = |Bias%| / (1.65 × CV%)</div>
+<div class="equation-desc">
+Diagnoses the type of error when σ &lt; 6:<br>
+<strong>QGI &lt; 0.8</strong> → Random Error (improve precision)<br>
+<strong>0.8 ≤ QGI ≤ 1.2</strong> → Combined Error (improve both)<br>
+<strong>QGI &gt; 1.2</strong> → Systematic Error (improve accuracy)
+</div>
+</div>
+<div class="equation-card">
+<h4>📋 Westgard Multi-Rules</h4>
+<div class="equation-formula">1-2s (warning) | 1-3s, 2-2s, R-4s, 4-1s, 8-x (reject)</div>
+<div class="equation-desc">
+<strong>1-3s</strong>: One point beyond ±3SD → reject<br>
+<strong>2-2s</strong>: Two consecutive points beyond ±2SD on same side → reject<br>
+<strong>R-4s</strong>: Range between two consecutive points exceeds 4SD → reject<br>
+<strong>4-1s</strong>: Four consecutive points beyond ±1SD on same side → reject<br>
+<strong>8-x</strong>: Eight consecutive points on same side of mean → reject
+</div>
+</div>
+<div class="equation-card">
+<h4>🎚️ Total Allowable Error (TEa)</h4>
+<div class="equation-formula">TEa = Maximum acceptable error for clinical decision</div>
+<div class="equation-desc">
+Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biological Variation</strong> data (EFLM). Used in Sigma calculation. Sources:<br>
+• <strong>CLIA'88</strong> (USA) — Regulatory<br>
+• <strong>Rilibak</strong> (Germany) — Guidelines<br>
+• <strong>RCPA</strong> (Australia) — Recommendations<br>
+• <strong>EFLM Biological Variation</strong> — Scientific model
+</div>
+</div>
+</div>
+</div>
+<!-- TEA DATABASE TAB -->
+<div class="assistant-content" id="assistant-tea">
+<div class="tea-search-box">
+<input type="text" id="teaSearchInput" placeholder="🔍 Search analyte (e.g. GLU, TSH, WBC, Creatinine...)" oninput="filterTeaTable()">
+<select id="teaSourceFilter" onchange="filterTeaTable()">
+<option value="all">All Sources</option>
+<option value="clia">CLIA'88 (USA)</option>
+<option value="bv">Biological Variation (EFLM)</option>
+<option value="rlb">Rilibak (Germany)</option>
+<option value="rcpa">RCPA (Australia)</option>
+</select>
+<button class="apply-tea-btn" onclick="applyCurrentTea()" style="padding:10px 16px; font-size:12px;">✅ Apply to Current Analyte</button>
+</div>
+<div style="max-height:55vh; overflow-y:auto; border:1px solid #333; border-radius:6px;">
+<table class="tea-table" id="teaTable">
+<thead><tr><th>Analyte</th><th>Name</th><th>Unit</th><th>CLIA</th><th>Bio.Var.</th><th>Rilibak</th><th>RCPA</th><th>Action</th></tr></thead>
+<tbody id="teaTableBody"></tbody>
+</table>
+</div>
+<div style="margin-top:10px; font-size:10px; color:#888; line-height:1.6;">
+<strong style="color:#e74c3c;">💡 Sources:</strong>
+<span class="tea-source-badge tea-source-clia">CLIA</span> US Regulations 42 CFR §493.915 |
+<span class="tea-source-badge tea-source-bv">BV</span> EFLM 2014 Biological Variation Database |
+<span class="tea-source-badge tea-source-rlb">Rlb</span> German Rilibak Guidelines |
+<span class="tea-source-badge tea-source-rcpa">RCPA</span> Royal College of Pathologists of Australasia
+</div>
+</div>
+<!-- WEB RESOURCES TAB -->
+<div class="assistant-content" id="assistant-web">
+<div class="assistant-scroll">
+<div class="web-resource-card">
+<div class="web-resource-icon">🧬</div>
+<div class="web-resource-info">
+<h4>EFLM Biological Variation Database</h4>
+<p>The global reference for biological variation data. Updated regularly with new analytes and CVw/CVg values.</p>
+</div>
+<a href="https://westgard.com/biodatabase1.htm" target="_blank" class="web-resource-link">Open →</a>
+</div>
+<div class="web-resource-card">
+<div class="web-resource-icon">🇺🇸</div>
+<div class="web-resource-info">
+<h4>CLIA'88 Regulations (CDC)</h4>
+<p>US regulatory TEa limits. Legally enforceable for US laboratories.</p>
+</div>
+<a href="https://www.ecfr.gov/current/title-42/chapter-I/subchapter-F/part-493/subpart-I/section-493.915" target="_blank" class="web-resource-link">Open →</a>
+</div>
+<div class="web-resource-card">
+<div class="web-resource-icon">📚</div>
+<div class="web-resource-info">
+<h4>Westgard QC — TEa Specifications</h4>
+<p>Comprehensive table of TEa from multiple sources (CLIA, RCPA, Rilibak, Biological Variation).</p>
+</div>
+<a href="https://www.westgard.com/teaspec.htm" target="_blank" class="web-resource-link">Open →</a>
+</div>
+<div class="web-resource-card">
+<div class="web-resource-icon">🇩🇪</div>
+<div class="web-resource-info">
+<h4>Rilibak Guidelines (Germany)</h4>
+<p>German guidelines for quality assurance in laboratory medicine.</p>
+</div>
+<a href="https://www.bundesaerztekammer.de" target="_blank" class="web-resource-link">Open →</a>
+</div>
+<div class="web-resource-card">
+<div class="web-resource-icon">🇦🇺</div>
+<div class="web-resource-info">
+<h4>RCPA — Quality Assurance Programs</h4>
+<p>Royal College of Pathologists of Australasia TEa recommendations.</p>
+</div>
+<a href="https://www.rcpa.edu.au" target="_blank" class="web-resource-link">Open →</a>
+</div>
+<div class="web-resource-card">
+<div class="web-resource-icon">🔬</div>
+<div class="web-resource-info">
+<h4>CLSI Guidelines (C51-A, EP15, EP28)</h4>
+<p>International standards for QC, precision, and reference intervals.</p>
+</div>
+<a href="https://clsi.org" target="_blank" class="web-resource-link">Open →</a>
+</div>
+<div class="web-resource-card">
+<div class="web-resource-icon">📊</div>
+<div class="web-resource-info">
+<h4>Six Sigma in Laboratory Medicine</h4>
+<p>Articles and tutorials on applying Six Sigma methodology to QC.</p>
+</div>
+<a href="https://www.westgard.com/sigma-metrics.htm" target="_blank" class="web-resource-link">Open →</a>
+</div>
+</div>
+</div>
+<!-- FETCH UPDATES TAB -->
+<div class="assistant-content" id="assistant-fetch">
+<div class="assistant-scroll">
+<div class="equation-card">
+<h4>⚡ Fetch Latest TEa from Web</h4>
+<div class="equation-desc">
+Click the button below to fetch the latest TEa specifications from public sources.
+The system will query the Westgard QC TEa table and update the local database.
+</div>
+<button class="apply-tea-btn" onclick="fetchTeaFromWeb()" style="margin-top:10px; padding:10px 20px; font-size:13px; background:#9b59b6;">
+🌐 Fetch from Westgard.com
+</button>
+<div class="fetch-status" id="fetchStatus"></div>
+</div>
+<div class="equation-card">
+<h4>📥 Import TEa from CSV</h4>
+<div class="equation-desc">
+Upload a CSV file with columns: <code>Analyte, Name, TEa, Source</code> to extend the database.
+</div>
+<input type="file" id="teaCsvImport" accept=".csv" onchange="importTeaCsv(event)" style="margin-top:10px; padding:8px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px;">
+</div>
+<div class="equation-card">
+<h4>💾 Export Current Database</h4>
+<div class="equation-desc">
+Download the current TEa database as CSV for backup or sharing.
+</div>
+<button class="apply-tea-btn" onclick="exportTeaDatabase()" style="margin-top:10px; padding:10px 20px; font-size:13px; background:#2ecc71;">
+📤 Export as CSV
+</button>
+</div>
+<div class="equation-card">
+<h4>🔗 Direct API Endpoints</h4>
+<div class="equation-desc">
+For advanced users, these endpoints can be queried programmatically:
+</div>
+<div style="margin-top:8px; font-family:monospace; font-size:11px; background:#16213e; padding:10px; border-radius:4px; color:#2ecc71;">
+• Westgard TEa: https://www.westgard.com/teaspec.htm<br>
+• EFLM BV: https://westgard.com/biodatabase1.htm<br>
+• CLIA CDC: https://www.ecfr.gov/current/title-42/chapter-I/subchapter-F/part-493
+</div>
+</div>
+</div>
+</div>
+<div class="modal-btns">
+<button class="modal-btn secondary" onclick="closeAssistant()">Close</button>
 </div>
 </div>
 </div>
@@ -677,6 +967,350 @@ device12: { id: 'device12', name: 'Device 12', analyzer: 'Analyzer 12', analytes
 }
 };
 Object.values(appData.devices).forEach(dev => { dev.analytes.forEach(a => { appData.analyteLevels[a] = dev.numLevels; }); });
+
+// ===== CHAT ASSISTANT LOGIC =====
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  addChatMessage(msg, 'user');
+  input.value = '';
+  
+  // Simulate natural typing delay
+  setTimeout(() => {
+    const response = generateChatResponse(msg);
+    addChatMessage(response, 'bot');
+  }, 600);
+}
+
+function addChatMessage(text, sender) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${sender}`;
+  div.innerHTML = `<strong>${sender === 'bot' ? '🧪 Lab Assistant' : '👤 You'}:</strong><br>${text}`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight; // Auto-scroll to bottom
+}
+
+function generateChatResponse(input) {
+  const lower = input.toLowerCase();
+  
+  // 1. Check for TEa queries (e.g., "tea for glucose", "tea wbc")
+  const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
+  if (teaMatch) {
+    const query = teaMatch[1].toUpperCase();
+    const found = Object.keys(TEA_DATABASE).find(k => 
+      k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (found) {
+      const d = TEA_DATABASE[found];
+      return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
+      • <strong>CLIA:</strong> ${d.clia !== null ? d.clia + '%' : 'N/A'}<br>
+      • <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
+      • <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
+      • <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
+      <em>💡 Tip: You can also go to the "TEa Database" tab to apply this directly to your current analyte.</em>`;
+    } else {
+      return `I couldn't find TEa data for "<strong>${query}</strong>". Try common analytes like Glucose, TSH, WBC, or Creatinine. You can also search the "TEa Database" tab.`;
+    }
+  }
+  
+  // 2. Check for QC Equations
+  if (lower.includes('sigma') || lower.includes('six sigma')) {
+    return "The <strong>Sigma Metric (σ)</strong> formula is:<br><strong>σ = (TEa − |Bias%|) / CV%</strong><br><br>It combines bias and imprecision into a single quality metric:<br>• σ ≥ 6: World Class 🌟<br>• 5 ≤ σ < 6: Excellent<br>• 4 ≤ σ < 5: Good<br>• 3 ≤ σ < 4: Marginal<br>• σ < 3: Unacceptable";
+  }
+  if (lower.includes('cv') || lower.includes('coefficient of variation')) {
+    return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) × 100</strong><br><br>It expresses imprecision as a percentage. A lower CV means better precision.";
+  }
+  if (lower.includes('bias')) {
+    return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</strong><br><br>It measures systematic error (accuracy).";
+  }
+  if (lower.includes('qgi') || lower.includes('quality goal index')) {
+    return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 × CV%)</strong><br><br>It diagnoses the type of error when σ < 6:<br>• QGI < 0.8 → Random Error (improve precision)<br>• 0.8 ≤ QGI ≤ 1.2 → Combined Error (improve both)<br>• QGI > 1.2 → Systematic Error (improve accuracy)";
+  }
+  
+  // 3. Check for Westgard rules
+  if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s') || lower.includes('rule')) {
+    return "<strong>Westgard Multi-Rules:</strong><br>• <strong>1-2s</strong>: Warning rule<br>• <strong>1-3s</strong>: Reject (Random error)<br>• <strong>2-2s</strong>: Reject (Systematic error)<br>• <strong>R-4s</strong>: Reject (Random error)<br>• <strong>4-1s</strong>: Reject (Systematic error)<br>• <strong>8-x</strong>: Reject (Systematic error)";
+  }
+  
+  // 4. Check for help/greeting
+  if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) {
+    return "Hello! 👋 I can help you with:<br>• <strong>TEa values</strong> (e.g., 'What is TEa for Glucose?')<br>• <strong>QC Equations</strong> (e.g., 'How to calculate Sigma?')<br>• <strong>Westgard Rules</strong><br>• <strong>QGI & Error Types</strong><br><br>What would you like to know?";
+  }
+  
+  // Default fallback
+  return "I'm not sure about that. 🤔 Try asking about:<br>• 'TEa for [Analyte]'<br>• 'How to calculate Sigma / CV / Bias'<br>• 'Westgard rules'<br>Or use the tabs above for detailed databases and resources.";
+}
+
+// ===== LAB ASSISTANT SYSTEM =====
+const TEA_DATABASE = {
+'GLU':     { name:'Glucose',           clia:10,   bv:5.7,  rlb:6,   rcpa:10,   unit:'%' },
+'UREA':    { name:'Urea',              clia:21,   bv:11.5, rlb:8,   rcpa:15,   unit:'%' },
+'BUN':     { name:'Urea Nitrogen',     clia:17,   bv:11.5, rlb:8,   rcpa:12,   unit:'%' },
+'CREA':    { name:'Creatinine',        clia:15,   bv:5.5,  rlb:8,   rcpa:15,   unit:'%' },
+'URIC':    { name:'Uric Acid',         clia:17,   bv:6.8,  rlb:8,   rcpa:13,   unit:'%' },
+'TPRO':    { name:'Total Protein',     clia:10,   bv:3.9,  rlb:5,   rcpa:8,    unit:'%' },
+'ALB':     { name:'Albumin',           clia:10,   bv:3.5,  rlb:5,   rcpa:10,   unit:'%' },
+'TBIL':    { name:'Total Bilirubin',   clia:27,   bv:15.2, rlb:15,  rcpa:20,   unit:'%' },
+'DBIL':    { name:'Direct Bilirubin',  clia:27,   bv:17.5, rlb:15,  rcpa:20,   unit:'%' },
+'ALP':     { name:'Alk. Phosphatase',  clia:30,   bv:8.0,  rlb:12,  rcpa:20,   unit:'%' },
+'ALT':     { name:'ALT (SGPT)',        clia:30,   bv:14.7, rlb:15,  rcpa:25,   unit:'%' },
+'AST':     { name:'AST (SGOT)',        clia:30,   bv:12.0, rlb:12,  rcpa:25,   unit:'%' },
+'GGT':     { name:'GGT',               clia:30,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
+'LDH':     { name:'LDH',               clia:20,   bv:7.5,  rlb:10,  rcpa:15,   unit:'%' },
+'CK':      { name:'CK (CPK)',          clia:30,   bv:12.5, rlb:15,  rcpa:20,   unit:'%' },
+'AMY':     { name:'Amylase',           clia:30,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
+'LIP':     { name:'Lipase',            clia:30,   bv:13.5, rlb:20,  rcpa:25,   unit:'%' },
+'CHOL':    { name:'Cholesterol',       clia:10,   bv:6.0,  rlb:8,   rcpa:10,   unit:'%' },
+'TG':      { name:'Triglycerides',     clia:15,   bv:13.0, rlb:12,  rcpa:15,   unit:'%' },
+'HDL':     { name:'HDL Cholesterol',   clia:13,   bv:7.0,  rlb:10,  rcpa:13,   unit:'%' },
+'LDL':     { name:'LDL Cholesterol',   clia:12,   bv:7.5,  rlb:10,  rcpa:12,   unit:'%' },
+'CA':      { name:'Calcium',           clia:10,   bv:2.0,  rlb:3,   rcpa:6,    unit:'%' },
+'PHOS':    { name:'Phosphorus',        clia:18,   bv:6.5,  rlb:8,   rcpa:12,   unit:'%' },
+'MG':      { name:'Magnesium',         clia:25,   bv:6.0,  rlb:8,   rcpa:15,   unit:'%' },
+'IRON':    { name:'Iron',              clia:30,   bv:12.0, rlb:15,  rcpa:20,   unit:'%' },
+'NA':      { name:'Sodium',            clia:8,    bv:0.8,  rlb:1.2, rcpa:4,    unit:'%' },
+'K':       { name:'Potassium',         clia:11,   bv:4.8,  rlb:5,   rcpa:6,    unit:'%' },
+'CL':      { name:'Chloride',          clia:11,   bv:1.2,  rlb:2,   rcpa:4,    unit:'%' },
+'CO2':     { name:'Bicarbonate',       clia:25,   bv:3.5,  rlb:5,   rcpa:8,    unit:'%' },
+'AG':      { name:'Anion Gap',         clia:25,   bv:15,   rlb:15,  rcpa:20,   unit:'%' },
+'TSH':     { name:'TSH',               clia:25,   bv:18.0, rlb:15,  rcpa:20,   unit:'%' },
+'FT4':     { name:'Free T4',           clia:25,   bv:7.5,  rlb:10,  rcpa:15,   unit:'%' },
+'FT3':     { name:'Free T3',           clia:25,   bv:8.0,  rlb:10,  rcpa:15,   unit:'%' },
+'T4':      { name:'Total T4',          clia:20,   bv:7.0,  rlb:10,  rcpa:15,   unit:'%' },
+'T3':      { name:'Total T3',          clia:25,   bv:8.5,  rlb:12,  rcpa:18,   unit:'%' },
+'E2':      { name:'Estradiol',         clia:25,   bv:12.5, rlb:15,  rcpa:20,   unit:'%' },
+'FSH':     { name:'FSH',               clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
+'LH':      { name:'LH',                clia:25,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
+'PRL':     { name:'Prolactin',         clia:25,   bv:11.5, rlb:15,  rcpa:20,   unit:'%' },
+'TESTO':   { name:'Testosterone',      clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
+'PROG':    { name:'Progesterone',      clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
+'CORT':    { name:'Cortisol',          clia:25,   bv:10.5, rlb:12,  rcpa:18,   unit:'%' },
+'INS':     { name:'Insulin',           clia:25,   bv:13.0, rlb:15,  rcpa:20,   unit:'%' },
+'B-HCG':   { name:'Beta-hCG',          clia:25,   bv:10.0, rlb:15,  rcpa:20,   unit:'%' },
+'PTH':     { name:'PTH',               clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
+'ACTH':    { name:'ACTH',              clia:25,   bv:15.0, rlb:20,  rcpa:25,   unit:'%' },
+'GH':      { name:'Growth Hormone',    clia:25,   bv:14.0, rlb:15,  rcpa:20,   unit:'%' },
+'DHEAS':   { name:'DHEA-S',            clia:25,   bv:12.0, rlb:15,  rcpa:20,   unit:'%' },
+'SHBG':    { name:'SHBG',              clia:25,   bv:11.5, rlb:15,  rcpa:20,   unit:'%' },
+'WBC':     { name:'WBC',               clia:15,   bv:10.5, rlb:10,  rcpa:12,   unit:'%' },
+'RBC':     { name:'RBC',               clia:10,   bv:3.5,  rlb:5,   rcpa:8,    unit:'%' },
+'HGB':     { name:'Hemoglobin',        clia:10,   bv:3.2,  rlb:4,   rcpa:7,    unit:'%' },
+'HCT':     { name:'Hematocrit',        clia:10,   bv:3.5,  rlb:5,   rcpa:7,    unit:'%' },
+'PLT':     { name:'Platelets',         clia:25,   bv:10.0, rlb:12,  rcpa:15,   unit:'%' },
+'MCV':     { name:'MCV',               clia:8,    bv:2.5,  rlb:3,   rcpa:5,    unit:'%' },
+'MCH':     { name:'MCH',               clia:7,    bv:2.8,  rlb:3,   rcpa:5,    unit:'%' },
+'MCHC':    { name:'MCHC',              clia:6,    bv:1.8,  rlb:2,   rcpa:4,    unit:'%' },
+'RDW':     { name:'RDW',               clia:13,   bv:3.5,  rlb:5,   rcpa:8,    unit:'%' },
+'MPV':     { name:'MPV',               clia:15,   bv:8.0,  rlb:10,  rcpa:12,   unit:'%' },
+'PT':      { name:'Prothrombin Time',  clia:15,   bv:5.0,  rlb:8,   rcpa:12,   unit:'%' },
+'APTT':    { name:'aPTT',              clia:15,   bv:5.5,  rlb:8,   rcpa:12,   unit:'%' },
+'INR':     { name:'INR',               clia:15,   bv:5.0,  rlb:8,   rcpa:12,   unit:'%' },
+'FIB':     { name:'Fibrinogen',        clia:20,   bv:8.0,  rlb:12,  rcpa:15,   unit:'%' },
+'PSA':     { name:'PSA',               clia:25,   bv:13.0, rlb:15,  rcpa:20,   unit:'%' },
+'CEA':     { name:'CEA',               clia:25,   bv:12.5, rlb:15,  rcpa:20,   unit:'%' },
+'AFP':     { name:'AFP',               clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
+'CA125':   { name:'CA-125',            clia:25,   bv:14.0, rlb:15,  rcpa:20,   unit:'%' },
+'CA199':   { name:'CA 19-9',           clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
+'CRP':     { name:'CRP',               clia:30,   bv:20.0, rlb:20,  rcpa:25,   unit:'%' },
+'FER':     { name:'Ferritin',          clia:25,   bv:13.0, rlb:15,  rcpa:20,   unit:'%' },
+'B12':     { name:'Vitamin B12',       clia:25,   bv:10.5, rlb:15,  rcpa:20,   unit:'%' },
+'FOL':     { name:'Folate',            clia:25,   bv:12.0, rlb:15,  rcpa:20,   unit:'%' },
+'VD':      { name:'Vitamin D',         clia:25,   bv:11.0, rlb:15,  rcpa:20,   unit:'%' },
+'TNNT':    { name:'Troponin T',        clia:25,   bv:13.5, rlb:15,  rcpa:20,   unit:'%' },
+'TNI':     { name:'Troponin I',        clia:25,   bv:14.0, rlb:15,  rcpa:20,   unit:'%' },
+'BNP':     { name:'BNP',               clia:25,   bv:15.0, rlb:18,  rcpa:22,   unit:'%' },
+'HBA1C':   { name:'HbA1c',             clia:12,   bv:3.0,  rlb:5,   rcpa:8,    unit:'%' },
+'UPRO':    { name:'Urine Protein',     clia:30,   bv:18.0, rlb:20,  rcpa:25,   unit:'%' },
+'UALB':    { name:'Urine Albumin',     clia:30,   bv:20.0, rlb:20,  rcpa:25,   unit:'%' },
+'UCA':     { name:'Urine Calcium',     clia:30,   bv:15.0, rlb:18,  rcpa:22,   unit:'%' },
+'HIV':     { name:'HIV',               clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
+'HCV':     { name:'Hepatitis C',       clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' },
+'HBsAg':   { name:'HBsAg',             clia:null, bv:null, rlb:null, rcpa:null, unit:'Qual' }
+};
+function openAssistant() {
+document.getElementById('assistantModal').classList.add('active');
+populateTeaTable();
+showAssistantTab('chat', document.querySelector('.assistant-tab')); // Opens chat by default
+}
+function closeAssistant() { document.getElementById('assistantModal').classList.remove('active'); }
+function showAssistantTab(tab, btn) {
+document.querySelectorAll('.assistant-tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.assistant-content').forEach(c => c.classList.remove('active'));
+if (btn) btn.classList.add('active');
+const content = document.getElementById('assistant-' + tab);
+if (content) content.classList.add('active');
+}
+function populateTeaTable() {
+const tbody = document.getElementById('teaTableBody');
+if (!tbody) return;
+tbody.innerHTML = '';
+const currentAnalyte = appData.currentAnalyte;
+Object.keys(TEA_DATABASE).sort().forEach(code => {
+const d = TEA_DATABASE[code];
+const tr = document.createElement('tr');
+if (code === currentAnalyte) tr.classList.add('matched');
+tr.innerHTML = `
+<td><strong style="color:#9b59b6;">${code}</strong></td>
+<td>${d.name}</td>
+<td style="color:#aaa;">${d.unit}</td>
+<td>${d.clia !== null ? `<span class="tea-source-badge tea-source-clia">${d.clia}%</span>` : '<span style="color:#555;">—</span>'}</td>
+<td>${d.bv !== null ? `<span class="tea-source-badge tea-source-bv">${d.bv}%</span>` : '<span style="color:#555;">—</span>'}</td>
+<td>${d.rlb !== null ? `<span class="tea-source-badge tea-source-rlb">${d.rlb}%</span>` : '<span style="color:#555;">—</span>'}</td>
+<td>${d.rcpa !== null ? `<span class="tea-source-badge tea-source-rcpa">${d.rcpa}%</span>` : '<span style="color:#555;">—</span>'}</td>
+<td><button class="apply-tea-btn" onclick="applyTeaToAnalyte('${code}')">Apply</button></td>
+`;
+tr.dataset.analyte = code;
+tr.dataset.name = d.name.toLowerCase();
+tbody.appendChild(tr);
+});
+}
+function filterTeaTable() {
+const q = document.getElementById('teaSearchInput').value.toLowerCase().trim();
+const src = document.getElementById('teaSourceFilter').value;
+document.querySelectorAll('#teaTableBody tr').forEach(tr => {
+const matchText = (tr.dataset.analyte + ' ' + tr.dataset.name).includes(q);
+let matchSrc = true;
+if (src !== 'all') {
+const d = TEA_DATABASE[tr.dataset.analyte];
+matchSrc = d && d[src] !== null && d[src] !== undefined;
+}
+tr.style.display = (matchText && matchSrc) ? '' : 'none';
+});
+}
+function applyTeaToAnalyte(code) {
+const d = TEA_DATABASE[code];
+if (!d) return;
+const src = document.getElementById('teaSourceFilter').value;
+let teaValue = null;
+let sourceName = '';
+if (src === 'clia' && d.clia) { teaValue = d.clia; sourceName = 'CLIA'; }
+else if (src === 'bv' && d.bv) { teaValue = d.bv; sourceName = 'Biological Variation'; }
+else if (src === 'rlb' && d.rlb) { teaValue = d.rlb; sourceName = 'Rilibak'; }
+else if (src === 'rcpa' && d.rcpa) { teaValue = d.rcpa; sourceName = 'RCPA'; }
+else {
+if (d.bv) { teaValue = d.bv; sourceName = 'Biological Variation'; }
+else if (d.clia) { teaValue = d.clia; sourceName = 'CLIA'; }
+else if (d.rlb) { teaValue = d.rlb; sourceName = 'Rilibak'; }
+else if (d.rcpa) { teaValue = d.rcpa; sourceName = 'RCPA'; }
+}
+if (!teaValue) { alert('No TEa value available for ' + code); return; }
+if (!confirm(`Apply TEa = ${teaValue}% (${sourceName}) to current analyte (${appData.currentAnalyte}) for ALL levels?`)) return;
+const data = getCurrentData();
+for (let l = 1; l <= getAnalyteLevels(appData.currentAnalyte); l++) {
+if (!data.permissibleCV) data.permissibleCV = {};
+data.permissibleCV[`L${l}`] = teaValue;
+}
+updateDashboard();
+populateStatsSummary();
+if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`✅ TEa ${teaValue}% (${sourceName}) applied to ${appData.currentAnalyte}!`);
+window.triggerAutoSave();
+}
+function applyCurrentTea() {
+const code = appData.currentAnalyte;
+if (!TEA_DATABASE[code]) {
+alert(`Analyte "${code}" not found in database. Please search and select manually.`);
+return;
+}
+applyTeaToAnalyte(code);
+}
+async function fetchTeaFromWeb() {
+const status = document.getElementById('fetchStatus');
+status.className = 'fetch-status loading';
+status.textContent = '⏳ Fetching latest TEa data from Westgard.com...';
+try {
+const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.westgard.com/teaspec.htm');
+const response = await fetch(proxyUrl);
+if (!response.ok) throw new Error('Network response was not ok');
+const html = await response.text();
+const parser = new DOMParser();
+const doc = parser.parseFromString(html, 'text/html');
+const tables = doc.querySelectorAll('table');
+let foundCount = 0;
+tables.forEach(table => {
+const rows = table.querySelectorAll('tr');
+rows.forEach(row => {
+const cells = row.querySelectorAll('td');
+if (cells.length >= 2) {
+const name = cells[0]?.textContent.trim();
+const teaVal = parseFloat(cells[1]?.textContent.replace('%',''));
+if (name && !isNaN(teaVal) && teaVal > 0 && teaVal < 100) {
+const match = Object.keys(TEA_DATABASE).find(k =>
+TEA_DATABASE[k].name.toLowerCase().includes(name.toLowerCase()) ||
+name.toLowerCase().includes(TEA_DATABASE[k].name.toLowerCase())
+);
+if (match) {
+TEA_DATABASE[match].westgard = teaVal;
+foundCount++;
+}
+}
+}
+});
+});
+if (foundCount > 0) {
+status.className = 'fetch-status success';
+status.innerHTML = `✅ Successfully updated ${foundCount} analytes from Westgard.com. Check the TEa Database tab.`;
+populateTeaTable();
+} else {
+status.className = 'fetch-status error';
+status.innerHTML = `⚠️ Could not parse TEa values from the page. The website structure may have changed.<br>Please visit <a href="https://www.westgard.com/teaspec.htm" target="_blank" style="color:#3498db;">Westgard.com</a> directly.`;
+}
+} catch (e) {
+status.className = 'fetch-status error';
+status.innerHTML = `❌ Error fetching data: ${e.message}<br><br><strong>Alternative:</strong> Visit the sources directly in the "Web Resources" tab, or import a CSV file.`;
+}
+}
+function importTeaCsv(event) {
+const file = event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+try {
+const lines = e.target.result.split('\n').filter(l => l.trim());
+let imported = 0;
+for (let i = 1; i < lines.length; i++) {
+const cols = lines[i].split(',').map(c => c.trim());
+if (cols.length >= 3) {
+const code = cols[0].toUpperCase();
+const name = cols[1];
+const tea = parseFloat(cols[2]);
+const source = (cols[3] || 'clia').toLowerCase();
+if (!isNaN(tea)) {
+if (!TEA_DATABASE[code]) {
+TEA_DATABASE[code] = { name: name, clia: null, bv: null, rlb: null, rcpa: null, unit: '%' };
+}
+TEA_DATABASE[code][source] = tea;
+imported++;
+}
+}
+}
+populateTeaTable();
+showNotification(`✅ Imported ${imported} TEa values from CSV!`);
+} catch (err) {
+alert('Error parsing CSV: ' + err.message);
+}
+};
+reader.readAsText(file);
+event.target.value = '';
+}
+function exportTeaDatabase() {
+let csv = 'Analyte,Name,Unit,CLIA,BiologicalVariation,Rilibak,RCPA\n';
+Object.keys(TEA_DATABASE).sort().forEach(code => {
+const d = TEA_DATABASE[code];
+csv += `${code},"${d.name}",${d.unit},${d.clia||''},${d.bv||''},${d.rlb||''},${d.rcpa||''}\n`;
+});
+const blob = new Blob([csv], { type: 'text/csv' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `TEA_Database_${new Date().toISOString().slice(0,10)}.csv`;
+a.click();
+URL.revokeObjectURL(url);
+showNotification('📤 TEa database exported!');
+}
 // ===== LOGIN FUNCTIONS =====
 function attemptLogin() {
 const username = document.getElementById('loginUsername').value.trim();
@@ -736,7 +1370,6 @@ if (!user || !user.assignedDevices) return false;
 return user.assignedDevices.includes(deviceId);
 }
 function getAccessibleDevices() { return Object.values(appData.devices).filter(dev => canAccessDevice(dev.id)); }
-// ===== USER MANAGEMENT =====
 function openUserManagement() {
 if (!currentUser || currentUser.role !== 'admin') { showNotification('⛔ Access denied. Admin only.'); return; }
 populateUserMgmtTable(); populateNewUserDeviceGrid();
@@ -846,7 +1479,6 @@ closeEditUser(); populateUserMgmtTable(); applyUserPermissions();
 showNotification(`User "${editingUser}" updated! ✅`);
 window.triggerAutoSave();
 }
-// ===== DAY OF WEEK HELPERS (MULTIPLE SELECTION) =====
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function getHighlightDaysArray() {
@@ -858,52 +1490,25 @@ const days = getHighlightDaysArray();
 if (!days || days.length === 0) return false;
 return days.includes(dayOfWeek);
 }
-function selectAllDays() {
-for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = true;
-updateHighlightPreview();
-}
-function selectWeekendDays() {
-for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i === 5 || i === 6);
-updateHighlightPreview();
-}
-function selectWorkdays() {
-for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i >= 0 && i <= 4);
-updateHighlightPreview();
-}
-function clearAllDays() {
-for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = false;
-updateHighlightPreview();
-}
+function selectAllDays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = true; updateHighlightPreview(); }
+function selectWeekendDays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i === 5 || i === 6); updateHighlightPreview(); }
+function selectWorkdays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = (i >= 0 && i <= 4); updateHighlightPreview(); }
+function clearAllDays() { for (let i = 0; i < 7; i++) document.getElementById('dayCheck' + i).checked = false; updateHighlightPreview(); }
 function updateHighlightPreview() {
 const previewText = document.getElementById('highlightPreviewText');
 if (!previewText) return;
 const selected = [];
-for (let i = 0; i < 7; i++) {
-if (document.getElementById('dayCheck' + i).checked) selected.push(DAY_NAMES[i]);
+for (let i = 0; i < 7; i++) { if (document.getElementById('dayCheck' + i).checked) selected.push(DAY_NAMES[i]); }
+if (selected.length === 0) previewText.innerHTML = '<span style="color:#888;">No days selected — highlighting disabled</span>';
+else previewText.innerHTML = `<strong style="color:#e74c3c;">${selected.join(', ')}</strong> rows will be highlighted`;
 }
-if (selected.length === 0) {
-previewText.innerHTML = '<span style="color:#888;">No days selected — highlighting disabled</span>';
-} else {
-previewText.innerHTML = `<strong style="color:#e74c3c;">${selected.join(', ')}</strong> rows will be highlighted`;
-}
-}
-function setupHighlightPreview() {
-for (let i = 0; i < 7; i++) {
-const cb = document.getElementById('dayCheck' + i);
-if (cb) cb.addEventListener('change', updateHighlightPreview);
-}
-}
+function setupHighlightPreview() { for (let i = 0; i < 7; i++) { const cb = document.getElementById('dayCheck' + i); if (cb) cb.addEventListener('change', updateHighlightPreview); } }
 function updateDayHighlightBadge() {
 const badge = document.getElementById('dayHighlightBadge');
 if (!badge) return;
 const days = getHighlightDaysArray();
-if (!days || days.length === 0) {
-badge.style.display = 'none';
-} else {
-const names = days.map(d => DAY_NAMES_SHORT[d]).join(', ');
-badge.textContent = `🔴 ${names}`;
-badge.style.display = 'inline-block';
-}
+if (!days || days.length === 0) badge.style.display = 'none';
+else { badge.textContent = `🔴 ${days.map(d => DAY_NAMES_SHORT[d]).join(', ')}`; badge.style.display = 'inline-block'; }
 }
 const sampleE2Aug2026 = { dates: ['01-Aug-26','02-Aug-26','03-Aug-26','04-Aug-26','05-Aug-26','06-Aug-26','08-Aug-26','09-Aug-26','10-Aug-26','11-Aug-26','12-Aug-26','13-Aug-26','15-Aug-26','16-Aug-26','17-Aug-26','18-Aug-26','19-Aug-26','20-Aug-26'], L1: [96.81,92.87,100.10,98.17,107.30,103.40,97.18,106.10,106.20,104.60,86.28,85.59,88.96,92.15,91.99,92.06,84.68,96.02], L2: [539.70,536.70,544.20,452.60,618.30,548.70,563.20,595.60,507.60,477.80,477.50,435.30,529.70,516.70,525.30,458.60,535.20,472.90], factoryMean: { L1: 98.90, L2: 485.00 }, factorySD: { L1: 9.89, L2: 48.50 }, permissibleCV: { L1: 17.0, L2: 16.0 }, lot: { L1: '815248', L2: '815248' }, exp: { L1: 'Oct-2026', L2: 'Oct-2026' } };
 const sampleWBCAug2026 = { dates: ['01-Aug-26','02-Aug-26','03-Aug-26','04-Aug-26','05-Aug-26','06-Aug-26','08-Aug-26','09-Aug-26','10-Aug-26','11-Aug-26','12-Aug-26','15-Aug-26','16-Aug-26'], L1: [4.20,3.60,4.06,4.60,4.36,4.67,4.71,4.75,4.76,4.68,4.88,4.69], L2: [8.22,8.15,8.30,8.38,8.18,8.07,8.19,8.13,8.08,8.31,8.54,8.28], L3: [20.78,21.20,21.35,21.57,20.98,21.23,21.15,21.06,21.77,21.49,21.44,21.80], factoryMean: { L1: 4.21, L2: 7.86, L3: 20.45 }, factorySD: { L1: 0.30, L2: 0.20, L3: 0.50 }, permissibleCV: { L1: 4.0, L2: 3.0, L3: 3.0 }, lot: { L1: '5080-1', L2: '5080-2', L3: '5080-3' }, exp: { L1: 'Aug-2026', L2: 'Aug-2026', L3: 'Aug-2026' } };
@@ -1266,7 +1871,6 @@ makeChart('ljChart3', rawValuesL3, rangeL3);
 }
 }
 function updateSigmaChart(data, numLevels) { const canvas = document.getElementById('sigmaChart'); if (!canvas) return; const analyte = appData.currentAnalyte; const labels = ['Level 1', 'Level 2']; const values = []; const v1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); const m1 = calcMean(v1), s1 = calcSD(v1, m1), cv1 = calcCV(s1, m1), b1 = calcBias(m1, data.factoryMean.L1 || m1); values.push(calcSigma(data.permissibleCV.L1 || 10, b1, cv1)); const v2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); const m2 = calcMean(v2), s2 = calcSD(v2, m2), cv2 = calcCV(s2, m2), b2 = calcBias(m2, data.factoryMean.L2 || m2); values.push(calcSigma(data.permissibleCV.L2 || 10, b2, cv2)); if (numLevels >= 3 && data.L3) { labels.push('Level 3'); const v3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); const m3 = calcMean(v3), s3 = calcSD(v3, m3), cv3 = calcCV(s3, m3), b3 = calcBias(m3, data.factoryMean.L3 || m3); values.push(calcSigma(data.permissibleCV.L3 || 10, b3, cv3)); } if (sigmaChart) sigmaChart.destroy(); try { sigmaChart = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels, datasets: [{ data: values, backgroundColor: values.map(v => v >= 6 ? '#2ecc71' : v >= 4 ? '#f39c12' : v >= 3 ? '#e67e22' : '#e74c3c'), borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#aaa' }, grid: { color: '#333' } }, y: { min: 0, max: 6, ticks: { color: '#aaa', stepSize: 1 }, grid: { color: '#333' } } } } }); } catch (e) { console.error('Error creating sigma chart:', e); } }
-// ===== MODIFIED populateSpreadsheet WITH DAY HIGHLIGHT (MULTIPLE DAYS) =====
 function populateSpreadsheet() {
 const device = appData.devices[appData.currentDevice];
 if (!device) return;
@@ -1295,7 +1899,6 @@ dayIndicator.style.cssText = 'display:block; font-size:9px; color:#e74c3c; font-
 dayIndicator.textContent = dayName;
 dateTd.appendChild(dayIndicator);
 tr.appendChild(dateTd);
-// Check if this row should be highlighted (multiple days supported)
 if (shouldHighlightRow(dayOfWeek)) tr.classList.add('highlighted-row');
 device.analytes.forEach(a => {
 for (let l = 1; l <= getAnalyteLevels(a); l++) {
@@ -1355,7 +1958,6 @@ function populateStatsSummary() { const device = appData.devices[appData.current
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
 function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues, users: appData.users, reportSettings: appData.reportSettings })); showNotification('Data saved!'); }
 function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
-// ===== ENHANCED: Clear data for ALL tests in the device for selected month =====
 function clearCurrentData() {
 const device = appData.devices[appData.currentDevice];
 const year = appData.currentYear;
@@ -1368,7 +1970,6 @@ device.analytes.forEach(analyte => {
 if (!device.data[analyte]) device.data[analyte] = {};
 if (!device.data[analyte][year]) device.data[analyte][year] = {};
 const currentData = getMonthData(device, analyte, year, month);
-// Save parameters
 const savedParams = {
 factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 },
 factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 },
@@ -1376,14 +1977,12 @@ permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData
 lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' },
 exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' }
 };
-// Reset to empty data but keep parameters
 device.data[analyte][year][month] = createEmptyData();
 device.data[analyte][year][month].factoryMean = savedParams.factoryMean;
 device.data[analyte][year][month].factorySD = savedParams.factorySD;
 device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV;
 device.data[analyte][year][month].lot = savedParams.lot;
 device.data[analyte][year][month].exp = savedParams.exp;
-// Clear exclusions for this analyte
 const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`;
 Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
 clearedCount++;
@@ -1395,7 +1994,6 @@ showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device
 window.triggerAutoSave();
 }
 function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
-// ===== ENHANCED: Copy Mean & SD for ALL tests in the device from previous month =====
 function copyFromPreviousMonth() {
 const device = appData.devices[appData.currentDevice];
 let pm = appData.currentMonth - 1, py = appData.currentYear;
@@ -1406,14 +2004,12 @@ let skippedCount = 0;
 device.analytes.forEach(analyte => {
 if (hasDataForMonth(device, analyte, py, pm)) {
 const sourceData = device.data[analyte][py][pm];
-// Ensure current month data structure exists
 if (!device.data[analyte]) device.data[analyte] = {};
 if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
 if (!device.data[analyte][appData.currentYear][appData.currentMonth]) {
 device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
 }
 const targetData = device.data[analyte][appData.currentYear][appData.currentMonth];
-// Copy parameters (Mean, SD, TEa, Lot, Exp) — NOT QC results
 if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
 if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
 if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringify(sourceData.permissibleCV));
@@ -1472,7 +2068,6 @@ document.getElementById('setLot2').value = (data.lot && data.lot.L2) || '';
 document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
 document.getElementById('setLot3').value = (data.lot && data.lot.L3) || '';
 document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
-// Populate day checkboxes from array
 const highlightDays = getHighlightDaysArray();
 for (let i = 0; i < 7; i++) {
 document.getElementById('dayCheck' + i).checked = highlightDays.includes(i);
@@ -1509,7 +2104,6 @@ data.lot.L2 = document.getElementById('setLot2').value;
 data.exp.L2 = document.getElementById('setExp2').value;
 data.lot.L3 = document.getElementById('setLot3').value;
 data.exp.L3 = document.getElementById('setExp3').value;
-// Save highlight days array from checkboxes
 const selectedDays = [];
 for (let i = 0; i < 7; i++) {
 if (document.getElementById('dayCheck' + i).checked) selectedDays.push(i);
