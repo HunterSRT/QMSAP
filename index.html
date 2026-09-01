@@ -500,18 +500,44 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="auto-panel stats-panel">
 <div class="panel-title">Statistics & CV</div>
 <div class="stats-panel-content" id="statsPanel">
-<div class="stat-box"><div class="stat-label">MEAN L1</div><div class="stat-value" id="meanL1">-</div></div>
-<div class="stat-box"><div class="stat-label">STDEV L1</div><div class="stat-value" id="stdevL1">-</div></div>
-<div class="stat-box"><div class="stat-label">BIAS L1</div><div class="stat-sub">Accept.Bias: <span id="acceptBiasL1">-</span></div><div class="stat-sub">Lab.Bias: <span id="labBiasL1">-</span></div></div>
-<div class="gauge-container"><canvas class="gauge-canvas" id="gaugeL1"></canvas><div class="gauge-info"><div class="gauge-title" id="gaugeTitleL1">CV Level 1</div><div class="gauge-detail">Permissible CV: <span id="permCVL1">-</span></div><div class="gauge-detail">Factory CV: <span id="factCVL1">-</span></div><div class="gauge-detail">Laboratory CV: <span id="labCVL1">-</span></div></div></div>
-<div class="stat-box"><div class="stat-label">MEAN L2</div><div class="stat-value" id="meanL2">-</div></div>
-<div class="stat-box"><div class="stat-label">STDEV L2</div><div class="stat-value" id="stdevL2">-</div></div>
-<div class="stat-box"><div class="stat-label">BIAS L2</div><div class="stat-sub">Accept.Bias: <span id="acceptBiasL2">-</span></div><div class="stat-sub">Lab.Bias: <span id="labBiasL2">-</span></div></div>
-<div class="gauge-container"><canvas class="gauge-canvas" id="gaugeL2"></canvas><div class="gauge-info"><div class="gauge-title" id="gaugeTitleL2">CV Level 2</div><div class="gauge-detail">Permissible CV: <span id="permCVL2">-</span></div><div class="gauge-detail">Factory CV: <span id="factCVL2">-</span></div><div class="gauge-detail">Laboratory CV: <span id="labCVL2">-</span></div></div></div>
-<div class="stat-box l3-stat" id="meanL3Box" style="display:none"><div class="stat-label">MEAN L3</div><div class="stat-value" id="meanL3">-</div></div>
-<div class="stat-box l3-stat" id="stdevL3Box" style="display:none"><div class="stat-label">STDEV L3</div><div class="stat-value" id="stdevL3">-</div></div>
-<div class="stat-box l3-stat" id="biasL3Box" style="display:none"><div class="stat-label">BIAS L3</div><div class="stat-sub">Accept.Bias: <span id="acceptBiasL3">-</span></div><div class="stat-sub">Lab.Bias: <span id="labBiasL3">-</span></div></div>
-<div class="gauge-container l3-stat" id="gaugeL3Box" style="display:none"><canvas class="gauge-canvas" id="gaugeL3"></canvas><div class="gauge-info"><div class="gauge-title" id="gaugeTitleL3">CV Level 3</div><div class="gauge-detail">Permissible CV: <span id="permCVL3">-</span></div><div class="gauge-detail">Factory CV: <span id="factCVL3">-</span></div><div class="gauge-detail">Laboratory CV: <span id="labCVL3">-</span></div></div></div>
+    <!-- LEVEL 1 -->
+    <div class="stat-box">
+        <div class="stat-label">MEAN L1</div>
+        <div class="stat-value" id="meanL1">-</div>
+        <div style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+            <div class="stat-label" style="font-size: 7px;">LIMITS L1</div>
+            <div class="stat-value" id="rangeL1" style="font-size: 10px; color: #aaa;">-</div>
+        </div>
+    </div>
+    <div class="stat-box"><div class="stat-label">STDEV L1</div><div class="stat-value" id="stdevL1">-</div></div>
+    <div class="stat-box"><div class="stat-label">BIAS L1</div><div class="stat-sub">Accept.Bias: <span id="acceptBiasL1">-</span></div><div class="stat-sub">Lab.Bias: <span id="labBiasL1">-</span></div></div>
+    <div class="gauge-container"><canvas class="gauge-canvas" id="gaugeL1"></canvas><div class="gauge-info"><div class="gauge-title" id="gaugeTitleL1">CV Level 1</div><div class="gauge-detail">Permissible CV: <span id="permCVL1">-</span></div><div class="gauge-detail">Factory CV: <span id="factCVL1">-</span></div><div class="gauge-detail">Laboratory CV: <span id="labCVL1">-</span></div></div></div>
+
+    <!-- LEVEL 2 -->
+    <div class="stat-box">
+        <div class="stat-label">MEAN L2</div>
+        <div class="stat-value" id="meanL2">-</div>
+        <div style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+            <div class="stat-label" style="font-size: 7px;">LIMITS L2</div>
+            <div class="stat-value" id="rangeL2" style="font-size: 10px; color: #aaa;">-</div>
+        </div>
+    </div>
+    <div class="stat-box"><div class="stat-label">STDEV L2</div><div class="stat-value" id="stdevL2">-</div></div>
+    <div class="stat-box"><div class="stat-label">BIAS L2</div><div class="stat-sub">Accept.Bias: <span id="acceptBiasL2">-</span></div><div class="stat-sub">Lab.Bias: <span id="labBiasL2">-</span></div></div>
+    <div class="gauge-container"><canvas class="gauge-canvas" id="gaugeL2"></canvas><div class="gauge-info"><div class="gauge-title" id="gaugeTitleL2">CV Level 2</div><div class="gauge-detail">Permissible CV: <span id="permCVL2">-</span></div><div class="gauge-detail">Factory CV: <span id="factCVL2">-</span></div><div class="gauge-detail">Laboratory CV: <span id="labCVL2">-</span></div></div></div>
+
+    <!-- LEVEL 3 (Hidden by default) -->
+    <div class="stat-box l3-stat" id="meanL3Box" style="display:none">
+        <div class="stat-label">MEAN L3</div>
+        <div class="stat-value" id="meanL3">-</div>
+        <div style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+            <div class="stat-label" style="font-size: 7px;">LIMITS L3</div>
+            <div class="stat-value" id="rangeL3" style="font-size: 10px; color: #aaa;">-</div>
+        </div>
+    </div>
+    <div class="stat-box l3-stat" id="stdevL3Box" style="display:none"><div class="stat-label">STDEV L3</div><div class="stat-value" id="stdevL3">-</div></div>
+    <div class="stat-box l3-stat" id="biasL3Box" style="display:none"><div class="stat-label">BIAS L3</div><div class="stat-sub">Accept.Bias: <span id="acceptBiasL3">-</span></div><div class="stat-sub">Lab.Bias: <span id="labBiasL3">-</span></div></div>
+    <div class="gauge-container l3-stat" id="gaugeL3Box" style="display:none"><canvas class="gauge-canvas" id="gaugeL3"></canvas><div class="gauge-info"><div class="gauge-title" id="gaugeTitleL3">CV Level 3</div><div class="gauge-detail">Permissible CV: <span id="permCVL3">-</span></div><div class="gauge-detail">Factory CV: <span id="factCVL3">-</span></div><div class="gauge-detail">Laboratory CV: <span id="labCVL3">-</span></div></div></div>
 </div>
 </div>
 <div class="auto-panel sigma-qgi-combined-panel">
@@ -1012,12 +1038,15 @@ container.appendChild(div);
 container.scrollTop = container.scrollHeight;
 }
 
+
 function generateGlobalQcReport() {
-    let html = "<strong>📊 Global QC Violation & Performance Summary (All Devices & Tests)</strong><br><br>";
+    let html = "<strong>📊 Global QC Violation & Performance Summary (All Devices & Tests)</strong><br>";
+    html += `<em style="color:#aaa;">Period: ${getMonthName()} ${appData.currentYear}</em><br><br>`;
+    
     let totalViolations = 0;
     let allSigmaIssues = [];
     let allViolationItems = [];
-    let allRangeIssues = []; // NEW: Tracks Lab Max > F.Max or Lab Min < F.Min
+    let allRangeIssues = []; 
 
     for (const [devId, device] of Object.entries(appData.devices)) {
         for (const analyte of device.analytes) {
@@ -1048,7 +1077,7 @@ function generateGlobalQcReport() {
                                 const date = data.dates[r.index] || 'Unknown';
                                 const val = validData.find(d => d.index === r.index);
                                 const resultVal = val ? val.value : 0;
-                                allViolationItems.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: " + date + " | Result = <strong>" + resultVal.toFixed(2) + "</strong> | Rule: <span style='color:#e74c3c; font-weight:bold;'>" + r.rule.toUpperCase() + "</span></li>");
+                                allViolationItems.push(`<li><strong>${device.name} - ${analyte} (L${lvl})</strong>: ${date} | Result = <strong>${resultVal.toFixed(2)}</strong> | Rule: <span style='color:#e74c3c; font-weight:bold;'>${r.rule.toUpperCase()}</span></li>`);
                                 totalViolations++;
                             });
                         }
@@ -1067,54 +1096,65 @@ function generateGlobalQcReport() {
                     const qgiClass = getQGIClass(qgi, sigma);
 
                     if (sigma < 6 || qgiClass.recCls !== 'good') {
-                        allSigmaIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: σ = " + sigma.toFixed(2) + " (" + sigmaClass.label + ") | QGI = " + qgi.toFixed(2) + " (" + qgiClass.label + ")</li>");
+                        allSigmaIssues.push(`<li><strong>${device.name} - ${analyte} (L${lvl})</strong>: σ = ${sigma.toFixed(2)} (${sigmaClass.label}) | QGI = ${qgi.toFixed(2)} (${qgiClass.label})</li>`);
                     }
 
-                    // --- 3. NEW: Range Check (LAB MAX > F.MAX or LAB MIN < F.MIN) ---
-                    const labMax = Math.max(...validValues);
-                    const labMin = Math.min(...validValues);
+                    // --- 3. FIXED: Range Check using LAB x̄ ± 3×LAB SD vs F.Max/F.Min ---
+                    const labMax = labMean + (3 * labSD);
+                    const labMin = labMean - (3 * labSD);
                     
                     const factMeanForRange = data.factoryMean["L" + lvl] || labMean;
                     const factSDForRange = data.factorySD["L" + lvl] || 0;
-                    
                     const fMax = factMeanForRange + (3 * factSDForRange);
                     const fMin = factMeanForRange - (3 * factSDForRange);
 
                     if (factSDForRange > 0) {
-                        if (labMax > fMax) {
-                            allRangeIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: Lab Max (<span style='color:#e74c3c; font-weight:bold;'>" + labMax.toFixed(2) + "</span>) exceeds F.Max (<span style='color:#aaa;'>" + fMax.toFixed(2) + "</span>)</li>");
+                        const isMaxViolation = labMax > fMax;
+                        const isMinViolation = labMin < fMin;
+                        
+                        let statusColor = '#2ecc71'; // Green if within limits
+                        let statusText = '✅ Within Limits';
+                        
+                        if (isMaxViolation || isMinViolation) {
+                            statusColor = '#e74c3c'; // Red if violation
+                            statusText = '⚠️ Out of Limits';
                         }
-                        if (labMin < fMin) {
-                            allRangeIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: Lab Min (<span style='color:#e74c3c; font-weight:bold;'>" + labMin.toFixed(2) + "</span>) is below F.Min (<span style='color:#aaa;'>" + fMin.toFixed(2) + "</span>)</li>");
-                        }
+
+                        allRangeIssues.push(
+                            `<li style="margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:6px;">` +
+                            `<strong>${device.name} - ${analyte} (L${lvl})</strong> <span style="color:${statusColor}; font-weight:bold; font-size:11px;">[${statusText}]</span><br>` +
+                            `<span style="font-size:11px; color:#aaa;">` +
+                            `L.MAX: <strong style="color:${isMaxViolation ? '#e74c3c' : '#fff'}">${labMax.toFixed(2)}</strong> vs F.MAX: <strong>${fMax.toFixed(2)}</strong> | ` +
+                            `L.MIN: <strong style="color:${isMinViolation ? '#e74c3c' : '#fff'}">${labMin.toFixed(2)}</strong> vs F.MIN: <strong>${fMin.toFixed(2)}</strong>` +
+                            `</span></li>`
+                        );
                     }
                 }
             }
         }
     }
 
-    // --- Build Final Report ---
+    // Build Final Report
     if (totalViolations === 0 && allSigmaIssues.length === 0 && allRangeIssues.length === 0) {
-        return "<div style='background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; padding:10px; border-radius:4px;'><strong style='color:#2ecc71;'>✅ Excellent!</strong> No Westgard violations, Range issues, or Sigma/QGI issues detected across any device or test for the current period.</div>";
+        return "<div style='background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; padding:10px; border-radius:4px;'><strong style='color:#2ecc71;'>✅ Excellent!</strong> No data found for the selected month.</div>";
     }
 
     if (allViolationItems.length > 0) {
-        html += "<div style='background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e74c3c;'>🚨 Westgard Rule Violations Found (" + totalViolations + "):</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allViolationItems.join('') + "</ul></div>";
+        html += `<div style='background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e74c3c;'>🚨 Westgard Rule Violations (Total: ${totalViolations}):</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>${allViolationItems.join('')}</ul></div>`;
     }
 
     if (allRangeIssues.length > 0) {
-        html += "<div style='background:rgba(230, 126, 34, 0.1); border-left:3px solid #e67e22; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e67e22;'>⚠️ Out of Factory Range Issues (±3SD):</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allRangeIssues.join('') + "</ul><em style='color:#aaa; font-size:11px; display:block; margin-top:8px;'>💡 Action: Investigate calibration drift, new reagent lot matrix effects, or potential systematic shifts causing results to exceed the factory's expected ±3SD limits.</em></div>";
+        html += `<div style='background:rgba(230, 126, 34, 0.1); border-left:3px solid #e67e22; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e67e22;'>📊 Factory Limits Check (L.MAX/L.MIN vs F.MAX/F.MIN):</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:300px; overflow-y:auto; list-style:none;'>${allRangeIssues.join('')}</ul><em style='color:#aaa; font-size:11px; display:block; margin-top:8px;'>💡 Shows the statistical limits (x̄ ± 3SD) for every parameter. <span style='color:#e74c3c;'>Red text</span> indicates the Lab's limits exceeded the Factory's ±3SD boundaries.</em></div>`;
     }
 
     if (allSigmaIssues.length > 0) {
-        html += "<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#f39c12;'>📉 Sigma / QGI Performance Issues:</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allSigmaIssues.join('') + "</ul></div>";
+        html += `<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#f39c12;'>📉 Sigma / QGI Performance Issues:</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>${allSigmaIssues.join('')}</ul></div>`;
     }
 
-    html += "<strong>🛠️ Recommended Corrective Actions (Global):</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Range Exceedances:</strong> Check for new reagent lots, calibration drift, or instrument maintenance needs. Verify if the factory mean/SD needs updating for the current lot.</li><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles in samples/reagents.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate affected devices using fresh calibrators. Verify calibration curve and reagent lot expiration.</li><li><strong>For Combined Errors (0.8 ≤ QGI ≤ 1.2):</strong> Full preventive maintenance (PM) and consider new QC material lot.</li></ul>";
+    html += `<strong>🛠️ Recommended Corrective Actions:</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Range Exceedances:</strong> Check for new reagent lots, calibration drift, or instrument maintenance needs.</li><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate using fresh calibrators. Verify calibration curve.</li><li><strong>For Combined Errors (0.8 ≤ QGI ≤ 1.2):</strong> Full preventive maintenance (PM).</li></ul>`;
 
     return html;
 }
-
 
 function generateChatResponse(input) {
     const lower = input.toLowerCase();
@@ -1124,7 +1164,7 @@ function generateChatResponse(input) {
         if (qa.triggers.some(t => t && lower.includes(t))) return qa.response;
     }
 
-    // 2. Check for Global Scan
+    // 2. Check for Global Scan (Find and Correct)
     if (lower.includes('find and correct') || lower.includes('all devices') || lower.includes('all tests') || lower.includes('global summary') || lower.includes('check all') || (lower.includes('violation') && lower.includes('all'))) {
         return generateGlobalQcReport();
     }
@@ -1139,7 +1179,6 @@ function generateChatResponse(input) {
         let targetData = null;
         let targetLevels = 2;
 
-        // Search in current device first, then all devices
         const currDev = appData.devices[appData.currentDevice];
         if (currDev.analytes.includes(query)) {
             targetDevice = currDev;
@@ -1162,7 +1201,7 @@ function generateChatResponse(input) {
 
         let html = `<strong>📊 Westgard Rules Recommendation for ${query}</strong><br>`;
         html += `<em style="color:#aaa;">Based on current Sigma performance (${getMonthName()} ${appData.currentYear})</em><br><br>`;
-
+        
         const levelsToCheck = targetLevels >= 3 ? [1, 2, 3] : [1, 2];
         let overallMinSigma = Infinity;
         let overallRules = '';
@@ -1181,7 +1220,7 @@ function generateChatResponse(input) {
                 const sigma = calcSigma(tea, Math.abs(bias), labCV);
                 
                 if (sigma < overallMinSigma) overallMinSigma = sigma;
-
+                
                 const ruleInfo = getRulesForSigma(sigma);
                 const sigmaClass = getSigmaClass(sigma);
                 
@@ -1190,7 +1229,6 @@ function generateChatResponse(input) {
                 html += `<strong>Recommended Rules:</strong> <span style="color:#2ecc71; font-weight:bold;">${ruleInfo.rules}</span>`;
                 html += `</div>`;
                 
-                // Keep the strictest rules required across all levels
                 if (!overallRules || sigma < overallMinSigma) {
                     overallRules = ruleInfo.rules;
                 }
@@ -1239,9 +1277,9 @@ function generateChatResponse(input) {
     if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s')) return "<strong>Westgard Multi-Rules:</strong><br>• 1-2s: Warning<br>• 1-3s: Reject (Random)<br>• 2-2s: Reject (Systematic)<br>• R-4s: Reject (Random)<br>• 4-1s: Reject (Systematic)<br>• 8-x: Reject (Systematic)";
     
     // 7. Check for help/greeting
-    if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) return "Hello! 👋 Try asking:<br>• 'How many rules for E2?'<br>• 'Find and correct all devices'<br>• 'TEa for Glucose'<br>• 'How to calculate Sigma?'";
+    if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) return "Hello! 👋 Try asking:<br>• 'Find and correct all devices'<br>• 'How many rules for E2?'<br>• 'TEa for Glucose'<br>• 'How to calculate Sigma?'";
     
-    return "I'm not sure about that. 🤔 Try: 'How many rules for [Test]?', 'Find and correct', or 'TEa for [Analyte]'.";
+    return "I'm not sure about that. 🤔 Try: 'Find and correct', 'How many rules for [Test]?', or 'TEa for [Analyte]'.";
 }
 
 const TEA_DATABASE = {
@@ -1974,7 +2012,105 @@ if (numLevels >= 3 && data.L3) { const v3 = data.L3[i]; const isValid3 = v3 !== 
 tbody.appendChild(tr);
 }
 }
-function updateStats(data, numLevels, analyte) { const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); const labMeanL1 = calcMean(valuesL1); const labSDL1 = calcSD(valuesL1, labMeanL1); const labCVL1 = calcCV(labSDL1, labMeanL1); const labMeanL2 = calcMean(valuesL2); const labSDL2 = calcSD(valuesL2, labMeanL2); const labCVL2 = calcCV(labSDL2, labMeanL2); const factMeanL1 = data.factoryMean.L1 || labMeanL1; const factSDL1 = data.factorySD.L1 || labSDL1; const factCVL1 = calcCV(factSDL1, factMeanL1); const factMeanL2 = data.factoryMean.L2 || labMeanL2; const factSDL2 = data.factorySD.L2 || labSDL2; const factCVL2 = calcCV(factSDL2, factMeanL2); const biasL1 = calcBias(labMeanL1, factMeanL1); const biasL2 = calcBias(labMeanL2, factMeanL2); const permCVL1 = data.permissibleCV.L1 || 10; const permCVL2 = data.permissibleCV.L2 || 10; const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; }; setTxt('meanL1', labMeanL1.toFixed(2)); setTxt('stdevL1', labSDL1.toFixed(3)); setTxt('acceptBiasL1', permCVL1.toFixed(1) + '%'); setTxt('labBiasL1', Math.abs(biasL1).toFixed(2) + '%'); setTxt('permCVL1', permCVL1.toFixed(1) + '%'); setTxt('factCVL1', factCVL1.toFixed(2) + '%'); setTxt('labCVL1', labCVL1.toFixed(2) + '%'); setTxt('meanL2', labMeanL2.toFixed(2)); setTxt('stdevL2', labSDL2.toFixed(3)); setTxt('acceptBiasL2', permCVL2.toFixed(1) + '%'); setTxt('labBiasL2', Math.abs(biasL2).toFixed(2) + '%'); setTxt('permCVL2', permCVL2.toFixed(1) + '%'); setTxt('factCVL2', factCVL2.toFixed(2) + '%'); setTxt('labCVL2', labCVL2.toFixed(2) + '%'); drawGauge('gaugeL1', labCVL1, permCVL1); drawGauge('gaugeL2', labCVL2, permCVL2); if (numLevels >= 3 && data.L3) { const valuesL3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); const labMeanL3 = calcMean(valuesL3); const labSDL3 = calcSD(valuesL3, labMeanL3); const labCVL3 = calcCV(labSDL3, labMeanL3); const factMeanL3 = data.factoryMean.L3 || labMeanL3; const factSDL3 = data.factorySD.L3 || labSDL3; const factCVL3 = calcCV(factSDL3, factMeanL3); const biasL3 = calcBias(labMeanL3, factMeanL3); const permCVL3 = data.permissibleCV.L3 || 10; setTxt('meanL3', labMeanL3.toFixed(2)); setTxt('stdevL3', labSDL3.toFixed(3)); setTxt('acceptBiasL3', permCVL3.toFixed(1) + '%'); setTxt('labBiasL3', Math.abs(biasL3).toFixed(2) + '%'); setTxt('permCVL3', permCVL3.toFixed(1) + '%'); setTxt('factCVL3', factCVL3.toFixed(2) + '%'); setTxt('labCVL3', labCVL3.toFixed(2) + '%'); drawGauge('gaugeL3', labCVL3, permCVL3); } }
+function updateStats(data, numLevels, analyte) { 
+    const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); 
+    const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); 
+    
+    const labMeanL1 = calcMean(valuesL1); const labSDL1 = calcSD(valuesL1, labMeanL1); const labCVL1 = calcCV(labSDL1, labMeanL1);
+    const labMeanL2 = calcMean(valuesL2); const labSDL2 = calcSD(valuesL2, labMeanL2); const labCVL2 = calcCV(labSDL2, labMeanL2);
+    
+    const factMeanL1 = data.factoryMean.L1 || labMeanL1; const factSDL1 = data.factorySD.L1 || labSDL1; const factCVL1 = calcCV(factSDL1, factMeanL1);
+    const factMeanL2 = data.factoryMean.L2 || labMeanL2; const factSDL2 = data.factorySD.L2 || labSDL2; const factCVL2 = calcCV(factSDL2, factMeanL2);
+    
+    const biasL1 = calcBias(labMeanL1, factMeanL1); const biasL2 = calcBias(labMeanL2, factMeanL2);
+    const permCVL1 = data.permissibleCV.L1 || 10; const permCVL2 = data.permissibleCV.L2 || 10;
+    
+    // Helper functions for updating DOM
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setStyle = (id, prop, val) => { const el = document.getElementById(id); if (el) el.style[prop] = val; };
+
+    // ================= LEVEL 1 =================
+    setTxt('meanL1', labMeanL1.toFixed(2)); 
+    setTxt('stdevL1', labSDL1.toFixed(3)); 
+    setTxt('acceptBiasL1', permCVL1.toFixed(1) + '%'); 
+    setTxt('labBiasL1', Math.abs(biasL1).toFixed(2) + '%'); 
+    setTxt('permCVL1', permCVL1.toFixed(1) + '%'); 
+    setTxt('factCVL1', factCVL1.toFixed(2) + '%'); 
+    setTxt('labCVL1', labCVL1.toFixed(2) + '%');
+    drawGauge('gaugeL1', labCVL1, permCVL1);
+
+    // L1 MAX/MIN Limits & Warning
+    const labMaxL1 = labMeanL1 + (3 * labSDL1);
+    const labMinL1 = labMeanL1 - (3 * labSDL1);
+    const factMaxL1 = factMeanL1 + (3 * factSDL1);
+    const factMinL1 = factMeanL1 - (3 * factSDL1);
+    
+    let rangeTextL1 = (appData.meanType.L1 === 'factory') 
+        ? `F.MAX: ${factMaxL1.toFixed(2)} | F.MIN: ${factMinL1.toFixed(2)}` 
+        : `L.MAX: ${labMaxL1.toFixed(2)} | L.MIN: ${labMinL1.toFixed(2)}`;
+        
+    let rangeColorL1 = (labMaxL1 > factMaxL1 || labMinL1 < factMinL1) ? '#e74c3c' : '#aaa';
+    setTxt('rangeL1', rangeTextL1); 
+    setStyle('rangeL1', 'color', rangeColorL1);
+
+    // ================= LEVEL 2 =================
+    setTxt('meanL2', labMeanL2.toFixed(2)); 
+    setTxt('stdevL2', labSDL2.toFixed(3)); 
+    setTxt('acceptBiasL2', permCVL2.toFixed(1) + '%'); 
+    setTxt('labBiasL2', Math.abs(biasL2).toFixed(2) + '%'); 
+    setTxt('permCVL2', permCVL2.toFixed(1) + '%'); 
+    setTxt('factCVL2', factCVL2.toFixed(2) + '%'); 
+    setTxt('labCVL2', labCVL2.toFixed(2) + '%');
+    drawGauge('gaugeL2', labCVL2, permCVL2);
+
+    // L2 MAX/MIN Limits & Warning
+    const labMaxL2 = labMeanL2 + (3 * labSDL2);
+    const labMinL2 = labMeanL2 - (3 * labSDL2);
+    const factMaxL2 = factMeanL2 + (3 * factSDL2);
+    const factMinL2 = factMeanL2 - (3 * factSDL2);
+    
+    let rangeTextL2 = (appData.meanType.L2 === 'factory') 
+        ? `F.MAX: ${factMaxL2.toFixed(2)} | F.MIN: ${factMinL2.toFixed(2)}` 
+        : `L.MAX: ${labMaxL2.toFixed(2)} | L.MIN: ${labMinL2.toFixed(2)}`;
+        
+    let rangeColorL2 = (labMaxL2 > factMaxL2 || labMinL2 < factMinL2) ? '#e74c3c' : '#aaa';
+    setTxt('rangeL2', rangeTextL2); 
+    setStyle('rangeL2', 'color', rangeColorL2);
+
+    // ================= LEVEL 3 =================
+    if (numLevels >= 3 && data.L3) { 
+        const valuesL3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); 
+        const labMeanL3 = calcMean(valuesL3); const labSDL3 = calcSD(valuesL3, labMeanL3); const labCVL3 = calcCV(labSDL3, labMeanL3);
+        const factMeanL3 = data.factoryMean.L3 || labMeanL3; const factSDL3 = data.factorySD.L3 || labSDL3; const factCVL3 = calcCV(factSDL3, factMeanL3);
+        const biasL3 = calcBias(labMeanL3, factMeanL3); const permCVL3 = data.permissibleCV.L3 || 10;
+        
+        setTxt('meanL3', labMeanL3.toFixed(2)); 
+        setTxt('stdevL3', labSDL3.toFixed(3)); 
+        setTxt('acceptBiasL3', permCVL3.toFixed(1) + '%'); 
+        setTxt('labBiasL3', Math.abs(biasL3).toFixed(2) + '%'); 
+        setTxt('permCVL3', permCVL3.toFixed(1) + '%'); 
+        setTxt('factCVL3', factCVL3.toFixed(2) + '%'); 
+        setTxt('labCVL3', labCVL3.toFixed(2) + '%');
+        drawGauge('gaugeL3', labCVL3, permCVL3);
+
+        // L3 MAX/MIN Limits & Warning
+        const labMaxL3 = labMeanL3 + (3 * labSDL3);
+        const labMinL3 = labMeanL3 - (3 * labSDL3);
+        const factMaxL3 = factMeanL3 + (3 * factSDL3);
+        const factMinL3 = factMeanL3 - (3 * factSDL3);
+        
+        let rangeTextL3 = (appData.meanType.L3 === 'factory') 
+            ? `F.MAX: ${factMaxL3.toFixed(2)} | F.MIN: ${factMinL3.toFixed(2)}` 
+            : `L.MAX: ${labMaxL3.toFixed(2)} | L.MIN: ${labMinL3.toFixed(2)}`;
+            
+        let rangeColorL3 = (labMaxL3 > factMaxL3 || labMinL3 < factMinL3) ? '#e74c3c' : '#aaa';
+        setTxt('rangeL3', rangeTextL3); 
+        setStyle('rangeL3', 'color', rangeColorL3);
+    } 
+}
+
+
+
 function drawGauge(canvasId, value, max) { const canvas = document.getElementById(canvasId); if (!canvas) return; const ctx = canvas.getContext('2d'); const w = canvas.width = 162, h = canvas.height = 99; ctx.clearRect(0, 0, w, h); const cx = w/2, cy = h-7, radius = 63, pct = Math.min(value / max, 1); ctx.beginPath(); ctx.arc(cx, cy, radius, Math.PI, 0); ctx.lineWidth = 13; ctx.strokeStyle = '#333'; ctx.stroke(); [{ end: 0.33, color: '#2ecc71' }, { end: 0.66, color: '#f39c12' }, { end: 1.0, color: '#e74c3c' }].forEach(s => { const ea = Math.PI + s.end * Math.PI; ctx.beginPath(); ctx.arc(cx, cy, radius, Math.PI + (s.end === 0.33 ? 0 : s.end === 0.66 ? 0.33 : 0.66) * Math.PI, ea); ctx.lineWidth = 13; ctx.strokeStyle = s.color; ctx.stroke(); }); ctx.beginPath(); ctx.arc(cx, cy, radius - 20, Math.PI, Math.PI + pct * Math.PI); ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(value.toFixed(1) + '%', cx, cy - 7); }
 function updateLJCharts(data, numLevels) {
 const analyte = appData.currentAnalyte;
@@ -2027,6 +2163,9 @@ const rangeL3 = { min: meanL3 - 3*sdL3, max: meanL3 + 3*sdL3, step: sdL3, mean: 
 makeChart('ljChart3', rawValuesL3, rangeL3);
 }
 }
+
+
+
 function updateSigmaChart(data, numLevels) { const canvas = document.getElementById('sigmaChart'); if (!canvas) return; const analyte = appData.currentAnalyte; const labels = ['Level 1', 'Level 2']; const values = []; const v1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); const m1 = calcMean(v1), s1 = calcSD(v1, m1), cv1 = calcCV(s1, m1), b1 = calcBias(m1, data.factoryMean.L1 || m1); values.push(calcSigma(data.permissibleCV.L1 || 10, b1, cv1)); const v2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); const m2 = calcMean(v2), s2 = calcSD(v2, m2), cv2 = calcCV(s2, m2), b2 = calcBias(m2, data.factoryMean.L2 || m2); values.push(calcSigma(data.permissibleCV.L2 || 10, b2, cv2)); if (numLevels >= 3 && data.L3) { labels.push('Level 3'); const v3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); const m3 = calcMean(v3), s3 = calcSD(v3, m3), cv3 = calcCV(s3, m3), b3 = calcBias(m3, data.factoryMean.L3 || m3); values.push(calcSigma(data.permissibleCV.L3 || 10, b3, cv3)); } if (sigmaChart) sigmaChart.destroy(); try { sigmaChart = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels, datasets: [{ data: values, backgroundColor: values.map(v => v >= 6 ? '#2ecc71' : v >= 4 ? '#f39c12' : v >= 3 ? '#e67e22' : '#e74c3c'), borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#aaa' }, grid: { color: '#333' } }, y: { min: 0, max: 6, ticks: { color: '#aaa', stepSize: 1 }, grid: { color: '#333' } } } } }); } catch (e) { console.error('Error creating sigma chart:', e); } }
 function populateSpreadsheet() {
 const device = appData.devices[appData.currentDevice]; if (!device) return;
@@ -2090,7 +2229,188 @@ aData.dates[i] = dateValue;
 });
 populateStatsSummary(); updateMonthBadges(); updateDashboard(); window.triggerAutoSave();
 }
-function populateStatsSummary() { const device = appData.devices[appData.currentDevice]; const head = document.getElementById('statsSummaryHead'); const body = document.getElementById('statsSummaryBody'); if (!head || !body) return; let headerHTML = '<tr><th></th>'; device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) headerHTML += `<th>${a} L${l}</th>`; }); headerHTML += '</tr>'; head.innerHTML = headerHTML; const rows = [{ name: 'Mean', type: 'mean', editable: true }, { name: 'S.D', type: 'sd', editable: true }, { name: 'F.MAX', type: 'fmax', editable: false }, { name: 'F.MIN', type: 'fmin', editable: false }, { name: 'LAB x̄', type: 'lab_mean', editable: false }, { name: 'LAB SD', type: 'lab_sd', editable: false }, { name: 'LAB MAX', type: 'lab_max', editable: false }, { name: 'LAB MIN', type: 'lab_min', editable: false }, { name: 'LAB CV%', type: 'lab_cv', editable: false }, { name: 'Factory CV%', type: 'fact_cv', editable: false }, { name: 'Bias%', type: 'bias', editable: false }, { name: 'TEa', type: 'tea', editable: true }, { name: 'Lot', type: 'lot', editable: true }, { name: 'EXP', type: 'exp', editable: true }, { name: 'Analyzer', type: 'analyzer', editable: true }]; body.innerHTML = ''; rows.forEach(rowObj => { const tr = document.createElement('tr'); const td0 = document.createElement('td'); td0.textContent = rowObj.name; td0.style.fontWeight = 'bold'; td0.style.color = '#e74c3c'; tr.appendChild(td0); device.analytes.forEach(a => { for (let l = 1; l <= getAnalyteLevels(a); l++) { const td = document.createElement('td'); const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth); const values = getNonExcludedValues(a, l, appData.currentYear, appData.currentMonth); const labMean = calcMean(values), labSD = calcSD(values, labMean), labMax = values.length > 0 ? Math.max(...values) : 0, labMin = values.length > 0 ? Math.min(...values) : 0; const labCV = calcCV(labSD, labMean); const factMean = (aData.factoryMean && aData.factoryMean[`L${l}`]) || 0; const factSD = (aData.factorySD && aData.factorySD[`L${l}`]) || 0; const factCV = factMean !== 0 ? calcCV(factSD, factMean) : 0; const fMax = factMean + 3 * factSD; const fMin = factMean - 3 * factSD; const bias = factMean !== 0 ? calcBias(labMean, factMean) : 0; const storedTEa = (aData.permissibleCV && aData.permissibleCV[`L${l}`]) || 10, storedLot = (aData.lot && aData.lot[`L${l}`]) || '', storedExp = (aData.exp && aData.exp[`L${l}`]) || ''; if (rowObj.editable) { const input = document.createElement('input'); if (rowObj.type === 'analyzer') { input.type = 'text'; input.value = device.analyzer || ''; input.style.width = '90px'; input.addEventListener('change', (e) => { device.analyzer = e.target.value; showNotification('Analyzer updated!'); }); } else { input.type = (rowObj.type === 'lot' || rowObj.type === 'exp') ? 'text' : 'number'; if (rowObj.type !== 'lot' && rowObj.type !== 'exp') input.step = rowObj.type === 'tea' ? '0.1' : '0.01'; input.style.width = '70px'; if (rowObj.type === 'mean') input.value = factMean; else if (rowObj.type === 'sd') input.value = factSD; else if (rowObj.type === 'tea') input.value = storedTEa; else if (rowObj.type === 'lot') input.value = storedLot; else if (rowObj.type === 'exp') input.value = storedExp; input.addEventListener('change', (e) => { const val = rowObj.type === 'lot' || rowObj.type === 'exp' ? e.target.value : (parseFloat(e.target.value) || 0); if (rowObj.type === 'mean') { if (!aData.factoryMean) aData.factoryMean = {}; aData.factoryMean[`L${l}`] = val; } else if (rowObj.type === 'sd') { if (!aData.factorySD) aData.factorySD = {}; aData.factorySD[`L${l}`] = val; } else if (rowObj.type === 'tea') { if (!aData.permissibleCV) aData.permissibleCV = {}; aData.permissibleCV[`L${l}`] = val; } else if (rowObj.type === 'lot') { if (!aData.lot) aData.lot = {}; aData.lot[`L${l}`] = val; } else if (rowObj.type === 'exp') { if (!aData.exp) aData.exp = {}; aData.exp[`L${l}`] = val; } updateDashboard(); populateStatsSummary(); showNotification(`${rowObj.name} updated!`); window.triggerAutoSave(); }); } input.style.textAlign = 'center'; input.style.background = 'transparent'; input.style.border = 'none'; input.style.color = '#e0e0e0'; input.style.fontSize = '11px'; input.style.padding = '2px'; input.addEventListener('focus', function() { this.style.background = '#0f3460'; this.style.outline = '1px solid #e74c3c'; }); input.addEventListener('blur', function() { this.style.background = 'transparent'; this.style.outline = 'none'; }); td.appendChild(input); } else { if (rowObj.type === 'fmax') td.textContent = fMax.toFixed(2); else if (rowObj.type === 'fmin') td.textContent = fMin.toFixed(2); else if (rowObj.type === 'lab_mean') { td.textContent = values.length > 0 ? labMean.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_sd') { td.textContent = values.length > 0 ? labSD.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_max') { td.textContent = values.length > 0 ? labMax.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_min') { td.textContent = values.length > 0 ? labMin.toFixed(2) : '-'; td.style.color = '#3498db'; } else if (rowObj.type === 'lab_cv') { td.textContent = values.length > 0 ? labCV.toFixed(2) + '%' : '-'; td.style.color = '#2ecc71'; } else if (rowObj.type === 'fact_cv') { td.textContent = factMean !== 0 ? factCV.toFixed(2) + '%' : '-'; td.style.color = '#f39c12'; } else if (rowObj.type === 'bias') { td.textContent = (values.length > 0 && factMean !== 0 ? Math.abs(bias).toFixed(2) : '0') + '%'; td.style.color = bias > 0 ? '#e74c3c' : '#2ecc71'; } } tr.appendChild(td); } }); body.appendChild(tr); }); }
+function populateStatsSummary() {
+    const device = appData.devices[appData.currentDevice];
+    const head = document.getElementById('statsSummaryHead');
+    const body = document.getElementById('statsSummaryBody');
+    
+    if (!head || !body) return;
+
+    // 1. Build Header
+    let headerHTML = '<tr><th></th>';
+    device.analytes.forEach(a => {
+        const levels = getAnalyteLevels(a);
+        for (let l = 1; l <= levels; l++) {
+            headerHTML += `<th>${a} L${l}</th>`;
+        }
+    });
+    headerHTML += '</tr>';
+    head.innerHTML = headerHTML;
+
+    // 2. Row Configuration Definitions
+    const rows = [
+        { name: 'Mean', type: 'mean', editable: true },
+        { name: 'S.D', type: 'sd', editable: true },
+        { name: 'F.MAX', type: 'fmax', editable: false },
+        { name: 'F.MIN', type: 'fmin', editable: false },
+        { name: 'LAB x̄', type: 'lab_mean', editable: false },
+        { name: 'LAB SD', type: 'lab_sd', editable: false },
+        { name: 'LAB MAX', type: 'lab_max', editable: false },
+        { name: 'LAB MIN', type: 'lab_min', editable: false },
+        { name: 'LAB CV%', type: 'lab_cv', editable: false },
+        { name: 'Factory CV%', type: 'fact_cv', editable: false },
+        { name: 'Bias%', type: 'bias', editable: false },
+        { name: 'TEa', type: 'tea', editable: true },
+        { name: 'Lot', type: 'lot', editable: true },
+        { name: 'EXP', type: 'exp', editable: true },
+        { name: 'Analyzer', type: 'analyzer', editable: true }
+    ];
+
+    body.innerHTML = '';
+
+    // 3. Helper Functions for Input Styling & Event Binding
+    const applyInputStyles = (input, type) => {
+        input.style.width = type === 'analyzer' ? '90px' : '70px';
+        input.style.textAlign = 'center';
+        input.style.background = 'transparent';
+        input.style.border = 'none';
+        input.style.color = '#e0e0e0';
+        input.style.fontSize = '11px';
+        input.style.padding = '2px';
+        
+        input.addEventListener('focus', function() {
+            this.style.background = '#0f3460';
+            this.style.outline = '1px solid #e74c3c';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.background = 'transparent';
+            this.style.outline = 'none';
+        });
+    };
+
+    const getStoredValue = (aData, type, level) => {
+        switch (type) {
+            case 'mean': return (aData.factoryMean && aData.factoryMean[`L${level}`]) || 0;
+            case 'sd': return (aData.factorySD && aData.factorySD[`L${level}`]) || 0;
+            case 'tea': return (aData.permissibleCV && aData.permissibleCV[`L${level}`]) || 10;
+            case 'lot': return (aData.lot && aData.lot[`L${level}`]) || '';
+            case 'exp': return (aData.exp && aData.exp[`L${level}`]) || '';
+            default: return '';
+        }
+    };
+
+    const updateDataStorage = (aData, type, level, val) => {
+        const keyMap = {
+            mean: 'factoryMean',
+            sd: 'factorySD',
+            tea: 'permissibleCV',
+            lot: 'lot',
+            exp: 'exp'
+        };
+        const targetKey = keyMap[type];
+        if (targetKey) {
+            if (!aData[targetKey]) aData[targetKey] = {};
+            aData[targetKey][`L${level}`] = val;
+        }
+    };
+
+    // 4. Render Table Rows & Columns
+    rows.forEach(rowObj => {
+        const tr = document.createElement('tr');
+        
+        const td0 = document.createElement('td');
+        td0.textContent = rowObj.name;
+        td0.style.fontWeight = 'bold';
+        td0.style.color = '#e74c3c';
+        tr.appendChild(td0);
+
+        device.analytes.forEach(a => {
+            const levels = getAnalyteLevels(a);
+            for (let l = 1; l <= levels; l++) {
+                const td = document.createElement('td');
+                const aData = getMonthData(device, a, appData.currentYear, appData.currentMonth);
+                const values = getNonExcludedValues(a, l, appData.currentYear, appData.currentMonth);
+                
+                // Statistical Calculations
+                const labMean = calcMean(values);
+                const labSD = calcSD(values, labMean);
+                const labMax = labMean + (labSD * 3);
+                const labMin = labMean - (labSD * 3);
+                const labCV = calcCV(labSD, labMean);
+                
+                const factMean = (aData.factoryMean && aData.factoryMean[`L${l}`]) || 0;
+                const factSD = (aData.factorySD && aData.factorySD[`L${l}`]) || 0;
+                const factCV = factMean !== 0 ? calcCV(factSD, factMean) : 0;
+                const fMax = factMean + (3 * factSD);
+                const fMin = factMean - (3 * factSD);
+                const bias = factMean !== 0 ? calcBias(labMean, factMean) : 0;
+
+                if (rowObj.editable) {
+                    const input = document.createElement('input');
+                    
+                    if (rowObj.type === 'analyzer') {
+                        input.type = 'text';
+                        input.value = device.analyzer || '';
+                        input.addEventListener('change', (e) => {
+                            device.analyzer = e.target.value;
+                            showNotification('Analyzer updated!');
+                        });
+                    } else {
+                        input.type = (rowObj.type === 'lot' || rowObj.type === 'exp') ? 'text' : 'number';
+                        if (rowObj.type !== 'lot' && rowObj.type !== 'exp') {
+                            input.step = rowObj.type === 'tea' ? '0.1' : '0.01';
+                        }
+                        input.value = getStoredValue(aData, rowObj.type, l);
+                        
+                        input.addEventListener('change', (e) => {
+                            const val = (rowObj.type === 'lot' || rowObj.type === 'exp') 
+                                ? e.target.value 
+                                : (parseFloat(e.target.value) || 0);
+                            
+                            updateDataStorage(aData, rowObj.type, l, val);
+                            updateDashboard();
+                            populateStatsSummary();
+                            showNotification(`${rowObj.name} updated!`);
+                            window.triggerAutoSave();
+                        });
+                    }
+
+                    applyInputStyles(input, rowObj.type);
+                    td.appendChild(input);
+                } else {
+                    // Non-editable calculated readouts
+                    if (rowObj.type === 'fmax') td.textContent = fMax.toFixed(2);
+                    else if (rowObj.type === 'fmin') td.textContent = fMin.toFixed(2);
+                    else if (rowObj.type === 'lab_mean') {
+                        td.textContent = values.length > 0 ? labMean.toFixed(2) : '-';
+                        td.style.color = '#3498db';
+                    } else if (rowObj.type === 'lab_sd') {
+                        td.textContent = values.length > 0 ? labSD.toFixed(2) : '-';
+                        td.style.color = '#3498db';
+                    } else if (rowObj.type === 'lab_max') {
+                        td.textContent = values.length > 0 ? labMax.toFixed(2) : '-';
+                        td.style.color = '#3498db';
+                    } else if (rowObj.type === 'lab_min') {
+                        td.textContent = values.length > 0 ? labMin.toFixed(2) : '-';
+                        td.style.color = '#3498db';
+                    } else if (rowObj.type === 'lab_cv') {
+                        td.textContent = values.length > 0 ? labCV.toFixed(2) + '%' : '-';
+                        td.style.color = '#2ecc71';
+                    } else if (rowObj.type === 'fact_cv') {
+                        td.textContent = factMean !== 0 ? factCV.toFixed(2) + '%' : '-';
+                        td.style.color = '#f39c12';
+                    } else if (rowObj.type === 'bias') {
+                        td.textContent = (values.length > 0 && factMean !== 0 ? Math.abs(bias).toFixed(2) : '0') + '%';
+                        td.style.color = bias > 0 ? '#e74c3c' : '#2ecc71';
+                    }
+                }
+                tr.appendChild(td);
+            }
+        });
+        body.appendChild(tr);
+    });
+}
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
 function saveToStorage() { autoUpdateSpreadsheet(); localStorage.setItem('qcAppData', JSON.stringify({ devices: appData.devices, analyteLevels: appData.analyteLevels, institution: appData.institution, excludedValues: appData.excludedValues, users: appData.users, reportSettings: appData.reportSettings, customEquations: appData.customEquations, customWebResources: appData.customWebResources, customChatQA: appData.customChatQA })); showNotification('Data saved!'); }
 function loadFromStorage() { const json = localStorage.getItem('qcAppData'); if (json) { const loaded = JSON.parse(json); Object.assign(appData.devices, loaded.devices); if (loaded.analyteLevels) appData.analyteLevels = loaded.analyteLevels; if (loaded.institution) appData.institution = loaded.institution; if (loaded.excludedValues) appData.excludedValues = loaded.excludedValues; if (loaded.users) Object.assign(appData.users, loaded.users); if (loaded.reportSettings) Object.assign(appData.reportSettings, loaded.reportSettings); if (loaded.customEquations) appData.customEquations = loaded.customEquations; if (loaded.customWebResources) appData.customWebResources = loaded.customWebResources; if (loaded.customChatQA) appData.customChatQA = loaded.customChatQA; if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] }; if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = []; buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet(); applyUserPermissions(); showNotification('Data loaded!'); } else showNotification('No saved data!'); }
