@@ -464,7 +464,7 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="qc-info-box" id="qcL3Box" style="display:none" onclick="toggleMeanType(3)"><span class="label" id="labelL3">LAB Mean L3</span><br><span class="value" id="qcL3Mean">-</span></div>
 </div>
 <div class="fullscreen-btn-group"><button class="fullscreen-ctrl-btn" id="fullscreenExpandBtn" onclick="toggleFullscreen()" title="Full Browser (F11)">⛶</button></div>
-<button class="nav-btn" onclick="openSettings()" style="font-size:18px" title="Settings">⚙️</button>
+<button class="nav-btn" id="settingsBtn" onclick="openSettings()" style="font-size:18px" title="Settings">⚙️</button>
 <button class="assistant-btn" onclick="openAssistant()" title="Lab Assistant">🧪 Assistant</button>
 <button class="nav-btn" id="userMgmtBtn" onclick="openUserManagement()" style="font-size:18px; display:none;" title="User Management">👥</button>
 <button class="nav-btn" onclick="openAbout()" style="font-size:18px" title="About Developer">ℹ️</button>
@@ -605,6 +605,7 @@ input[type="number"] { -moz-appearance: textfield; }
 <div class="chat-msg bot">
 <strong>🧪 Lab Assistant:</strong> Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.<br><br>
 Try asking:<br>
+• "QMSAP"<br>
 • "What is the TEa for Glucose?"<br>
 • "How to calculate Sigma?"<br>
 • "Explain Westgard 1-3s rule"<br>
@@ -613,7 +614,10 @@ Try asking:<br>
 • "Check all devices"<br>
 • "All tests violations"<br>
 • "Global summary"<br>
-• "Developer"
+• "Developer"<br>
+• "which rules for TSH"<br>
+• "what rules to use for Glucose"<br>
+• "rules based on sigma" (This will automatically use whichever test you currently have selected on your dashboard).
 </div>
 </div>
 <div class="admin-only" id="chatAdminPanel" style="margin-bottom:10px; padding:10px; background:#16213e; border-radius:6px; border:1px dashed #9b59b6;">
@@ -1013,6 +1017,7 @@ function generateGlobalQcReport() {
     let totalViolations = 0;
     let allSigmaIssues = [];
     let allViolationItems = [];
+    let allRangeIssues = []; // NEW: Tracks Lab Max > F.Max or Lab Min < F.Min
 
     for (const [devId, device] of Object.entries(appData.devices)) {
         for (const analyte of device.analytes) {
@@ -1030,11 +1035,14 @@ function generateGlobalQcReport() {
                 }
 
                 if (validData.length > 0) {
-                    const mean = (appData.meanType["L" + lvl] === 'factory' && data.factoryMean["L" + lvl]) ? data.factoryMean["L" + lvl] : calcMean(validData.map(d => d.value));
-                    const sd = (appData.meanType["L" + lvl] === 'factory' && data.factorySD["L" + lvl]) ? data.factorySD["L" + lvl] : calcSD(validData.map(d => d.value), mean);
+                    const validValues = validData.map(d => d.value);
+                    
+                    // --- 1. Westgard Rules Check ---
+                    const mean = (appData.meanType["L" + lvl] === 'factory' && data.factoryMean["L" + lvl]) ? data.factoryMean["L" + lvl] : calcMean(validValues);
+                    const sd = (appData.meanType["L" + lvl] === 'factory' && data.factorySD["L" + lvl]) ? data.factorySD["L" + lvl] : calcSD(validValues, mean);
 
                     if (sd > 0) {
-                        const rules = westgardRules(validData.map(d => d.value), mean, sd);
+                        const rules = westgardRules(validValues, mean, sd);
                         if (rules.length > 0) {
                             rules.forEach(r => {
                                 const date = data.dates[r.index] || 'Unknown';
@@ -1045,12 +1053,10 @@ function generateGlobalQcReport() {
                             });
                         }
                     }
-                }
 
-                const validForSigma = values.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
-                if (validForSigma.length > 0) {
-                    const labMean = calcMean(validForSigma);
-                    const labSD = calcSD(validForSigma, labMean);
+                    // --- 2. Sigma / QGI Check ---
+                    const labMean = calcMean(validValues);
+                    const labSD = calcSD(validValues, labMean);
                     const labCV = calcCV(labSD, labMean);
                     const factMean = data.factoryMean["L" + lvl] || labMean;
                     const bias = calcBias(labMean, factMean);
@@ -1061,26 +1067,50 @@ function generateGlobalQcReport() {
                     const qgiClass = getQGIClass(qgi, sigma);
 
                     if (sigma < 6 || qgiClass.recCls !== 'good') {
-                        allSigmaIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: \u03c3 = " + sigma.toFixed(2) + " (" + sigmaClass.label + ") | QGI = " + qgi.toFixed(2) + " (" + qgiClass.label + ")</li>");
+                        allSigmaIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: σ = " + sigma.toFixed(2) + " (" + sigmaClass.label + ") | QGI = " + qgi.toFixed(2) + " (" + qgiClass.label + ")</li>");
+                    }
+
+                    // --- 3. NEW: Range Check (LAB MAX > F.MAX or LAB MIN < F.MIN) ---
+                    const labMax = Math.max(...validValues);
+                    const labMin = Math.min(...validValues);
+                    
+                    const factMeanForRange = data.factoryMean["L" + lvl] || labMean;
+                    const factSDForRange = data.factorySD["L" + lvl] || 0;
+                    
+                    const fMax = factMeanForRange + (3 * factSDForRange);
+                    const fMin = factMeanForRange - (3 * factSDForRange);
+
+                    if (factSDForRange > 0) {
+                        if (labMax > fMax) {
+                            allRangeIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: Lab Max (<span style='color:#e74c3c; font-weight:bold;'>" + labMax.toFixed(2) + "</span>) exceeds F.Max (<span style='color:#aaa;'>" + fMax.toFixed(2) + "</span>)</li>");
+                        }
+                        if (labMin < fMin) {
+                            allRangeIssues.push("<li><strong>" + device.name + " - " + analyte + " (L" + lvl + ")</strong>: Lab Min (<span style='color:#e74c3c; font-weight:bold;'>" + labMin.toFixed(2) + "</span>) is below F.Min (<span style='color:#aaa;'>" + fMin.toFixed(2) + "</span>)</li>");
+                        }
                     }
                 }
             }
         }
     }
 
-    if (totalViolations === 0 && allSigmaIssues.length === 0) {
-        return "<div style='background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; padding:10px; border-radius:4px;'><strong style='color:#2ecc71;'>\u2705 Excellent!</strong> No Westgard violations or Sigma/QGI issues detected across any device or test for the current period.</div>";
+    // --- Build Final Report ---
+    if (totalViolations === 0 && allSigmaIssues.length === 0 && allRangeIssues.length === 0) {
+        return "<div style='background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; padding:10px; border-radius:4px;'><strong style='color:#2ecc71;'>✅ Excellent!</strong> No Westgard violations, Range issues, or Sigma/QGI issues detected across any device or test for the current period.</div>";
     }
 
     if (allViolationItems.length > 0) {
-        html += "<div style='background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e74c3c;'>\ud83d\udea8 Total Violations Found: " + totalViolations + "</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allViolationItems.join('') + "</ul></div>";
+        html += "<div style='background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e74c3c;'>🚨 Westgard Rule Violations Found (" + totalViolations + "):</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allViolationItems.join('') + "</ul></div>";
+    }
+
+    if (allRangeIssues.length > 0) {
+        html += "<div style='background:rgba(230, 126, 34, 0.1); border-left:3px solid #e67e22; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#e67e22;'>⚠️ Out of Factory Range Issues (±3SD):</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allRangeIssues.join('') + "</ul><em style='color:#aaa; font-size:11px; display:block; margin-top:8px;'>💡 Action: Investigate calibration drift, new reagent lot matrix effects, or potential systematic shifts causing results to exceed the factory's expected ±3SD limits.</em></div>";
     }
 
     if (allSigmaIssues.length > 0) {
-        html += "<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#f39c12;'>\u26a0\ufe0f Sigma / QGI Performance Issues:</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allSigmaIssues.join('') + "</ul></div>";
+        html += "<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; border-radius:4px; margin-bottom:15px;'><strong style='color:#f39c12;'>📉 Sigma / QGI Performance Issues:</strong><ul style='margin:10px 0 0 20px; padding:0; max-height:200px; overflow-y:auto;'>" + allSigmaIssues.join('') + "</ul></div>";
     }
 
-    html += "<strong>\ud83d\udee0\ufe0f Recommended Corrective Actions (Global):</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles in samples/reagents.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate affected devices using fresh calibrators. Verify calibration curve and reagent lot expiration.</li><li><strong>For Combined Errors (0.8 \u2264 QGI \u2264 1.2):</strong> Full preventive maintenance (PM) and consider new QC material lot.</li><li><strong>General:</strong> Review specific dates and rules above in the respective device dashboards.</li></ul>";
+    html += "<strong>🛠️ Recommended Corrective Actions (Global):</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Range Exceedances:</strong> Check for new reagent lots, calibration drift, or instrument maintenance needs. Verify if the factory mean/SD needs updating for the current lot.</li><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles in samples/reagents.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate affected devices using fresh calibrators. Verify calibration curve and reagent lot expiration.</li><li><strong>For Combined Errors (0.8 ≤ QGI ≤ 1.2):</strong> Full preventive maintenance (PM) and consider new QC material lot.</li></ul>";
 
     return html;
 }
@@ -1089,32 +1119,129 @@ function generateGlobalQcReport() {
 function generateChatResponse(input) {
     const lower = input.toLowerCase();
 
+    // 1. Check Custom Q&A
     for (const qa of appData.customChatQA) {
         if (qa.triggers.some(t => t && lower.includes(t))) return qa.response;
     }
 
+    // 2. Check for Global Scan
     if (lower.includes('find and correct') || lower.includes('all devices') || lower.includes('all tests') || lower.includes('global summary') || lower.includes('check all') || (lower.includes('violation') && lower.includes('all'))) {
         return generateGlobalQcReport();
     }
 
+    // 3. Check for Rules Recommendation based on Sigma
+    const hasRulesKeyword = (lower.includes('rule') || lower.includes('rules')) && (lower.includes('sigma') || lower.includes('implement') || lower.includes('how many') || lower.includes('which') || lower.includes('use'));
+    if (hasRulesKeyword) {
+        const testMatch = lower.match(/for\s+([a-z0-9\-\.]+)/);
+        let query = testMatch ? testMatch[1].toUpperCase() : appData.currentAnalyte;
+        
+        let targetDevice = null;
+        let targetData = null;
+        let targetLevels = 2;
+
+        // Search in current device first, then all devices
+        const currDev = appData.devices[appData.currentDevice];
+        if (currDev.analytes.includes(query)) {
+            targetDevice = currDev;
+            targetData = getMonthData(currDev, query, appData.currentYear, appData.currentMonth);
+            targetLevels = getAnalyteLevels(query);
+        } else {
+            for (const dev of Object.values(appData.devices)) {
+                if (dev.analytes.includes(query)) {
+                    targetDevice = dev;
+                    targetData = getMonthData(dev, query, appData.currentYear, appData.currentMonth);
+                    targetLevels = getAnalyteLevels(query);
+                    break;
+                }
+            }
+        }
+
+        if (!targetData || !targetData.dates || targetData.dates.length === 0) {
+            return `⚠️ I couldn't find any QC data for <strong>${query}</strong> in the current period (${getMonthName()} ${appData.currentYear}). Please ensure data is loaded to calculate Sigma and recommend rules.`;
+        }
+
+        let html = `<strong>📊 Westgard Rules Recommendation for ${query}</strong><br>`;
+        html += `<em style="color:#aaa;">Based on current Sigma performance (${getMonthName()} ${appData.currentYear})</em><br><br>`;
+
+        const levelsToCheck = targetLevels >= 3 ? [1, 2, 3] : [1, 2];
+        let overallMinSigma = Infinity;
+        let overallRules = '';
+
+        for (const lvl of levelsToCheck) {
+            const values = targetData["L" + lvl] || [];
+            const validData = values.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
+            
+            if (validData.length > 0) {
+                const labMean = calcMean(validData);
+                const labSD = calcSD(validData, labMean);
+                const labCV = calcCV(labSD, labMean);
+                const factMean = targetData.factoryMean["L" + lvl] || labMean;
+                const bias = calcBias(labMean, factMean);
+                const tea = targetData.permissibleCV["L" + lvl] || 10;
+                const sigma = calcSigma(tea, Math.abs(bias), labCV);
+                
+                if (sigma < overallMinSigma) overallMinSigma = sigma;
+
+                const ruleInfo = getRulesForSigma(sigma);
+                const sigmaClass = getSigmaClass(sigma);
+                
+                html += `<div style="background:rgba(52,152,219,0.1); border-left:3px solid #3498db; padding:8px; margin-bottom:8px; border-radius:4px;">`;
+                html += `<strong>Level ${lvl}:</strong> σ = ${sigma.toFixed(2)} (${sigmaClass.label})<br>`;
+                html += `<strong>Recommended Rules:</strong> <span style="color:#2ecc71; font-weight:bold;">${ruleInfo.rules}</span>`;
+                html += `</div>`;
+                
+                // Keep the strictest rules required across all levels
+                if (!overallRules || sigma < overallMinSigma) {
+                    overallRules = ruleInfo.rules;
+                }
+            }
+        }
+
+        html += `<br><strong>💡 Implementation Strategy:</strong><br>`;
+        html += `Since the lowest Sigma metric across levels is <strong>${overallMinSigma.toFixed(2)}</strong>, you should implement the following rules for <strong>${query}</strong> to ensure optimal error detection while minimizing false rejections:<br>`;
+        html += `<div style="background:#16213e; padding:10px; border-radius:6px; margin-top:5px; font-family:monospace; color:#2ecc71; font-size:14px; text-align:center;">${overallRules}</div>`;
+        
+        html += `<br><strong>📖 Rule Definitions:</strong><ul style="margin:5px 0 0 20px; font-size:12px;">`;
+        if (overallRules.includes('1-3S')) html += `<li><strong>1-3s:</strong> Reject if 1 point exceeds ±3SD (Random Error).</li>`;
+        if (overallRules.includes('2-2S')) html += `<li><strong>2-2s:</strong> Reject if 2 consecutive points exceed ±2SD on same side (Systematic Error).</li>`;
+        if (overallRules.includes('R-4S')) html += `<li><strong>R-4s:</strong> Reject if range between 2 consecutive points exceeds 4SD (Random Error).</li>`;
+        if (overallRules.includes('4-1S')) html += `<li><strong>4-1s:</strong> Reject if 4 consecutive points exceed ±1SD on same side (Systematic Error).</li>`;
+        if (overallRules.includes('8X')) html += `<li><strong>8-x:</strong> Reject if 8 consecutive points are on same side of mean (Systematic Error).</li>`;
+        html += `</ul>`;
+
+        return html;
+    }
+
+    // 4. Check for TEa queries
     const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
     if (teaMatch) {
         const query = teaMatch[1].toUpperCase();
         const found = Object.keys(TEA_DATABASE).find(k => k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase()));
         if (found) {
             const d = TEA_DATABASE[found];
-            return "Here are the TEa specifications for <strong>" + found + " (" + d.name + ")</strong>:<br>\u2022 <strong>CLIA:</strong> " + (d.clia !== null ? d.clia + '%' : 'N/A') + "<br>\u2022 <strong>Bio. Variation:</strong> " + (d.bv !== null ? d.bv + '%' : 'N/A') + "<br>\u2022 <strong>Rilibak:</strong> " + (d.rlb !== null ? d.rlb + '%' : 'N/A') + "<br>\u2022 <strong>RCPA:</strong> " + (d.rcpa !== null ? d.rcpa + '%' : 'N/A') + "<br><br><em>\ud83d\udca1 Tip: Go to the TEa Database tab to apply directly.</em>";
+            return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
+            • <strong>CLIA:</strong> ${d.clia !== null ? d.clia + '%' : 'N/A'}<br>
+            • <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
+            • <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
+            • <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
+            <em>💡 Tip: Go to the TEa Database tab to apply directly.</em>`;
         }
-        return "I couldn't find TEa data for \"<strong>" + query + "</strong>\". Try Glucose, TSH, WBC, or Creatinine.";
+        return `I couldn't find TEa data for "<strong>${query}</strong>". Try Glucose, TSH, WBC, or Creatinine.`;
     }
 
-    if (lower.includes('sigma') || lower.includes('six sigma')) return "The <strong>Sigma Metric (\u03c3)</strong> formula is:<br><strong>\u03c3 = (TEa \u2212 |Bias%|) / CV%</strong><br><br>\u2022 \u03c3 \u2265 6: World Class \ud83c\udf1f<br>\u2022 5\u20136: Excellent<br>\u2022 4\u20135: Good<br>\u2022 3\u20134: Marginal<br>\u2022 < 3: Unacceptable";
-    if (lower.includes('cv') || lower.includes('coefficient of variation')) return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) \u00d7 100</strong>";
-    if (lower.includes('bias')) return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean \u2212 Target Mean) / Target Mean | \u00d7 100</strong>";
-    if (lower.includes('qgi') || lower.includes('quality goal index')) return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 \u00d7 CV%)</strong><br><br>\u2022 QGI < 0.8 \u2192 Random Error<br>\u2022 0.8 \u2264 QGI \u2264 1.2 \u2192 Combined Error<br>\u2022 QGI > 1.2 \u2192 Systematic Error";
-    if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s') || lower.includes('rule')) return "<strong>Westgard Multi-Rules:</strong><br>\u2022 1-2s: Warning<br>\u2022 1-3s: Reject (Random)<br>\u2022 2-2s: Reject (Systematic)<br>\u2022 R-4s: Reject (Random)<br>\u2022 4-1s: Reject (Systematic)<br>\u2022 8-x: Reject (Systematic)";
-    if (lower.includes('hello') || lower.includes('hi') || lower.includes('help')) return "Hello! \ud83d\udc4b Try asking:<br>\u2022 'Find and correct all devices'<br>\u2022 'TEa for [Analyte]'<br>\u2022 'How to calculate Sigma?'<br>\u2022 'Westgard rules'";
-    return "I'm not sure about that. \ud83e\udd14 Try: 'Find and correct all devices', 'TEa for [Analyte]', or 'Westgard rules'.";
+    // 5. Check for QC Equations
+    if (lower.includes('sigma') || lower.includes('six sigma')) return "The <strong>Sigma Metric (σ)</strong> formula is:<br><strong>σ = (TEa − |Bias%|) / CV%</strong><br><br>• σ ≥ 6: World Class 🌟<br>• 5–6: Excellent<br>• 4–5: Good<br>• 3–4: Marginal<br>• < 3: Unacceptable";
+    if (lower.includes('cv') || lower.includes('coefficient of variation')) return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) × 100</strong>";
+    if (lower.includes('bias')) return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</strong>";
+    if (lower.includes('qgi') || lower.includes('quality goal index')) return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 × CV%)</strong><br><br>• QGI < 0.8 → Random Error<br>• 0.8 ≤ QGI ≤ 1.2 → Combined Error<br>• QGI > 1.2 → Systematic Error";
+    
+    // 6. Check for Westgard rules general definition
+    if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s')) return "<strong>Westgard Multi-Rules:</strong><br>• 1-2s: Warning<br>• 1-3s: Reject (Random)<br>• 2-2s: Reject (Systematic)<br>• R-4s: Reject (Random)<br>• 4-1s: Reject (Systematic)<br>• 8-x: Reject (Systematic)";
+    
+    // 7. Check for help/greeting
+    if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) return "Hello! 👋 Try asking:<br>• 'How many rules for E2?'<br>• 'Find and correct all devices'<br>• 'TEa for Glucose'<br>• 'How to calculate Sigma?'";
+    
+    return "I'm not sure about that. 🤔 Try: 'How many rules for [Test]?', 'Find and correct', or 'TEa for [Analyte]'.";
 }
 
 const TEA_DATABASE = {
@@ -1468,8 +1595,9 @@ roleEl.textContent = roleLabels[currentUser.role] || 'USER';
 roleEl.className = 'user-session-role ' + (roleClasses[currentUser.role] || 'role-user');
 }
 function applyUserPermissions() {
-if (!currentUser) return;
-document.getElementById('userMgmtBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+    if (!currentUser) return;
+    document.getElementById('userMgmtBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+    document.getElementById('settingsBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none'; // Hides Settings for non-admins
 if (!canAccessDevice(appData.currentDevice)) {
 const accessible = getAccessibleDevices();
 if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
