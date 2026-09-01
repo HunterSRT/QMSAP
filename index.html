@@ -1992,121 +1992,232 @@ tbody.appendChild(tr);
 }
 }
 function updateWestgardTable(data, numLevels) {
-const tbody = document.getElementById('westgardBody'); if (!tbody) return; tbody.innerHTML = '';
-const analyte = appData.currentAnalyte;
-const valuesL1 = data.L1 || []; const valuesL2 = data.L2 || [];
-const labMeanL1 = calcMean(valuesL1), labSDL1 = calcSD(valuesL1, labMeanL1);
-const labMeanL2 = calcMean(valuesL2), labSDL2 = calcSD(valuesL2, labMeanL2);
-let meanL1, sdL1, meanL2, sdL2;
-if (appData.meanType.L1 === 'factory' && data.factoryMean.L1 && data.factorySD.L1) { meanL1 = data.factoryMean.L1; sdL1 = data.factorySD.L1; } else { meanL1 = labMeanL1; sdL1 = labSDL1; }
-if (appData.meanType.L2 === 'factory' && data.factoryMean.L2 && data.factorySD.L2) { meanL2 = data.factoryMean.L2; sdL2 = data.factorySD.L2; } else { meanL2 = labMeanL2; sdL2 = labSDL2; }
-const rulesL1 = westgardRules(valuesL1, meanL1, sdL1); const rulesL2 = westgardRules(valuesL2, meanL2, sdL2);
-let rulesL3 = []; let meanL3, sdL3;
-if (numLevels >= 3 && data.L3) { const valuesL3 = data.L3; const labMeanL3 = calcMean(valuesL3), labSDL3 = calcSD(valuesL3, labMeanL3); if (appData.meanType.L3 === 'factory' && data.factoryMean.L3 && data.factorySD.L3) { meanL3 = data.factoryMean.L3; sdL3 = data.factorySD.L3; } else { meanL3 = labMeanL3; sdL3 = labSDL3; } rulesL3 = westgardRules(valuesL3, meanL3, sdL3); }
-for (let i = 0; i < data.dates.length; i++) {
-if (!rowHasData(data, i, numLevels)) continue;
-const tr = document.createElement('tr');
-const v1 = data.L1 ? data.L1[i] : null; const isValid1 = v1 !== null && v1 !== undefined && v1 !== 0 && !isNaN(v1); const r1 = rulesL1.find(r => r.index === i); const td1 = document.createElement('td'); td1.textContent = isValid1 ? (r1 ? r1.rule.toUpperCase() : 'A') : ''; td1.className = r1 ? (r1.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a'; tr.appendChild(td1);
-const v2 = data.L2 ? data.L2[i] : null; const isValid2 = v2 !== null && v2 !== undefined && v2 !== 0 && !isNaN(v2); const r2 = rulesL2.find(r => r.index === i); const td2 = document.createElement('td'); td2.textContent = isValid2 ? (r2 ? r2.rule.toUpperCase() : 'A') : ''; td2.className = r2 ? (r2.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a'; tr.appendChild(td2);
-if (numLevels >= 3 && data.L3) { const v3 = data.L3[i]; const isValid3 = v3 !== null && v3 !== undefined && v3 !== 0 && !isNaN(v3); const r3 = rulesL3.find(r => r.index === i); const td3 = document.createElement('td'); td3.textContent = isValid3 ? (r3 ? r3.rule.toUpperCase() : 'A') : ''; td3.className = r3 ? (r3.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a'; tr.appendChild(td3); }
-tbody.appendChild(tr);
-}
-}
-function updateStats(data, numLevels, analyte) { 
-    const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth); 
-    const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth); 
+    const tbody = document.getElementById('westgardBody'); if (!tbody) return; tbody.innerHTML = '';
+    const analyte = appData.currentAnalyte;
     
+    const valuesL1 = data.L1 || []; 
+    const valuesL2 = data.L2 || [];
+    
+    // 1. Get excluded indices for each level
+    const excludedKey1 = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L1`;
+    const excludedKey2 = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L2`;
+    const excluded1 = appData.excludedValues[excludedKey1] || [];
+    const excluded2 = appData.excludedValues[excludedKey2] || [];
+
+    // 2. Create cleaned arrays where excluded values are forced to null
+    const cleanL1 = valuesL1.map((v, i) => excluded1.includes(i) ? null : v);
+    const cleanL2 = valuesL2.map((v, i) => excluded2.includes(i) ? null : v);
+
+    // 3. Calculate Mean/SD using ONLY valid (non-excluded) data
+    const validL1 = cleanL1.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
+    const validL2 = cleanL2.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
+
+    const labMeanL1 = calcMean(validL1);
+    const labSDL1 = calcSD(validL1, labMeanL1);
+    const labMeanL2 = calcMean(validL2);
+    const labSDL2 = calcSD(validL2, labMeanL2);
+
+    let meanL1, sdL1, meanL2, sdL2;
+    if (appData.meanType.L1 === 'factory' && data.factoryMean.L1 && data.factorySD.L1) { 
+        meanL1 = data.factoryMean.L1; sdL1 = data.factorySD.L1; 
+    } else { 
+        meanL1 = labMeanL1; sdL1 = labSDL1; 
+    }
+    if (appData.meanType.L2 === 'factory' && data.factoryMean.L2 && data.factorySD.L2) { 
+        meanL2 = data.factoryMean.L2; sdL2 = data.factorySD.L2; 
+    } else { 
+        meanL2 = labMeanL2; sdL2 = labSDL2; 
+    }
+
+    // 4. Pass CLEAN arrays to westgardRules so excluded points are ignored
+    const rulesL1 = westgardRules(cleanL1, meanL1, sdL1); 
+    const rulesL2 = westgardRules(cleanL2, meanL2, sdL2);
+
+    let rulesL3 = []; let meanL3, sdL3;
+    let excluded3 = [];
+    if (numLevels >= 3 && data.L3) { 
+        const valuesL3 = data.L3; 
+        const excludedKey3 = `${appData.currentDevice}_${analyte}_${appData.currentYear}_${appData.currentMonth}_L3`;
+        excluded3 = appData.excludedValues[excludedKey3] || [];
+        
+        const cleanL3 = valuesL3.map((v, i) => excluded3.includes(i) ? null : v);
+        const validL3 = cleanL3.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
+        
+        const labMeanL3 = calcMean(validL3);
+        const labSDL3 = calcSD(validL3, labMeanL3);
+        
+        if (appData.meanType.L3 === 'factory' && data.factoryMean.L3 && data.factorySD.L3) { 
+            meanL3 = data.factoryMean.L3; sdL3 = data.factorySD.L3; 
+        } else { 
+            meanL3 = labMeanL3; sdL3 = labSDL3; 
+        } 
+        rulesL3 = westgardRules(cleanL3, meanL3, sdL3); 
+    }
+
+    // 5. Render the table
+    for (let i = 0; i < data.dates.length; i++) {
+        if (!rowHasData(data, i, numLevels)) continue;
+        const tr = document.createElement('tr');
+        
+        // --- LEVEL 1 ---
+        const v1 = data.L1 ? data.L1[i] : null; 
+        const isValid1 = v1 !== null && v1 !== undefined && v1 !== 0 && !isNaN(v1);
+        const isExcluded1 = excluded1.includes(i);
+        const r1 = rulesL1.find(r => r.index === i); 
+        const td1 = document.createElement('td'); 
+        
+        if (isExcluded1) {
+            td1.textContent = '-';
+            td1.style.color = '#888';
+            td1.style.textDecoration = 'line-through';
+        } else {
+            td1.textContent = isValid1 ? (r1 ? r1.rule.toUpperCase() : 'A') : ''; 
+            td1.className = r1 ? (r1.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a'; 
+        }
+        tr.appendChild(td1);
+
+        // --- LEVEL 2 ---
+        const v2 = data.L2 ? data.L2[i] : null; 
+        const isValid2 = v2 !== null && v2 !== undefined && v2 !== 0 && !isNaN(v2);
+        const isExcluded2 = excluded2.includes(i);
+        const r2 = rulesL2.find(r => r.index === i); 
+        const td2 = document.createElement('td'); 
+        
+        if (isExcluded2) {
+            td2.textContent = '-';
+            td2.style.color = '#888';
+            td2.style.textDecoration = 'line-through';
+        } else {
+            td2.textContent = isValid2 ? (r2 ? r2.rule.toUpperCase() : 'A') : ''; 
+            td2.className = r2 ? (r2.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a'; 
+        }
+        tr.appendChild(td2);
+
+        // --- LEVEL 3 ---
+        if (numLevels >= 3 && data.L3) { 
+            const v3 = data.L3[i]; 
+            const isValid3 = v3 !== null && v3 !== undefined && v3 !== 0 && !isNaN(v3);
+            const isExcluded3 = excluded3.includes(i);
+            const r3 = rulesL3.find(r => r.index === i); 
+            const td3 = document.createElement('td'); 
+            
+            if (isExcluded3) {
+                td3.textContent = '-';
+                td3.style.color = '#888';
+                td3.style.textDecoration = 'line-through';
+            } else {
+                td3.textContent = isValid3 ? (r3 ? r3.rule.toUpperCase() : 'A') : ''; 
+                td3.className = r3 ? (r3.type === 'reject' ? 'rule-w' : 'rule-a') : 'rule-a'; 
+            }
+            tr.appendChild(td3); 
+        }
+        tbody.appendChild(tr);
+    }
+}
+
+
+function updateStats(data, numLevels, analyte) {
+    const valuesL1 = getNonExcludedValues(analyte, 1, appData.currentYear, appData.currentMonth);
+    const valuesL2 = getNonExcludedValues(analyte, 2, appData.currentYear, appData.currentMonth);
+
     const labMeanL1 = calcMean(valuesL1); const labSDL1 = calcSD(valuesL1, labMeanL1); const labCVL1 = calcCV(labSDL1, labMeanL1);
     const labMeanL2 = calcMean(valuesL2); const labSDL2 = calcSD(valuesL2, labMeanL2); const labCVL2 = calcCV(labSDL2, labMeanL2);
-    
+
     const factMeanL1 = data.factoryMean.L1 || labMeanL1; const factSDL1 = data.factorySD.L1 || labSDL1; const factCVL1 = calcCV(factSDL1, factMeanL1);
     const factMeanL2 = data.factoryMean.L2 || labMeanL2; const factSDL2 = data.factorySD.L2 || labSDL2; const factCVL2 = calcCV(factSDL2, factMeanL2);
-    
+
     const biasL1 = calcBias(labMeanL1, factMeanL1); const biasL2 = calcBias(labMeanL2, factMeanL2);
     const permCVL1 = data.permissibleCV.L1 || 10; const permCVL2 = data.permissibleCV.L2 || 10;
-    
-    // Helper functions for updating DOM
+
     const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     const setStyle = (id, prop, val) => { const el = document.getElementById(id); if (el) el.style[prop] = val; };
 
     // ================= LEVEL 1 =================
-    setTxt('meanL1', labMeanL1.toFixed(2)); 
-    setTxt('stdevL1', labSDL1.toFixed(3)); 
-    setTxt('acceptBiasL1', permCVL1.toFixed(1) + '%'); 
-    setTxt('labBiasL1', Math.abs(biasL1).toFixed(2) + '%'); 
-    setTxt('permCVL1', permCVL1.toFixed(1) + '%'); 
-    setTxt('factCVL1', factCVL1.toFixed(2) + '%'); 
+    // 1. Dynamic Mean & STDEV based on selected Mean Type (Lab vs Factory)
+    const displayMeanL1 = appData.meanType.L1 === 'factory' ? factMeanL1 : labMeanL1;
+    const displaySDL1 = appData.meanType.L1 === 'factory' ? factSDL1 : labSDL1;
+    
+    setTxt('meanL1', displayMeanL1.toFixed(2));
+    setTxt('stdevL1', displaySDL1.toFixed(3));
+    
+    // 2. Red color if Lab SD > Factory SD
+    const sdColorL1 = labSDL1 > factSDL1 ? '#e74c3c' : '#fff';
+    setStyle('stdevL1', 'color', sdColorL1);
+
+    setTxt('acceptBiasL1', permCVL1.toFixed(1) + '%');
+    setTxt('labBiasL1', Math.abs(biasL1).toFixed(2) + '%');
+    setTxt('permCVL1', permCVL1.toFixed(1) + '%');
+    setTxt('factCVL1', factCVL1.toFixed(2) + '%');
     setTxt('labCVL1', labCVL1.toFixed(2) + '%');
     drawGauge('gaugeL1', labCVL1, permCVL1);
 
-    // L1 MAX/MIN Limits & Warning
+    // L1 Range Limits (LAB x̄ ± 3×LAB SD)
     const labMaxL1 = labMeanL1 + (3 * labSDL1);
     const labMinL1 = labMeanL1 - (3 * labSDL1);
     const factMaxL1 = factMeanL1 + (3 * factSDL1);
     const factMinL1 = factMeanL1 - (3 * factSDL1);
-    
-    let rangeTextL1 = (appData.meanType.L1 === 'factory') 
-        ? `F.MAX: ${factMaxL1.toFixed(2)} | F.MIN: ${factMinL1.toFixed(2)}` 
-        : `L.MAX: ${labMaxL1.toFixed(2)} | L.MIN: ${labMinL1.toFixed(2)}`;
-        
-    let rangeColorL1 = (labMaxL1 > factMaxL1 || labMinL1 < factMinL1) ? '#e74c3c' : '#aaa';
-    setTxt('rangeL1', rangeTextL1); 
+    const rangeColorL1 = (labMaxL1 > factMaxL1 || labMinL1 < factMinL1) ? '#e74c3c' : '#aaa';
+    setTxt('rangeL1', `L.MAX: ${labMaxL1.toFixed(2)} | L.MIN: ${labMinL1.toFixed(2)}`);
     setStyle('rangeL1', 'color', rangeColorL1);
 
     // ================= LEVEL 2 =================
-    setTxt('meanL2', labMeanL2.toFixed(2)); 
-    setTxt('stdevL2', labSDL2.toFixed(3)); 
-    setTxt('acceptBiasL2', permCVL2.toFixed(1) + '%'); 
-    setTxt('labBiasL2', Math.abs(biasL2).toFixed(2) + '%'); 
-    setTxt('permCVL2', permCVL2.toFixed(1) + '%'); 
-    setTxt('factCVL2', factCVL2.toFixed(2) + '%'); 
+    const displayMeanL2 = appData.meanType.L2 === 'factory' ? factMeanL2 : labMeanL2;
+    const displaySDL2 = appData.meanType.L2 === 'factory' ? factSDL2 : labSDL2;
+
+    setTxt('meanL2', displayMeanL2.toFixed(2));
+    setTxt('stdevL2', displaySDL2.toFixed(3));
+
+    const sdColorL2 = labSDL2 > factSDL2 ? '#e74c3c' : '#fff';
+    setStyle('stdevL2', 'color', sdColorL2);
+
+    setTxt('acceptBiasL2', permCVL2.toFixed(1) + '%');
+    setTxt('labBiasL2', Math.abs(biasL2).toFixed(2) + '%');
+    setTxt('permCVL2', permCVL2.toFixed(1) + '%');
+    setTxt('factCVL2', factCVL2.toFixed(2) + '%');
     setTxt('labCVL2', labCVL2.toFixed(2) + '%');
     drawGauge('gaugeL2', labCVL2, permCVL2);
 
-    // L2 MAX/MIN Limits & Warning
+    // L2 Range Limits
     const labMaxL2 = labMeanL2 + (3 * labSDL2);
     const labMinL2 = labMeanL2 - (3 * labSDL2);
     const factMaxL2 = factMeanL2 + (3 * factSDL2);
     const factMinL2 = factMeanL2 - (3 * factSDL2);
-    
-    let rangeTextL2 = (appData.meanType.L2 === 'factory') 
-        ? `F.MAX: ${factMaxL2.toFixed(2)} | F.MIN: ${factMinL2.toFixed(2)}` 
-        : `L.MAX: ${labMaxL2.toFixed(2)} | L.MIN: ${labMinL2.toFixed(2)}`;
-        
-    let rangeColorL2 = (labMaxL2 > factMaxL2 || labMinL2 < factMinL2) ? '#e74c3c' : '#aaa';
-    setTxt('rangeL2', rangeTextL2); 
+    const rangeColorL2 = (labMaxL2 > factMaxL2 || labMinL2 < factMinL2) ? '#e74c3c' : '#aaa';
+    setTxt('rangeL2', `L.MAX: ${labMaxL2.toFixed(2)} | L.MIN: ${labMinL2.toFixed(2)}`);
     setStyle('rangeL2', 'color', rangeColorL2);
 
     // ================= LEVEL 3 =================
-    if (numLevels >= 3 && data.L3) { 
-        const valuesL3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth); 
+    if (numLevels >= 3 && data.L3) {
+        const valuesL3 = getNonExcludedValues(analyte, 3, appData.currentYear, appData.currentMonth);
         const labMeanL3 = calcMean(valuesL3); const labSDL3 = calcSD(valuesL3, labMeanL3); const labCVL3 = calcCV(labSDL3, labMeanL3);
         const factMeanL3 = data.factoryMean.L3 || labMeanL3; const factSDL3 = data.factorySD.L3 || labSDL3; const factCVL3 = calcCV(factSDL3, factMeanL3);
         const biasL3 = calcBias(labMeanL3, factMeanL3); const permCVL3 = data.permissibleCV.L3 || 10;
-        
-        setTxt('meanL3', labMeanL3.toFixed(2)); 
-        setTxt('stdevL3', labSDL3.toFixed(3)); 
-        setTxt('acceptBiasL3', permCVL3.toFixed(1) + '%'); 
-        setTxt('labBiasL3', Math.abs(biasL3).toFixed(2) + '%'); 
-        setTxt('permCVL3', permCVL3.toFixed(1) + '%'); 
-        setTxt('factCVL3', factCVL3.toFixed(2) + '%'); 
+
+        const displayMeanL3 = appData.meanType.L3 === 'factory' ? factMeanL3 : labMeanL3;
+        const displaySDL3 = appData.meanType.L3 === 'factory' ? factSDL3 : labSDL3;
+
+        setTxt('meanL3', displayMeanL3.toFixed(2));
+        setTxt('stdevL3', displaySDL3.toFixed(3));
+
+        const sdColorL3 = labSDL3 > factSDL3 ? '#e74c3c' : '#fff';
+        setStyle('stdevL3', 'color', sdColorL3);
+
+        setTxt('acceptBiasL3', permCVL3.toFixed(1) + '%');
+        setTxt('labBiasL3', Math.abs(biasL3).toFixed(2) + '%');
+        setTxt('permCVL3', permCVL3.toFixed(1) + '%');
+        setTxt('factCVL3', factCVL3.toFixed(2) + '%');
         setTxt('labCVL3', labCVL3.toFixed(2) + '%');
         drawGauge('gaugeL3', labCVL3, permCVL3);
 
-        // L3 MAX/MIN Limits & Warning
+        // L3 Range Limits
         const labMaxL3 = labMeanL3 + (3 * labSDL3);
         const labMinL3 = labMeanL3 - (3 * labSDL3);
         const factMaxL3 = factMeanL3 + (3 * factSDL3);
         const factMinL3 = factMeanL3 - (3 * factSDL3);
-        
-        let rangeTextL3 = (appData.meanType.L3 === 'factory') 
-            ? `F.MAX: ${factMaxL3.toFixed(2)} | F.MIN: ${factMinL3.toFixed(2)}` 
-            : `L.MAX: ${labMaxL3.toFixed(2)} | L.MIN: ${labMinL3.toFixed(2)}`;
-            
-        let rangeColorL3 = (labMaxL3 > factMaxL3 || labMinL3 < factMinL3) ? '#e74c3c' : '#aaa';
-        setTxt('rangeL3', rangeTextL3); 
+        const rangeColorL3 = (labMaxL3 > factMaxL3 || labMinL3 < factMinL3) ? '#e74c3c' : '#aaa';
+        setTxt('rangeL3', `L.MAX: ${labMaxL3.toFixed(2)} | L.MIN: ${labMinL3.toFixed(2)}`);
         setStyle('rangeL3', 'color', rangeColorL3);
-    } 
+    }
 }
 
 
