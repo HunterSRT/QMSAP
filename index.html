@@ -1395,102 +1395,326 @@ html += `<strong>🛠️ Recommended Corrective Actions:</strong><br><ul style='
 return html;
 }
 function generateChatResponse(input) {
-const lower = input.toLowerCase();
-for (const qa of appData.customChatQA) {
-if (qa.triggers.some(t => t && lower.includes(t))) return qa.response;
-}
-if (lower.includes('find and correct') || lower.includes('all devices') || lower.includes('all tests') || lower.includes('global summary') || lower.includes('check all') || (lower.includes('violation') && lower.includes('all'))) {
-return generateGlobalQcReport();
-}
-const hasRulesKeyword = (lower.includes('rule') || lower.includes('rules')) && (lower.includes('sigma') || lower.includes('implement') || lower.includes('how many') || lower.includes('which') || lower.includes('use'));
-if (hasRulesKeyword) {
-const testMatch = lower.match(/for\s+([a-z0-9\-\.]+)/);
-let query = testMatch ? testMatch[1].toUpperCase() : appData.currentAnalyte;
-let targetDevice = null;
-let targetData = null;
-let targetLevels = 2;
-const currDev = appData.devices[appData.currentDevice];
-if (currDev.analytes.includes(query)) {
-targetDevice = currDev;
-targetData = getMonthData(currDev, query, appData.currentYear, appData.currentMonth);
-targetLevels = getAnalyteLevels(query);
-} else {
-for (const dev of Object.values(appData.devices)) {
-if (dev.analytes.includes(query)) {
-targetDevice = dev;
-targetData = getMonthData(dev, query, appData.currentYear, appData.currentMonth);
-targetLevels = getAnalyteLevels(query);
-break;
-}
-}
-}
-if (!targetData || !targetData.dates || targetData.dates.length === 0) {
-return `⚠️ I couldn't find any QC data for <strong>${query}</strong> in the current period (${getMonthName()} ${appData.currentYear}). Please ensure data is loaded to calculate Sigma and recommend rules.`;
-}
-let html = `<strong>📊 Westgard Rules Recommendation for ${query}</strong><br>`;
-html += `<em style="color:#aaa;">Based on current Sigma performance (${getMonthName()} ${appData.currentYear})</em><br><br>`;
-const levelsToCheck = targetLevels >= 3 ? [1, 2, 3] : [1, 2];
-let overallMinSigma = Infinity;
-let overallRules = '';
-for (const lvl of levelsToCheck) {
-const values = targetData["L" + lvl] || [];
-const validData = values.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
-if (validData.length > 0) {
-const labMean = calcMean(validData);
-const labSD = calcSD(validData, labMean);
-const labCV = calcCV(labSD, labMean);
-const factMean = targetData.factoryMean["L" + lvl] || labMean;
-const bias = calcBias(labMean, factMean);
-const tea = targetData.permissibleCV["L" + lvl] || 10;
-const sigma = calcSigma(tea, Math.abs(bias), labCV);
-if (sigma < overallMinSigma) overallMinSigma = sigma;
-const ruleInfo = getRulesForSigma(sigma);
-const sigmaClass = getSigmaClass(sigma);
-html += `<div style="background:rgba(52,152,219,0.1); border-left:3px solid #3498db; padding:8px; margin-bottom:8px; border-radius:4px;">`;
-html += `<strong>Level ${lvl}:</strong> σ = ${sigma.toFixed(2)} (${sigmaClass.label})<br>`;
-html += `<strong>Recommended Rules:</strong> <span style="color:#2ecc71; font-weight:bold;">${ruleInfo.rules}</span>`;
-html += `</div>`;
-if (!overallRules || sigma < overallMinSigma) {
-overallRules = ruleInfo.rules;
-}
-}
-}
-html += `<br><strong>💡 Implementation Strategy:</strong><br>`;
-html += `Since the lowest Sigma metric across levels is <strong>${overallMinSigma.toFixed(2)}</strong>, you should implement the following rules for <strong>${query}</strong> to ensure optimal error detection while minimizing false rejections:<br>`;
-html += `<div style="background:#16213e; padding:10px; border-radius:6px; margin-top:5px; font-family:monospace; color:#2ecc71; font-size:14px; text-align:center;">${overallRules}</div>`;
-html += `<br><strong>📖 Rule Definitions:</strong><ul style="margin:5px 0 0 20px; font-size:12px;">`;
-if (overallRules.includes('1-3S')) html += `<li><strong>1-3s:</strong> Reject if 1 point exceeds ±3SD (Random Error).</li>`;
-if (overallRules.includes('2-2S')) html += `<li><strong>2-2s:</strong> Reject if 2 consecutive points exceed ±2SD on same side (Systematic Error).</li>`;
-if (overallRules.includes('R-4S')) html += `<li><strong>R-4s:</strong> Reject if range between 2 consecutive points exceeds 4SD (Random Error).</li>`;
-if (overallRules.includes('4-1S')) html += `<li><strong>4-1s:</strong> Reject if 4 consecutive points exceed ±1SD on same side (Systematic Error).</li>`;
-if (overallRules.includes('8X')) html += `<li><strong>8-x:</strong> Reject if 8 consecutive points are on same side of mean (Systematic Error).</li>`;
-html += `</ul>`;
-return html;
-}
-const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
-if (teaMatch) {
-const query = teaMatch[1].toUpperCase();
-const found = Object.keys(TEA_DATABASE).find(k => k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase()));
-if (found) {
-const d = TEA_DATABASE[found];
-return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
+    const lower = input.toLowerCase();
+    
+    // 1. Check Custom Q&A
+    for (const qa of appData.customChatQA) {
+        if (qa.triggers.some(t => t && lower.includes(t))) return qa.response;
+    }
+    
+    // 2. Check for Global Scan (Find and Correct)
+    if (lower.includes('find and correct') || lower.includes('all devices') || lower.includes('all tests') || lower.includes('global summary') || lower.includes('check all') || (lower.includes('violation') && lower.includes('all'))) {
+        return generateGlobalQcReport();
+    }
+    
+    // 3. Check for Rules Recommendation based on Sigma
+    const hasRulesKeyword = (lower.includes('rule') || lower.includes('rules')) && (lower.includes('sigma') || lower.includes('implement') || lower.includes('how many') || lower.includes('which') || lower.includes('use'));
+    if (hasRulesKeyword) {
+        const testMatch = lower.match(/for\s+([a-z0-9\-\.]+)/);
+        let query = testMatch ? testMatch[1].toUpperCase() : appData.currentAnalyte;
+        let targetDevice = null;
+        let targetData = null;
+        let targetLevels = 2;
+        const currDev = appData.devices[appData.currentDevice];
+        if (currDev.analytes.includes(query)) {
+            targetDevice = currDev;
+            targetData = getMonthData(currDev, query, appData.currentYear, appData.currentMonth);
+            targetLevels = getAnalyteLevels(query);
+        } else {
+            for (const dev of Object.values(appData.devices)) {
+                if (dev.analytes.includes(query)) {
+                    targetDevice = dev;
+                    targetData = getMonthData(dev, query, appData.currentYear, appData.currentMonth);
+                    targetLevels = getAnalyteLevels(query);
+                    break;
+                }
+            }
+        }
+        if (!targetData || !targetData.dates || targetData.dates.length === 0) {
+            return `⚠️ I couldn't find any QC data for <strong>${query}</strong> in the current period (${getMonthName()} ${appData.currentYear}). Please ensure data is loaded to calculate Sigma and recommend rules.`;
+        }
+        let html = `<strong>📊 Westgard Rules Recommendation for ${query}</strong><br>`;
+        html += `<em style="color:#aaa;">Based on current Sigma performance (${getMonthName()} ${appData.currentYear})</em><br><br>`;
+        const levelsToCheck = targetLevels >= 3 ? [1, 2, 3] : [1, 2];
+        let overallMinSigma = Infinity;
+        let overallRules = '';
+        for (const lvl of levelsToCheck) {
+            const values = targetData["L" + lvl] || [];
+            const validData = values.filter(v => v !== null && v !== undefined && v !== 0 && !isNaN(v));
+            if (validData.length > 0) {
+                const labMean = calcMean(validData);
+                const labSD = calcSD(validData, labMean);
+                const labCV = calcCV(labSD, labMean);
+                const factMean = targetData.factoryMean["L" + lvl] || labMean;
+                const bias = calcBias(labMean, factMean);
+                const tea = targetData.permissibleCV["L" + lvl] || 10;
+                const sigma = calcSigma(tea, Math.abs(bias), labCV);
+                if (sigma < overallMinSigma) overallMinSigma = sigma;
+                const ruleInfo = getRulesForSigma(sigma);
+                const sigmaClass = getSigmaClass(sigma);
+                html += `<div style="background:rgba(52,152,219,0.1); border-left:3px solid #3498db; padding:8px; margin-bottom:8px; border-radius:4px;">`;
+                html += `<strong>Level ${lvl}:</strong> σ = ${sigma.toFixed(2)} (${sigmaClass.label})<br>`;
+                html += `<strong>Recommended Rules:</strong> <span style="color:#2ecc71; font-weight:bold;">${ruleInfo.rules}</span>`;
+                html += `</div>`;
+                if (!overallRules || sigma < overallMinSigma) {
+                    overallRules = ruleInfo.rules;
+                }
+            }
+        }
+        html += `<br><strong> Implementation Strategy:</strong><br>`;
+        html += `Since the lowest Sigma metric across levels is <strong>${overallMinSigma.toFixed(2)}</strong>, you should implement the following rules for <strong>${query}</strong> to ensure optimal error detection while minimizing false rejections:<br>`;
+        html += `<div style="background:#16213e; padding:10px; border-radius:6px; margin-top:5px; font-family:monospace; color:#2ecc71; font-size:14px; text-align:center;">${overallRules}</div>`;
+        html += `<br><strong>📖 Rule Definitions:</strong><ul style="margin:5px 0 0 20px; font-size:12px;">`;
+        if (overallRules.includes('1-3S')) html += `<li><strong>1-3s:</strong> Reject if 1 point exceeds ±3SD (Random Error).</li>`;
+        if (overallRules.includes('2-2S')) html += `<li><strong>2-2s:</strong> Reject if 2 consecutive points exceed ±2SD on same side (Systematic Error).</li>`;
+        if (overallRules.includes('R-4S')) html += `<li><strong>R-4s:</strong> Reject if range between 2 consecutive points exceeds 4SD (Random Error).</li>`;
+        if (overallRules.includes('4-1S')) html += `<li><strong>4-1s:</strong> Reject if 4 consecutive points exceed ±1SD on same side (Systematic Error).</li>`;
+        if (overallRules.includes('8X')) html += `<li><strong>8-x:</strong> Reject if 8 consecutive points are on same side of mean (Systematic Error).</li>`;
+        html += `</ul>`;
+        return html;
+    }
+    
+    // 4. Check for TEa queries
+    const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
+    if (teaMatch) {
+        const query = teaMatch[1].toUpperCase();
+        const found = Object.keys(TEA_DATABASE).find(k => k === query || TEA_DATABASE[k].name.toLowerCase().includes(query.toLowerCase()));
+        if (found) {
+            const d = TEA_DATABASE[found];
+            return `Here are the TEa specifications for <strong>${found} (${d.name})</strong>:<br>
 • <strong>CLIA:</strong> ${d.clia !== null ? d.clia + '%' : 'N/A'}<br>
 • <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
 • <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
 • <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
 <em>💡 Tip: Go to the TEa Database tab to apply directly.</em>`;
-}
-return `I couldn't find TEa data for "<strong>${query}</strong>". Try Glucose, TSH, WBC, or Creatinine.`;
-}
-if (lower.includes('sigma') || lower.includes('six sigma')) return "The <strong>Sigma Metric (σ)</strong> formula is:<br><strong>σ = (TEa − |Bias%|) / CV%</strong><br><br>• σ ≥ 6: World Class 🌟<br>• 5–6: Excellent<br>• 4–5: Good<br>• 3–4: Marginal<br>• < 3: Unacceptable";
-if (lower.includes('cv') || lower.includes('coefficient of variation')) return "The <strong>Coefficient of Variation (CV%)</strong> formula is:<br><strong>CV% = (SD / |Mean|) × 100</strong>";
-if (lower.includes('bias')) return "The <strong>Bias%</strong> formula is:<br><strong>Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</strong>";
-if (lower.includes('qgi') || lower.includes('quality goal index')) return "The <strong>Quality Goal Index (QGI)</strong> formula is:<br><strong>QGI = |Bias%| / (1.65 × CV%)</strong><br><br>• QGI < 0.8 → Random Error<br>• 0.8 ≤ QGI ≤ 1.2 → Combined Error<br>• QGI > 1.2 → Systematic Error";
-if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s')) return "<strong>Westgard Multi-Rules:</strong><br>• 1-2s: Warning<br>• 1-3s: Reject (Random)<br>• 2-2s: Reject (Systematic)<br>• R-4s: Reject (Random)<br>• 4-1s: Reject (Systematic)<br>• 8-x: Reject (Systematic)";
-if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) return "Hello! 👋 Try asking:<br>• 'Find and correct all devices'<br>• 'How many rules for E2?'<br>• 'TEa for Glucose'<br>• 'How to calculate Sigma?'";
-if (lower.includes('qmsap')) return "<strong>QMSAP</strong> is a comprehensive Quality Management System for laboratories. It features:<br>• Levey-Jennings charts<br>• Westgard Multi-Rules<br>• Sigma Metrics & QGI<br>• Excel Import/Export<br>• PDF Reports<br>• Cloud Sync<br>• Developer Mode for customization<br><br>Built by Lab.SP Mohammed Al Desoqy.";
-if (lower.includes('developer')) return "<strong>Developer:</strong> Mohammed Al-Mugtaba (Lab.SP)<br>📧 Email: M.i.y.d@hotmail.com<br>🏆 Winner of 'People Person Award in Problem Solving and Amendment' 2024";
-return "I'm not sure about that. 🤔 Try: 'Find and correct', 'How many rules for [Test]?', 'TEa for [Analyte]', 'What is QMSAP?', or 'Generate Report'.";
+        }
+        return `I couldn't find TEa data for "<strong>${query}</strong>". Try Glucose, TSH, WBC, or Creatinine.`;
+    }
+    
+    // 5. Check for QC Equations with detailed explanations
+    if (lower.includes('sigma') || lower.includes('six sigma')) return `
+        <strong>📊 Sigma Metric (σ)</strong><br><br>
+        <strong>Definition:</strong> Sigma is a quality metric that combines bias and imprecision to assess overall test performance.<br><br>
+        <strong>Formula:</strong><br>
+        <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">σ = (TEa − |Bias%|) / CV%</div>
+        <strong>Where:</strong><br>
+        • TEa = Total Allowable Error (quality goal)<br>
+        • Bias% = Systematic error (accuracy)<br>
+        • CV% = Coefficient of Variation (imprecision)<br><br>
+        <strong>Interpretation:</strong><br>
+        • <span style="color:#2ecc71">σ ≥ 6: World Class</span> 🌟 (Minimal QC needed)<br>
+        • <span style="color:#3498db">5 ≤ σ < 6: Excellent</span> (1-3s, 2-2s)<br>
+        • <span style="color:#f39c12">4 ≤ σ < 5: Good</span> (1-3s, 2-2s, R-4s)<br>
+        • <span style="color:#e67e22">3 ≤ σ < 4: Marginal</span> ️ (Multi-rules)<br>
+        • <span style="color:#e74c3c">σ < 3: Unacceptable</span> ❌ (Needs improvement)<br><br>
+        <strong>Purpose:</strong> Determines appropriate QC rules and frequency based on test performance.`;
+    
+    if (lower.includes('cv') || lower.includes('coefficient of variation')) return `
+        <strong>📈 Coefficient of Variation (CV%)</strong><br><br>
+        <strong>Definition:</strong> CV expresses the standard deviation as a percentage of the mean, allowing comparison of precision across different concentration levels.<br><br>
+        <strong>Formula:</strong><br>
+        <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">CV% = (SD / |Mean|) × 100</div>
+        <strong>Where:</strong><br>
+        • SD = Standard Deviation<br>
+        • Mean = Average of QC values<br><br>
+        <strong>Interpretation:</strong><br>
+        • <strong>Lower CV = Better precision</strong> ✅<br>
+        • <strong>Higher CV = Worse precision</strong> ⚠️<br><br>
+        <strong>Purpose:</strong><br>
+        • Assesses <strong>imprecision (random error)</strong><br>
+        • Compares laboratory precision against:<br>
+          - Permissible CV (TEa-based)<br>
+          - Factory/Manufacturer CV<br>
+          - Peer group CV<br><br>
+        <strong>Acceptability:</strong><br>
+        • CV < Permissible CV ✅ (Acceptable)<br>
+        • CV > Permissible CV ⚠️ (Investigate)`;
+    
+    if (lower.includes('bias')) return `
+        <strong>️ Bias%</strong><br><br>
+        <strong>Definition:</strong> Bias measures <strong>systematic error (accuracy)</strong> - the difference between your lab's mean and the target mean (factory mean or peer group mean).<br><br>
+        <strong>Formula:</strong><br>
+        <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</div>
+        <strong>Where:</strong><br>
+        • Lab Mean = Your laboratory's average<br>
+        • Target Mean = Factory mean or peer group mean<br><br>
+        <strong>Interpretation:</strong><br>
+        • <strong>Positive Bias:</strong> Results are higher than target ️<br>
+        • <strong>Negative Bias:</strong> Results are lower than target ️<br>
+        • <strong>Bias > Acceptable Limit:</strong> Recalibration needed ️<br><br>
+        <strong>Purpose:</strong><br>
+        • Assesses <strong>accuracy (systematic error)</strong><br>
+        • Identifies calibration issues<br>
+        • Detects systematic shifts in results<br><br>
+        <strong>Acceptability:</strong><br>
+        • Bias < Acceptable Bias ✅ (Acceptable)<br>
+        • Bias > Acceptable Bias ⚠️ (Investigate/Recalibrate)`;
+    
+    if (lower.includes('qgi') || lower.includes('quality goal index')) return `
+        <strong>🔍 Quality Goal Index (QGI)</strong><br><br>
+        <strong>Definition:</strong> QGI helps <strong>diagnose the type of error</strong> when Sigma < 6, indicating whether the problem is precision, accuracy, or both.<br><br>
+        <strong>Formula:</strong><br>
+        <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">QGI = |Bias%| / (1.65 × CV%)</div>
+        <strong>Where:</strong><br>
+        • Bias% = Systematic error<br>
+        • CV% = Coefficient of Variation (imprecision)<br>
+        • 1.65 = Constant (relates to 95% confidence)<br><br>
+        <strong>Interpretation:</strong><br>
+        <div style="background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; margin:10px 0;">
+        <strong>QGI < 0.8:</strong> <span style="color:#e74c3c">Random Error</span><br>
+        <strong>Corrective Action:</strong> Improve precision<br>
+        • Review pipetting techniques<br>
+        • Check reagent mixing<br>
+        • Look for bubbles<br>
+        • Check instrument maintenance
+        </div>
+        <div style="background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; margin:10px 0;">
+        <strong>0.8 ≤ QGI ≤ 1.2:</strong> <span style="color:#f39c12">Combined Error</span><br>
+        <strong>Corrective Action:</strong> Improve BOTH precision and accuracy<br>
+        • Full preventive maintenance (PM)<br>
+        • Recalibrate + check precision<br>
+        • Review entire testing process
+        </div>
+        <div style="background:rgba(52,152,219,0.1); border-left:3px solid #3498db; padding:10px; margin:10px 0;">
+        <strong>QGI > 1.2:</strong> <span style="color:#3498db">Systematic Error</span><br>
+        <strong>Corrective Action:</strong> Improve accuracy<br>
+        • Recalibrate using fresh calibrators<br>
+        • Verify calibration curve<br>
+        • Check reagent lot changes
+        </div>
+        <strong>Purpose:</strong> Root cause analysis for poor Sigma performance.`;
+    
+    if (lower.includes('sd') || lower.includes('standard deviation')) return `
+        <strong> Standard Deviation (SD)</strong><br><br>
+        <strong>Definition:</strong> SD measures the <strong>dispersion or spread</strong> of QC values around the mean. It indicates how much variation exists in your test results.<br><br>
+        <strong>Formula:</strong><br>
+        <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">SD = √[ Σ(xᵢ - x̄)² / (n - 1) ]</div>
+        <strong>Where:</strong><br>
+        • x = Individual QC values<br>
+        • x̄ = Mean (average)<br>
+        • n = Number of values<br>
+        • (n-1) = Sample SD (Bessel's correction)<br><br>
+        <strong>Interpretation:</strong><br>
+        • <strong>Smaller SD:</strong> Values are clustered close to mean ✅<br>
+        • <strong>Larger SD:</strong> Values are more spread out ⚠️<br><br>
+        <strong>Purpose:</strong><br>
+        • Assesses <strong>precision (repeatability)</strong><br>
+        • Helps establish control limits:<br>
+          - ±1SD = 68% of values<br>
+          - ±2SD = 95% of values<br>
+          - ±3SD = 99.7% of values<br>
+        • Identifies random errors in testing<br><br>
+        <strong>Acceptability:</strong><br>
+        • Lab SD ≤ Factory SD ✅ (Acceptable)<br>
+        • Lab SD > Factory SD ️ (Investigate)`;
+    
+    if (lower.includes('tea') || lower.includes('total allowable error')) return `
+        <strong>🎯 Total Allowable Error (TEa)</strong><br><br>
+        <strong>Definition:</strong> TEa is the <strong>maximum acceptable error</strong> (combination of random and systematic error) that is clinically acceptable for a test.<br><br>
+        <strong>Purpose:</strong><br>
+        • Sets <strong>quality specifications</strong> for laboratory tests<br>
+        • Basis for Sigma calculation<br>
+        • Ensures patient results are clinically reliable<br>
+        • Defines acceptable performance limits<br><br>
+        <strong>Sources:</strong><br>
+        1. <strong>CLIA'88</strong> (USA) - Regulatory limits<br>
+        2. <strong>Biological Variation</strong> (EFLM) - Scientific model<br>
+        3. <strong>Rilibak</strong> (Germany) - Guidelines<br>
+        4. <strong>RCPA</strong> (Australia) - Recommendations<br><br>
+        <strong>Examples:</strong><br>
+        • Glucose: 10% (CLIA)<br>
+        • Sodium: 4 mmol/L (CLIA)<br>
+        • TSH: 20% (CLIA)<br>
+        • HbA1c: 8% (CLIA)<br><br>
+        <strong>Application:</strong><br>
+        Used in Sigma calculation: σ = (TEa − |Bias%|) / CV%`;
+    
+    if (lower.includes('westgard') || lower.includes('1-3s') || lower.includes('2-2s')) return `
+        <strong>📋 Westgard Multi-Rules</strong><br><br>
+        <strong>Definition:</strong> Westgard rules are statistical criteria used to determine if a QC run is acceptable or should be rejected.<br><br>
+        <strong>Warning Rule:</strong><br>
+        <div style="background:rgba(243,156,18,0.1); border-left:3px solid #f39c12; padding:10px; margin:10px 0;">
+        <strong>1-2s:</strong> One point exceeds ±2SD<br>
+        <span style="color:#f39c12">WARNING</span> - Check next rules
+        </div>
+        <strong>Rejection Rules:</strong><br>
+        <div style="background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; margin:10px 0;">
+        <strong>1-3s:</strong> One point exceeds ±3SD<br>
+        <span style="color:#e74c3c">REJECT</span> - Random error
+        </div>
+        <div style="background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; margin:10px 0;">
+        <strong>2-2s:</strong> Two consecutive points exceed ±2SD on same side<br>
+        <span style="color:#e74c3c">REJECT</span> - Systematic error
+        </div>
+        <div style="background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; margin:10px 0;">
+        <strong>R-4s:</strong> Range between 2 consecutive points exceeds 4SD<br>
+        <span style="color:#e74c3c">REJECT</span> - Random error
+        </div>
+        <div style="background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; margin:10px 0;">
+        <strong>4-1s:</strong> Four consecutive points exceed ±1SD on same side<br>
+        <span style="color:#e74c3c">REJECT</span> - Systematic error
+        </div>
+        <div style="background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; padding:10px; margin:10px 0;">
+        <strong>8-x:</strong> Eight consecutive points on same side of mean<br>
+        <span style="color:#e74c3c">REJECT</span> - Systematic error
+        </div>
+        <strong>Error Types:</strong><br>
+        • <strong>Random Error:</strong> 1-3s, R-4s<br>
+        • <strong>Systematic Error:</strong> 2-2s, 4-1s, 8-x`;
+    
+    // 6. Check for help/greeting
+    if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) return `
+        <strong>Hello! 👋 I'm your QMSAP Lab Assistant</strong><br><br>
+        I can help you with:<br><br>
+        <strong>📊 QC Analysis:</strong><br>
+        • "Find and correct all devices"<br>
+        • "How many rules for E2?"<br>
+        • "Rules based on sigma for Glucose"<br><br>
+        <strong>📐 Equations & Definitions:</strong><br>
+        • "What is Sigma?"<br>
+        • "Explain CV and SD"<br>
+        • "What is QGI?"<br>
+        • "Define Bias and TEa"<br>
+        • "Westgard rules"<br><br>
+        <strong>🎯 TEa Information:</strong><br>
+        • "TEa for Glucose"<br>
+        • "What is TEa for TSH?"<br><br>
+        <strong>️ General:</strong><br>
+        • "What is QMSAP?"<br>
+        • "Developer info"`;
+    
+    if (lower.includes('qmsap')) return `
+        <strong>🔬 QMSAP - Quality Management System for Analytical Performance</strong><br><br>
+        <strong>Features:</strong><br>
+        •  <strong>Levey-Jennings Charts</strong> - Visual QC monitoring<br>
+        • 📋 <strong>Westgard Multi-Rules</strong> - Automated QC rules<br>
+        • 📈 <strong>Sigma Metrics & QGI</strong> - Performance assessment<br>
+        • 📁 <strong>Excel Import/Export</strong> - Data management<br>
+        •  <strong>PDF Reports</strong> - Professional documentation<br>
+        • ☁️ <strong>Cloud Sync</strong> - Data backup & sharing<br>
+        • 🔧 <strong>Developer Mode</strong> - Customization options<br><br>
+        <strong>Purpose:</strong><br>
+        QMSAP helps laboratories monitor and improve their analytical quality through comprehensive QC analysis, Sigma metrics, and automated rule application.<br><br>
+        <strong>Built by:</strong> Lab.SP Mohammed Al Desoqy`;
+    
+    if (lower.includes('developer')) return `
+        <strong>👨‍💻 Developer Information</strong><br><br>
+        <strong>Name:</strong> Mohammed Al-Mugtaba (Lab.SP)<br>
+        <strong>Email:</strong> M.i.y.d@hotmail.com<br>
+        <strong>Achievement:</strong> 🏆 Winner of "People Person Award in Problem Solving and Amendment" 2024<br><br>
+        <strong>About:</strong><br>
+        A Laboratory Specialist with deep understanding of Laboratory Quality Management and Validation, passionate about building databases and developing software.`;
+    
+    // Default response
+    return `
+        <strong>🤔 I'm not sure about that.</strong><br><br>
+        <strong>Try asking about:</strong><br>
+        • <strong>QC Parameters:</strong> "What is Sigma?", "Explain CV", "What is QGI?", "Define Bias"<br>
+        • <strong>Analysis:</strong> "Find and correct", "How many rules for [Test]?"<br>
+        • <strong>TEa:</strong> "TEa for Glucose", "What is TEa?"<br>
+        • <strong>Westgard:</strong> "Westgard rules", "What is 1-3s?"<br>
+        • <strong>General:</strong> "What is QMSAP?", "Developer info"<br><br>
+        <em>💡 Tip: Be specific about what you want to learn!</em>`;
 }
 const TEA_DATABASE = {
 'GLU': { name:'Glucose', clia:10, bv:5.7, rlb:6, rcpa:10, unit:'%' },
