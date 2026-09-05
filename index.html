@@ -3241,10 +3241,65 @@ appData.currentDevice = prevDevice; appData.currentAnalyte = prevAnalyte;
 }
 const filename = `QC_Report_All_${periodStr.replace(' ', '_')}.pdf`; pdf.save(filename); showNotification('PDF report generated!');
 }
-function exportExcel() { const wb = XLSX.utils.book_new(); const device = appData.devices[appData.currentDevice]; const wsData = [['Date']]; device.analytes.forEach(analyte => { const numLevels = getAnalyteLevels(analyte); for (let l = 1; l <= numLevels; l++) wsData[0].push(`${analyte}.L${l}`); }); let maxDates = 0; device.analytes.forEach(analyte => { const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth); if (data && data.dates.length > maxDates) maxDates = data.dates.length; }); for (let i = 0; i < maxDates; i++) { const row = [i < maxDates ? (device.analytes[0] ? getMonthData(device, device.analytes[0], appData.currentYear, appData.currentMonth).dates[i] || '' : '') : '']; device.analytes.forEach(analyte => { const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth); const numLevels = getAnalyteLevels(analyte); for (let l = 1; l <= numLevels; l++) row.push(data && data[`L${l}`] && data[`L${l}`][i] !== undefined ? data[`L${l}`][i] : ''); }); wsData.push(row); } const ws = XLSX.utils.aoa_to_sheet(wsData); const sheetName = `QC_${getMonthName()}${appData.currentYear}`.substring(0, 31); XLSX.utils.book_append_sheet(wb, ws, sheetName); const filename = `QC_${device.name}_${getMonthName()}_${appData.currentYear}.xlsx`; XLSX.writeFile(wb, filename); showNotification('Excel exported!'); }
+function exportExcel() { 
+    const wb = XLSX.utils.book_new(); 
+    const device = appData.devices[appData.currentDevice]; 
+    const year = appData.currentYear;
+    const month = appData.currentMonth;
+    
+    // 1. QC Data Sheet
+    const wsData = [['Date']]; 
+    device.analytes.forEach(analyte => { 
+        const numLevels = getAnalyteLevels(analyte); 
+        for (let l = 1; l <= numLevels; l++) wsData[0].push(`${analyte}.L${l}`); 
+    }); 
+    
+    let maxDates = 0; 
+    device.analytes.forEach(analyte => { 
+        const data = getMonthData(device, analyte, year, month); 
+        if (data && data.dates.length > maxDates) maxDates = data.dates.length; 
+    }); 
+    
+    for (let i = 0; i < maxDates; i++) { 
+        const row = [i < maxDates ? (device.analytes[0] ? getMonthData(device, device.analytes[0], year, month).dates[i] || '' : '') : '']; 
+        device.analytes.forEach(analyte => { 
+            const data = getMonthData(device, analyte, year, month); 
+            const numLevels = getAnalyteLevels(analyte); 
+            for (let l = 1; l <= numLevels; l++) row.push(data && data[`L${l}`] && data[`L${l}`][i] !== undefined ? data[`L${l}`][i] : ''); 
+        }); 
+        wsData.push(row); 
+    } 
+    const ws = XLSX.utils.aoa_to_sheet(wsData); 
+    const sheetName = `QC_${getMonthName()}${year}`.substring(0, 31); 
+    XLSX.utils.book_append_sheet(wb, ws, sheetName); 
+    
+    // 2. Parameters Sheet
+    const paramData = [['Analyte', 'Level', 'Mean', 'SD', 'LOT', 'EXP', 'TEa']];
+    device.analytes.forEach(analyte => {
+        const numLevels = getAnalyteLevels(analyte);
+        const data = getMonthData(device, analyte, year, month);
+        for (let l = 1; l <= numLevels; l++) {
+            const mean = (data.factoryMean && data.factoryMean[`L${l}`]) || 0;
+            const sd = (data.factorySD && data.factorySD[`L${l}`]) || 0;
+            const lot = (data.lot && data.lot[`L${l}`]) || '';
+            const exp = (data.exp && data.exp[`L${l}`]) || '';
+            const tea = (data.permissibleCV && data.permissibleCV[`L${l}`]) || 10;
+            paramData.push([analyte, `L${l}`, mean, sd, lot, exp, tea]);
+        }
+    });
+    const paramWs = XLSX.utils.aoa_to_sheet(paramData);
+    XLSX.utils.book_append_sheet(wb, paramWs, 'Parameters');
+
+    const filename = `QC_${device.name}_${getMonthName()}_${year}.xlsx`; 
+    XLSX.writeFile(wb, filename); 
+    showNotification('Excel exported with Parameters!'); 
+}
 function importExcel(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const wb = XLSX.read(e.target.result, { type: 'array' }); const device = appData.devices[appData.currentDevice]; let importedCount = 0; wb.SheetNames.forEach(sheetName => { const ws = wb.Sheets[sheetName]; const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }); if (jsonData.length < 2) return; const header = jsonData[0].map(h => String(h).trim()); const analyteCols = {}; header.forEach((h, idx) => { if (idx === 0) return; const match = h.match(/^(.+)\.L(\d+)$/); if (match) { const analyteName = match[1]; const level = parseInt(match[2]); if (!analyteCols[analyteName]) analyteCols[analyteName] = {}; analyteCols[analyteName][level] = idx; if (!device.analytes.includes(analyteName)) { device.analytes.push(analyteName); appData.analyteLevels[analyteName] = 2; } } }); for (let i = 1; i < jsonData.length; i++) { const row = jsonData[i]; if (!row || row.length === 0) continue; const dateVal = String(row[0] || '').trim(); if (!dateVal) continue; Object.keys(analyteCols).forEach(analyteName => { const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth); const levels = analyteCols[analyteName]; if (!data.dates.includes(dateVal)) data.dates.push(dateVal); const dateIndex = data.dates.indexOf(dateVal); Object.keys(levels).forEach(lvl => { const colIdx = levels[lvl]; const val = parseFloat(row[colIdx]); if (!data[`L${lvl}`]) data[`L${lvl}`] = []; while (data[`L${lvl}`].length <= dateIndex) data[`L${lvl}`].push(null); if (!isNaN(val) && val !== 0) data[`L${lvl}`][dateIndex] = val; else data[`L${lvl}`][dateIndex] = null; }); const maxLvl = Math.max(...Object.keys(levels).map(Number)); appData.analyteLevels[analyteName] = maxLvl; }); } importedCount++; }); if (importedCount === 0) { alert('No valid data found in the Excel file!'); return; } buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); showNotification(`Excel imported! (${importedCount} sheet(s))`); window.triggerAutoSave(); } catch (err) { console.error('Import error:', err); alert('Error importing file: ' + err.message); } }; reader.readAsArrayBuffer(file); event.target.value = ''; }
 function showNotification(msg) { const n = document.getElementById('notification'); if (!n) return; n.textContent = msg; n.style.display = 'block'; setTimeout(() => { n.style.display = 'none'; }, 3000); }
 function exitApp() { if (confirm('Exit?')) document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#e74c3c;font-size:24px;background:#1a1a2e;">Application Closed</div>'; }
+
+
+
 
 </script>
 </body>
