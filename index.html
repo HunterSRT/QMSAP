@@ -334,8 +334,25 @@ input[type="number"] { -moz-appearance: textfield; }
 .fullscreen-ctrl-btn { background: #0f3460; border: 1px solid #333; color: #e74c3c; cursor: pointer; border-radius: 4px; font-size: 14px; padding: 4px 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
 .fullscreen-ctrl-btn:hover { background: #e74c3c; color: #fff; }
 .fullscreen-ctrl-btn.active { background: #e74c3c; color: #fff; }
-.assistant-btn { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
-.assistant-btn:hover { background: linear-gradient(135deg, #8e44ad, #7d3c98); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(155,89,182,0.4); }
+.assistant-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: #fff;
+    border: none;
+    padding: 4px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+.assistant-btn:hover {
+    background: linear-gradient(135deg, #8e44ad, #7d3c98);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(155,89,182,0.4);
+}
 .assistant-modal { min-width: 800px; max-width: 95vw; max-height: 92vh; }
 .assistant-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 8px; flex-wrap: wrap; }
 .assistant-tab { padding: 8px 16px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; cursor: pointer; border-radius: 6px 6px 0 0; font-size: 12px; font-weight: bold; transition: all 0.2s; }
@@ -486,8 +503,8 @@ display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 
 <div class="top-bar" id="topBar" style="display:none;">
 <div class="fixed-action-bar">
 <button class="action-icon-btn" onclick="printCurrent()" title="Print Current Report"><span class="icon">🖨️</span><span>Print</span></button>
-<button class="action-icon-btn" onclick="printAll()" title="Print All Reports"><span class="icon"></span><span>All</span></button>
-<button class="action-icon-btn" onclick="exportExcel()" title="Export Excel"><span class="icon"></span><span>Export</span></button>
+<button class="action-icon-btn" onclick="printAll()" title="Print All Reports"><span class="icon">📄</span><span>All</span></button>
+<button class="action-icon-btn" onclick="exportExcel()" title="Export Excel"><span class="icon">📊</span><span>Export</span></button>
 <button class="action-icon-btn" onclick="document.getElementById('importFile').click()" title="Import Excel"><span class="icon">📂</span><span>Import</span></button>
 <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
 </div>
