@@ -1411,6 +1411,7 @@ html += `<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39
 html += `<strong>🛠️ Recommended Corrective Actions:</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Range Exceedances:</strong> Check for new reagent lots, calibration drift, or instrument maintenance needs.</li><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate using fresh calibrators. Verify calibration curve.</li><li><strong>For Combined Errors (0.8 ≤ QGI ≤ 1.2):</strong> Full preventive maintenance (PM).</li></ul>`;
 return html;
 }
+
 function generateChatResponse(input) {
     const lower = input.toLowerCase();
     
@@ -1424,6 +1425,17 @@ function generateChatResponse(input) {
         return generateGlobalQcReport();
     }
     
+// 2. NEW: Check for PDF Report Generation Requests
+    if (lower.includes('report')) {
+        if (lower.includes('all') || lower.includes('comprehensive') || lower.includes('full')) {
+            setTimeout(() => { printAll(); }, 500); // Trigger All Reports
+            return "Generating comprehensive report for all tests... 🖨️ Please wait.";
+        } else {
+            setTimeout(() => { printCurrent(); }, 500); // Trigger Current Test Report
+            return "Generating report for the currently selected test... 🖨️ Please wait.";
+        }
+    }
+
     // 3. Check for Rules Recommendation based on Sigma
     const hasRulesKeyword = (lower.includes('rule') || lower.includes('rules')) && (lower.includes('sigma') || lower.includes('implement') || lower.includes('how many') || lower.includes('which') || lower.includes('use'));
     if (hasRulesKeyword) {
