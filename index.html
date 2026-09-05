@@ -1412,9 +1412,71 @@ html += `<strong>🛠️ Recommended Corrective Actions:</strong><br><ul style='
 return html;
 }
 
+
 function generateChatResponse(input) {
     const lower = input.toLowerCase();
-    
+
+    // --- HELPER FUNCTION TO APPLY TEa SOURCES ---
+    const applyTeaSource = (sourceKey, sourceName, triggerWords) => {
+        if (triggerWords.some(t => lower.includes(t)) && (lower.includes('all') || lower.includes('all tests'))) {
+            const device = appData.devices[appData.currentDevice];
+            let appliedCount = 0;
+            let logHtml = '';
+            let notFoundList = '';
+
+            device.analytes.forEach(analyte => {
+                // Find matching TEa in database (case-insensitive)
+                const foundKey = Object.keys(TEA_DATABASE).find(k => k.toUpperCase() === analyte.toUpperCase() || TEA_DATABASE[k].name.toLowerCase() === analyte.toLowerCase());
+                
+                // Check if the specific source exists and is not null
+                if (foundKey && TEA_DATABASE[foundKey][sourceKey] !== null && TEA_DATABASE[foundKey][sourceKey] !== undefined) {
+                    const val = TEA_DATABASE[foundKey][sourceKey];
+                    
+                    // Get the specific data object for THIS analyte for the current month/year
+                    const analyteData = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
+                    
+                    if (!analyteData.permissibleCV) analyteData.permissibleCV = {};
+                    // Apply to all levels (L1, L2, L3)
+                    for (let l = 1; l <= 3; l++) {
+                        analyteData.permissibleCV[`L${l}`] = val;
+                    }
+                    appliedCount++;
+                    logHtml += `<li><strong>${analyte}</strong>: ${val}%</li>`;
+                } else {
+                    notFoundList += `<li>${analyte}</li>`;
+                }
+            });
+
+            // Update UI and save changes immediately
+            updateDashboard();
+            if (document.getElementById('statsSummaryBody')) populateStatsSummary();
+            if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+            window.triggerAutoSave();
+
+            let responseHtml = `✅ <strong>${sourceName} values applied to ${appliedCount} test(s)!</strong><br><br><strong>Applied Values:</strong><ul style="margin:5px 0 0 20px;">${logHtml}</ul>`;
+            if (notFoundList) {
+                responseHtml += `<br><strong>⚠️ Not found in ${sourceName} Database:</strong><ul style="margin:5px 0 0 20px; color:#e74c3c;">${notFoundList}</ul>`;
+            }
+            return responseHtml;
+        }
+        return null;
+    };
+
+    // --- EXECUTE TEa APPLICATION COMMANDS ---
+    let result = applyTeaSource('clia', 'CLIA', ['apply clia', 'set clia']);
+    if (result) return result;
+
+    result = applyTeaSource('bv', 'Biological Variation', ['apply bio.var', 'apply bv', 'apply biological variation', 'set bio.var', 'set bv']);
+    if (result) return result;
+
+    result = applyTeaSource('rlb', 'Rilibak', ['apply rilibak', 'apply rlb', 'set rilibak', 'set rlb']);
+    if (result) return result;
+
+    result = applyTeaSource('rcpa', 'RCPA', ['apply rcpa', 'set rcpa']);
+    if (result) return result;
+
+    // --- END TEa APPLICATION ---
+
     // 1. Check Custom Q&A
     for (const qa of appData.customChatQA) {
         if (qa.triggers.some(t => t && lower.includes(t))) return qa.response;
@@ -1425,18 +1487,18 @@ function generateChatResponse(input) {
         return generateGlobalQcReport();
     }
     
-// 2. NEW: Check for PDF Report Generation Requests
+    // 3. Check for PDF Report Generation Requests
     if (lower.includes('report')) {
         if (lower.includes('all') || lower.includes('comprehensive') || lower.includes('full')) {
-            setTimeout(() => { printAll(); }, 500); // Trigger All Reports
+            setTimeout(() => { printAll(); }, 500); 
             return "Generating comprehensive report for all tests... 🖨️ Please wait.";
         } else {
-            setTimeout(() => { printCurrent(); }, 500); // Trigger Current Test Report
+            setTimeout(() => { printCurrent(); }, 500); 
             return "Generating report for the currently selected test... 🖨️ Please wait.";
         }
     }
 
-    // 3. Check for Rules Recommendation based on Sigma
+    // 4. Check for Rules Recommendation based on Sigma
     const hasRulesKeyword = (lower.includes('rule') || lower.includes('rules')) && (lower.includes('sigma') || lower.includes('implement') || lower.includes('how many') || lower.includes('which') || lower.includes('use'));
     if (hasRulesKeyword) {
         const testMatch = lower.match(/for\s+([a-z0-9\-\.]+)/);
@@ -1490,7 +1552,7 @@ function generateChatResponse(input) {
                 }
             }
         }
-        html += `<br><strong> Implementation Strategy:</strong><br>`;
+        html += `<br><strong>💡 Implementation Strategy:</strong><br>`;
         html += `Since the lowest Sigma metric across levels is <strong>${overallMinSigma.toFixed(2)}</strong>, you should implement the following rules for <strong>${query}</strong> to ensure optimal error detection while minimizing false rejections:<br>`;
         html += `<div style="background:#16213e; padding:10px; border-radius:6px; margin-top:5px; font-family:monospace; color:#2ecc71; font-size:14px; text-align:center;">${overallRules}</div>`;
         html += `<br><strong>📖 Rule Definitions:</strong><ul style="margin:5px 0 0 20px; font-size:12px;">`;
@@ -1503,7 +1565,7 @@ function generateChatResponse(input) {
         return html;
     }
     
-    // 4. Check for TEa queries
+    // 5. Check for TEa queries
     const teaMatch = lower.match(/tea\s+(?:for\s+)?([a-z0-9\-\.]+)/);
     if (teaMatch) {
         const query = teaMatch[1].toUpperCase();
@@ -1515,12 +1577,12 @@ function generateChatResponse(input) {
 • <strong>Bio. Variation:</strong> ${d.bv !== null ? d.bv + '%' : 'N/A'}<br>
 • <strong>Rilibak:</strong> ${d.rlb !== null ? d.rlb + '%' : 'N/A'}<br>
 • <strong>RCPA:</strong> ${d.rcpa !== null ? d.rcpa + '%' : 'N/A'}<br><br>
-<em>💡 Tip: Go to the TEa Database tab to apply directly.</em>`;
+<em>💡 Tip: Type "apply [source] to all" to set these values automatically.</em>`;
         }
         return `I couldn't find TEa data for "<strong>${query}</strong>". Try Glucose, TSH, WBC, or Creatinine.`;
     }
     
-    // 5. Check for QC Equations with detailed explanations
+    // 6. Check for QC Equations with detailed explanations
     if (lower.includes('sigma') || lower.includes('six sigma')) return `
         <strong>📊 Sigma Metric (σ)</strong><br><br>
         <strong>Definition:</strong> Sigma is a quality metric that combines bias and imprecision to assess overall test performance.<br><br>
@@ -1534,7 +1596,7 @@ function generateChatResponse(input) {
         • <span style="color:#2ecc71">σ ≥ 6: World Class</span> 🌟 (Minimal QC needed)<br>
         • <span style="color:#3498db">5 ≤ σ < 6: Excellent</span> (1-3s, 2-2s)<br>
         • <span style="color:#f39c12">4 ≤ σ < 5: Good</span> (1-3s, 2-2s, R-4s)<br>
-        • <span style="color:#e67e22">3 ≤ σ < 4: Marginal</span> ️ (Multi-rules)<br>
+        • <span style="color:#e67e22">3 ≤ σ < 4: Marginal</span> ⚠️ (Multi-rules)<br>
         • <span style="color:#e74c3c">σ < 3: Unacceptable</span> ❌ (Needs improvement)<br><br>
         <strong>Purpose:</strong> Determines appropriate QC rules and frequency based on test performance.`;
     
@@ -1560,7 +1622,7 @@ function generateChatResponse(input) {
         • CV > Permissible CV ⚠️ (Investigate)`;
     
     if (lower.includes('bias')) return `
-        <strong>️ Bias%</strong><br><br>
+        <strong>⚖️ Bias%</strong><br><br>
         <strong>Definition:</strong> Bias measures <strong>systematic error (accuracy)</strong> - the difference between your lab's mean and the target mean (factory mean or peer group mean).<br><br>
         <strong>Formula:</strong><br>
         <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</div>
@@ -1568,9 +1630,9 @@ function generateChatResponse(input) {
         • Lab Mean = Your laboratory's average<br>
         • Target Mean = Factory mean or peer group mean<br><br>
         <strong>Interpretation:</strong><br>
-        • <strong>Positive Bias:</strong> Results are higher than target ️<br>
-        • <strong>Negative Bias:</strong> Results are lower than target ️<br>
-        • <strong>Bias > Acceptable Limit:</strong> Recalibration needed ️<br><br>
+        • <strong>Positive Bias:</strong> Results are higher than target ⬆️<br>
+        • <strong>Negative Bias:</strong> Results are lower than target ⬇️<br>
+        • <strong>Bias > Acceptable Limit:</strong> Recalibration needed ⚠️<br><br>
         <strong>Purpose:</strong><br>
         • Assesses <strong>accuracy (systematic error)</strong><br>
         • Identifies calibration issues<br>
@@ -1614,7 +1676,7 @@ function generateChatResponse(input) {
         <strong>Purpose:</strong> Root cause analysis for poor Sigma performance.`;
     
     if (lower.includes('sd') || lower.includes('standard deviation')) return `
-        <strong> Standard Deviation (SD)</strong><br><br>
+        <strong>📏 Standard Deviation (SD)</strong><br><br>
         <strong>Definition:</strong> SD measures the <strong>dispersion or spread</strong> of QC values around the mean. It indicates how much variation exists in your test results.<br><br>
         <strong>Formula:</strong><br>
         <div style="background:#16213e; padding:10px; border-radius:6px; margin:10px 0; font-family:monospace; color:#2ecc71;">SD = √[ Σ(xᵢ - x̄)² / (n - 1) ]</div>
@@ -1635,7 +1697,7 @@ function generateChatResponse(input) {
         • Identifies random errors in testing<br><br>
         <strong>Acceptability:</strong><br>
         • Lab SD ≤ Factory SD ✅ (Acceptable)<br>
-        • Lab SD > Factory SD ️ (Investigate)`;
+        • Lab SD > Factory SD ⚠️ (Investigate)`;
     
     if (lower.includes('tea') || lower.includes('total allowable error')) return `
         <strong>🎯 Total Allowable Error (TEa)</strong><br><br>
@@ -1691,7 +1753,7 @@ function generateChatResponse(input) {
         • <strong>Random Error:</strong> 1-3s, R-4s<br>
         • <strong>Systematic Error:</strong> 2-2s, 4-1s, 8-x`;
     
-    // 6. Check for help/greeting
+    // 7. Check for help/greeting
     if (lower.includes('hello') || lower.includes('hi') || lower.includes('help') || lower.includes('what can you do')) return `
         <strong>Hello! 👋 I'm your QMSAP Lab Assistant</strong><br><br>
         I can help you with:<br><br>
@@ -1699,27 +1761,29 @@ function generateChatResponse(input) {
         • "Find and correct all devices"<br>
         • "How many rules for E2?"<br>
         • "Rules based on sigma for Glucose"<br><br>
+        <strong>🎯 Apply TEa to all tests:</strong><br>
+        • "Apply CLIA to all"<br>
+        • "Apply Bio.Var to all"<br>
+        • "Apply Rilibak to all"<br>
+        • "Apply RCPA to all"<br><br>
         <strong>📐 Equations & Definitions:</strong><br>
         • "What is Sigma?"<br>
         • "Explain CV and SD"<br>
         • "What is QGI?"<br>
         • "Define Bias and TEa"<br>
         • "Westgard rules"<br><br>
-        <strong>🎯 TEa Information:</strong><br>
-        • "TEa for Glucose"<br>
-        • "What is TEa for TSH?"<br><br>
-        <strong>️ General:</strong><br>
+        <strong>🌐 General:</strong><br>
         • "What is QMSAP?"<br>
         • "Developer info"`;
     
     if (lower.includes('qmsap')) return `
         <strong>🔬 QMSAP - Quality Management System for Analytical Performance</strong><br><br>
         <strong>Features:</strong><br>
-        •  <strong>Levey-Jennings Charts</strong> - Visual QC monitoring<br>
+        • 📈 <strong>Levey-Jennings Charts</strong> - Visual QC monitoring<br>
         • 📋 <strong>Westgard Multi-Rules</strong> - Automated QC rules<br>
-        • 📈 <strong>Sigma Metrics & QGI</strong> - Performance assessment<br>
+        • 📊 <strong>Sigma Metrics & QGI</strong> - Performance assessment<br>
         • 📁 <strong>Excel Import/Export</strong> - Data management<br>
-        •  <strong>PDF Reports</strong> - Professional documentation<br>
+        • 🖨️ <strong>PDF Reports</strong> - Professional documentation<br>
         • ☁️ <strong>Cloud Sync</strong> - Data backup & sharing<br>
         • 🔧 <strong>Developer Mode</strong> - Customization options<br><br>
         <strong>Purpose:</strong><br>
@@ -1741,10 +1805,14 @@ function generateChatResponse(input) {
         • <strong>QC Parameters:</strong> "What is Sigma?", "Explain CV", "What is QGI?", "Define Bias"<br>
         • <strong>Analysis:</strong> "Find and correct", "How many rules for [Test]?"<br>
         • <strong>TEa:</strong> "TEa for Glucose", "What is TEa?"<br>
+        • <strong>Apply TEa:</strong> "Apply CLIA to all", "Apply Bio.Var to all", "Apply Rilibak to all", "Apply RCPA to all"<br>
         • <strong>Westgard:</strong> "Westgard rules", "What is 1-3s?"<br>
         • <strong>General:</strong> "What is QMSAP?", "Developer info"<br><br>
         <em>💡 Tip: Be specific about what you want to learn!</em>`;
 }
+
+
+
 const TEA_DATABASE = {
 'GLU': { name:'Glucose', clia:10, bv:5.7, rlb:6, rcpa:10, unit:'%' },
 'UREA': { name:'Urea', clia:21, bv:11.5, rlb:8, rcpa:15, unit:'%' },
@@ -2290,41 +2358,97 @@ if (appData.currentDevice === deviceId) { const accessible = getAccessibleDevice
 buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Device removed!'); window.triggerAutoSave();
 }
 }
+
 function buildAnalyteBar() {
-const device = appData.devices[appData.currentDevice]; if (!device) return;
-const bar = document.getElementById('analyteBar'); if (!bar) return; bar.innerHTML = '';
-const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
-device.analytes.forEach(a => {
-const btn = document.createElement('button'); const lvl = getAnalyteLevels(a);
-btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : ''); btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
-btn.addEventListener('click', () => {
-if (appData.currentAnalyte === a) return;
-document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
-appData.currentAnalyte = a; updateMonthBadges(); updateDashboard();
-if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-});
-bar.appendChild(btn);
-});
-if (canModify) {
-const addBtn = document.createElement('button'); addBtn.className = 'analyte-btn'; addBtn.textContent = '➕ Add Test'; addBtn.style.background = '#2ecc71'; addBtn.style.color = '#fff';
-addBtn.addEventListener('click', () => {
-document.getElementById('newTestName').value = ''; document.getElementById('newTestLevels').value = '2'; document.getElementById('newTestTEa').value = '10';
-document.getElementById('addTestModal').classList.add('active'); setTimeout(() => document.getElementById('newTestName').focus(), 100);
-});
-bar.appendChild(addBtn);
-const removeBtn = document.createElement('button'); removeBtn.className = 'remove-test-btn'; removeBtn.textContent = '🗑️ Remove Test';
-removeBtn.addEventListener('click', () => {
-const device = appData.devices[appData.currentDevice];
-if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; }
-if (confirm(`Remove "${appData.currentAnalyte}"?`)) {
-const idx = device.analytes.indexOf(appData.currentAnalyte); device.analytes.splice(idx, 1);
-delete device.data[appData.currentAnalyte]; delete appData.analyteLevels[appData.currentAnalyte];
-appData.currentAnalyte = device.analytes[0]; buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showNotification('Test removed!'); window.triggerAutoSave();
+    const device = appData.devices[appData.currentDevice]; if (!device) return;
+    const bar = document.getElementById('analyteBar'); if (!bar) return; bar.innerHTML = '';
+    const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+    
+    device.analytes.forEach(a => {
+        // Create a wrapper for the button and edit action
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '3px';
+        
+        const btn = document.createElement('button'); 
+        const lvl = getAnalyteLevels(a);
+        btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : ''); 
+        btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
+        btn.style.flex = '1';
+        btn.addEventListener('click', async () => {
+            if (appData.currentAnalyte === a) return;
+            document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active')); 
+            btn.classList.add('active');
+            appData.currentAnalyte = a;
+            await window.checkBackendForChanges();
+            updateMonthBadges(); updateDashboard();
+            if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+        });
+        wrapper.appendChild(btn);
+        
+        // Add edit button for admins/managers (just like devices)
+        if (canModify) {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'action-btn';
+            editBtn.innerHTML = '✏️';
+            editBtn.style.background = 'transparent';
+            editBtn.style.border = 'none';
+            editBtn.style.color = '#e0e0e0';
+            editBtn.style.cursor = 'pointer';
+            editBtn.style.fontSize = '12px';
+            editBtn.style.padding = '2px 4px';
+            editBtn.style.borderRadius = '3px';
+            editBtn.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                openRename('test', a); 
+            });
+            editBtn.addEventListener('mouseenter', () => { editBtn.style.background = 'rgba(255,255,255,0.2)'; });
+            editBtn.addEventListener('mouseleave', () => { editBtn.style.background = 'transparent'; });
+            wrapper.appendChild(editBtn);
+        }
+        
+        bar.appendChild(wrapper);
+    });
+    
+    if (canModify) {
+        const addBtn = document.createElement('button'); 
+        addBtn.className = 'analyte-btn'; 
+        addBtn.textContent = '➕ Add Test'; 
+        addBtn.style.background = '#2ecc71'; 
+        addBtn.style.color = '#fff';
+        addBtn.addEventListener('click', () => {
+            document.getElementById('newTestName').value = ''; 
+            document.getElementById('newTestLevels').value = '2'; 
+            document.getElementById('newTestTEa').value = '10';
+            document.getElementById('addTestModal').classList.add('active'); 
+            setTimeout(() => document.getElementById('newTestName').focus(), 100);
+        });
+        bar.appendChild(addBtn);
+        const removeBtn = document.createElement('button'); 
+        removeBtn.className = 'remove-test-btn'; 
+        removeBtn.textContent = '🗑️ Remove Test';
+        removeBtn.addEventListener('click', () => {
+            const device = appData.devices[appData.currentDevice];
+            if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; }
+            if (confirm(`Remove "${appData.currentAnalyte}"?`)) {
+                const idx = device.analytes.indexOf(appData.currentAnalyte); 
+                device.analytes.splice(idx, 1);
+                delete device.data[appData.currentAnalyte]; 
+                delete appData.analyteLevels[appData.currentAnalyte];
+                appData.currentAnalyte = device.analytes[0]; 
+                buildAnalyteBar(); 
+                updateMonthBadges(); 
+                updateDashboard(); 
+                showNotification('Test removed!'); 
+                window.triggerAutoSave();
+            }
+        });
+        bar.appendChild(removeBtn);
+    }
 }
-});
-bar.appendChild(removeBtn);
-}
-}
+
+
 function closeAddTest() { document.getElementById('addTestModal').classList.remove('active'); }
 function confirmAddTest() {
 const name = document.getElementById('newTestName').value.trim();
