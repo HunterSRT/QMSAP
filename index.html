@@ -7,101 +7,557 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- Firebase SDKs -->
+
+<!-- Firebase SDK Initialization -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
 const firebaseConfig = {
-apiKey: "AIzaSyBEvpekc492iwnhxX5y3x2ufrMOtqqN0AI",
-authDomain: "qmsap-fca73.firebaseapp.com",
-projectId: "qmsap-fca73",
-storageBucket: "qmsap-fca73.firebasestorage.app",
-messagingSenderId: "658389329307",
-appId: "1:658389329307:web:82dfbc42e992bdd4ccad3e",
-measurementId: "G-8V84GZ4RLW"
+  apiKey: "AIzaSyBEvpekc492iwnhxX5y3x2ufrMOtqqN0AI",
+  authDomain: "qmsap-fca73.firebaseapp.com",
+  projectId: "qmsap-fca73",
+  storageBucket: "qmsap-fca73.firebasestorage.app",
+  messagingSenderId: "658389329307",
+  appId: "1:658389329307:web:82dfbc42e992bdd4ccad3e",
+  measurementId: "G-8V84GZ4RLW"
 };
+
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
-function cleanData(obj) {
-if (obj === null || obj === undefined) return null;
-if (typeof obj !== 'object') return obj;
-if (Array.isArray(obj)) return obj.map(item => cleanData(item));
-const cleaned = {};
-for (const key in obj) {
-if (Object.prototype.hasOwnProperty.call(obj, key)) {
-const value = cleanData(obj[key]);
-if (value !== undefined) cleaned[key] = value;
-}
-}
-return cleaned;
-}
+const analytics = getAnalytics(fbApp);
+
+// Expose to global window object so the main script can use them
+window.fbApp = fbApp;
+window.db = db;
+window.firebaseDoc = doc;
+window.firebaseSetDoc = setDoc;
+window.firebaseGetDoc = getDoc;
+</script>
+<!-- Firebase SDK Initialization -->
+
+
+<!-- IndexedDB & File System Access API Logic -->
+<script>
+const IDB_NAME = 'QMSAP_LocalDB';
+const IDB_STORE = 'app_data';
 let autoSaveTimeout;
-window.saveToCloud = async () => {
-try {
-const cleanAppData = cleanData(appData);
-await setDoc(doc(db, "qmsap_data", "main"), cleanAppData);
-showNotification('☁️ Saved to Cloud');
-} catch (e) {
-console.error("Error saving: ", e);
-showNotification('Error saving to cloud: ' + e.message);
+let autoRefreshTimer = null;
+let lastSaveTimestamp = Date.now(); 
+window.isSyncingBackend = false;
+
+function openIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(IDB_NAME, 1);
+        request.onupgradeneeded = (event) => {
+            if (!event.target.result.objectStoreNames.contains(IDB_STORE)) {
+                event.target.result.createObjectStore(IDB_STORE);
+            }
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
 }
+
+function cleanData(obj) {
+    if (obj === null || obj === undefined) return null;
+    if (typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(item => cleanData(item));
+    const cleaned = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = cleanData(obj[key]);
+            if (value !== undefined) cleaned[key] = value;
+        }
+    }
+    return cleaned;
+}
+
+async function saveFileHandle(handle) {
+    const db = await openIndexedDB();
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(handle, 'backend_file_handle');
+    return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+}
+
+async function getBackendFileHandle() {
+    const db = await openIndexedDB();
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get('backend_file_handle');
+    return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+}
+
+async function syncToFile(handle) {
+    if (!handle) return;
+    try {
+        const opts = { mode: 'readwrite' };
+        let perm = await handle.queryPermission(opts);
+        if (perm !== 'granted') {
+            perm = await handle.requestPermission(opts);
+            if (perm !== 'granted') return;
+        }
+        const writable = await handle.createWritable();
+        const cleanAppData = cleanData(appData);
+        await writable.write(JSON.stringify(cleanAppData, null, 2));
+        await writable.close();
+        lastSaveTimestamp = Date.now();
+    } catch (e) { console.error("File write error:", e); }
+}
+
+
+window.selectBackendFile = async function() {
+    if (!window.showSaveFilePicker) {
+        alert("⚠️ Your browser does not support silent background file access.\nTo use a local file as a backend, you MUST use:\n• Google Chrome\n• Microsoft Edge\n• Brave\nFirefox and Safari block this for security reasons.");
+        return;
+    }
+    try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: 'QMSAP_Database.json',
+            types: [{ description: 'JSON Database', accept: { 'application/json': ['.json'] } }]
+        });
+        const opts = { mode: 'readwrite' };
+        if (await handle.queryPermission(opts) !== 'granted') {
+            if (await handle.requestPermission(opts) !== 'granted') {
+                showNotification('❌ Permission denied. Cannot link file.');
+                return;
+            }
+        }
+        await saveFileHandle(handle);
+        updateBackendStatus(handle.name);
+        await syncToFile(handle);
+        showNotification('✅ Local backend file linked! Auto-sync is now active.');
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error(e);
+    }
+}
+
+window.openExistingBackendFile = async function() {
+    // Check for browser support
+    if (!window.showOpenFilePicker) {
+        alert("⚠️ Your browser does not support silent background file access.\nTo use a local file as a backend, you MUST use:\n• Google Chrome\n• Microsoft Edge\n• Brave\nFirefox and Safari block this for security reasons.");
+        return;
+    }
+    try {
+        // Open file picker for existing JSON files
+        const handles = await window.showOpenFilePicker({
+            types: [{ description: 'JSON Database', accept: { 'application/json': ['.json'] } }],
+            multiple: false
+        });
+        const handle = handles[0];
+        
+        // Request read/write permissions for the selected file
+        const opts = { mode: 'readwrite' };
+        if (await handle.queryPermission(opts) !== 'granted') {
+            if (await handle.requestPermission(opts) !== 'granted') {
+                showNotification('❌ Permission denied. Cannot link file.');
+                return;
+            }
+        }
+        
+        // Save the file handle to IndexedDB so it persists across reloads
+        await saveFileHandle(handle);
+        updateBackendStatus(handle.name);
+        
+        // Immediately load and sync the UI with the data from the existing file
+        await window.loadFromLocalSilent();
+        showNotification('✅ Linked to existing database! Data synced.');
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error("Error opening existing file:", e);
+    }
+}
+
+function updateBackendStatus(name) {
+    const el = document.getElementById('backendStatus');
+    if (el) {
+        el.innerText = `✅ Linked to: "${name}" (Syncs on Selection/Update)`;
+        el.style.color = '#2ecc71';
+    }
+}
+
+
+// ===== CLOUD & LOCAL SYNC FUNCTIONS =====
+
+// 1. Save to Cloud (and auto-sync to local JSON)
+window.saveToCloud = async (silent = false) => {
+    try {
+        const cleanAppData = cleanData(appData);
+        await window.firebaseSetDoc(window.firebaseDoc(window.db, "qmsap_data", "main"), cleanAppData);
+        if (!silent) showNotification('☁️ Saved to Cloud Successfully!');
+        
+        // ✅ AUTO-SYNC TO LOCAL JSON FILE AFTER CLOUD SAVE
+        if (typeof window.saveToLocal === 'function') {
+            await window.saveToLocal();
+        }
+    } catch (e) {
+        console.error("Error saving to cloud: ", e);
+        if (!silent) showNotification('❌ Error saving to cloud: ' + e.message);
+    }
 };
-window.triggerAutoSave = () => {
-clearTimeout(autoSaveTimeout);
-autoSaveTimeout = setTimeout(() => { window.saveToCloud(); }, 2000);
+
+// 2. Manual Load from Cloud (and auto-sync to local JSON)
+window.loadFromCloud = async () => {
+    try {
+        showNotification('⏳ Loading from Cloud...');
+        const docSnap = await window.firebaseGetDoc(window.firebaseDoc(window.db, "qmsap_data", "main"));
+        if (docSnap.exists()) {
+            const cloudData = docSnap.data();
+            
+            // Preserve local auto-refresh settings so the cloud doesn't disable it
+            const localAutoRefresh = appData.autoRefreshSettings;
+            
+            Object.assign(appData, cloudData);
+            
+            // Restore local auto-refresh settings
+            if (localAutoRefresh) {
+                appData.autoRefreshSettings = localAutoRefresh;
+            }
+            
+            // Ensure critical defaults exist after loading
+            if (!appData.users) appData.users = {};
+            if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
+            if (!appData.reportSettings) appData.reportSettings = {};
+            if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = [];
+            
+            buildSidebar();
+            buildAnalyteBar();
+            updateMonthBadges();
+            updateInstitutionDisplay();
+            updateDashboard();
+            if (document.getElementById('spreadsheetView') && document.getElementById('spreadsheetView').classList.contains('active')) {
+                populateSpreadsheet();
+            }
+            applyUserPermissions();
+            showNotification('✅ Data loaded from Cloud!');
+            
+            // ✅ AUTO-SYNC TO LOCAL JSON FILE AFTER CLOUD LOAD
+            if (typeof window.saveToLocal === 'function') {
+                await window.saveToLocal();
+            }
+        } else {
+            showNotification('⚠️ No cloud data found.');
+        }
+    } catch (e) {
+        console.error("Error loading from cloud: ", e);
+        showNotification('❌ Error loading from cloud: ' + e.message);
+    }
 };
+
+// 3. Silent Load from Cloud (Used on App Startup)
 window.loadFromCloudSilent = async () => {
+    try {
+        const docRef = window.firebaseDoc(window.db, "qmsap_data", "main");
+        const docSnap = await window.firebaseGetDoc(docRef);
+        if (docSnap.exists()) {
+            const cloudData = docSnap.data();
+            
+            // Preserve local auto-refresh settings so the cloud doesn't disable it
+            const localAutoRefresh = appData.autoRefreshSettings;
+            
+            Object.assign(appData, cloudData);
+            
+            // Restore local auto-refresh settings
+            if (localAutoRefresh) {
+                appData.autoRefreshSettings = localAutoRefresh;
+            }
+            
+            // Ensure critical defaults exist after loading
+            if (!appData.users) appData.users = {};
+            if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
+            if (!appData.reportSettings) appData.reportSettings = {};
+            if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = [];
+            
+            buildSidebar();
+            buildAnalyteBar();
+            updateMonthBadges();
+            updateInstitutionDisplay();
+            updateDashboard();
+            if (document.getElementById('spreadsheetView') && document.getElementById('spreadsheetView').classList.contains('active')) {
+                populateSpreadsheet();
+            }
+            applyUserPermissions();
+            
+            // ✅ Start auto-refresh timer if it was enabled
+            if (typeof setupAutoRefresh === 'function') {
+                setupAutoRefresh();
+            }
+        }
+    } catch (e) {
+        console.error("Error silently loading from cloud: ", e);
+    }
+};
+
+// 4. Silent Load from Local (Fallback or Local-only mode)
+window.loadFromLocalSilent = async () => {
+    try {
+        let loadedData = null;
+        const handle = await getBackendFileHandle();
+        if (handle) {
+            const opts = { mode: 'readwrite' };
+            let perm = await handle.queryPermission(opts);
+            if (perm === 'granted') {
+                const file = await handle.getFile();
+                const text = await file.text();
+                loadedData = JSON.parse(text);
+            }
+        }
+        
+        if (loadedData) {
+            applyLoadedData(loadedData);
+            window.triggerAutoSave(); // Ensure consistency
+        } else {
+            const localData = await fetchLocalData();
+            if (localData) {
+                applyLoadedData(localData);
+            } else {
+                if (typeof initTeaDatabase === 'function') initTeaDatabase();
+            }
+        }
+        
+        buildSidebar(); 
+        buildAnalyteBar(); 
+        updateMonthBadges(); 
+        updateInstitutionDisplay(); 
+        updateDashboard();
+        if (document.getElementById('spreadsheetView') && document.getElementById('spreadsheetView').classList.contains('active')) {
+            populateSpreadsheet();
+        }
+        applyUserPermissions();
+        
+        // ✅ Start auto-refresh timer if it was enabled
+        if (typeof setupAutoRefresh === 'function') {
+            setupAutoRefresh();
+        }
+    } catch (e) { 
+        console.error("Error loading local: ", e); 
+    }
+};
+// ===== END OF CLOUD & LOCAL SYNC FUNCTIONS =====
+// ===== AUTO REFRESH SETUP (CLOUD) =====
+function setupAutoRefresh() {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+    if (!appData.autoRefreshSettings) appData.autoRefreshSettings = { enabled: false, interval: 1 };
+    
+    if (appData.autoRefreshSettings.enabled) {
+        // 60 seconds * 1000 milliseconds = 1 Minute
+        const intervalMs = appData.autoRefreshSettings.interval * 1000; 
+        autoRefreshTimer = setInterval(async () => {
+            console.log("☁️ Auto-refreshing data from Cloud...");
+            if (typeof window.loadFromCloudSilent === 'function') {
+                await window.loadFromCloudSilent();
+            }
+        }, intervalMs);
+        console.log(`✅ Auto-Refresh from Cloud enabled: Every ${appData.autoRefreshSettings.interval} minute(s)`);
+    } else {
+        console.log("⏸️ Auto-Refresh from Cloud disabled.");
+    }
+}
+
+// ===== 2. VISIBLE CLOUD LOAD (Used when clicking the "Load from Cloud" button) =====
+window.loadFromCloud = async (silent = false) => {
 try {
-const docRef = doc(db, "qmsap_data", "main");
-const docSnap = await getDoc(docRef);
+if (!silent) showNotification('⏳ Loading from Cloud...');
+const docSnap = await window.firebaseGetDoc(window.firebaseDoc(window.db, "qmsap_data", "main"));
 if (docSnap.exists()) {
 const cloudData = docSnap.data();
+// Preserve local UI state and settings so the screen doesn't jump around
+const localState = { currentDevice: appData.currentDevice, currentAnalyte: appData.currentAnalyte, currentMonth: appData.currentMonth, currentYear: appData.currentYear, meanType: appData.meanType, autoRefreshSettings: appData.autoRefreshSettings, autoSaveToCloud: appData.autoSaveToCloud };
 Object.assign(appData, cloudData);
-if (!appData.users) appData.users = {};
-if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
-if (!appData.reportSettings) appData.reportSettings = {};
-if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) {
-if (appData.reportSettings.highlightDayOfWeek && appData.reportSettings.highlightDayOfWeek !== 'none') {
-appData.reportSettings.highlightDaysOfWeek = [parseInt(appData.reportSettings.highlightDayOfWeek)];
-} else {
-appData.reportSettings.highlightDaysOfWeek = [];
-}
-delete appData.reportSettings.highlightDayOfWeek;
-}
-if (!appData.customEquations) appData.customEquations = [];
-if (!appData.customWebResources) appData.customWebResources = [];
-if (!appData.customChatQA) appData.customChatQA = [];
-if (!appData.chatWidgetSettings) appData.chatWidgetSettings = { width: 380, height: 520, toggleIcon: '💬', headerIcon: '🤖', welcomeMsg: "Hello! I can help you with QC.", quickReplies: "What is QMSAP?, Find and correct, Rules based on sigma", bgColor: '#1a1a2e', headerBg: '#9b59b6', textColor: '#e0e0e0' };
-buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard();
-if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+Object.assign(appData, localState); // Restore your current view
+            
+            // Ensure critical defaults exist after loading
+            if (!appData.users) appData.users = {};
+            if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
+            if (!appData.reportSettings) appData.reportSettings = {};
+            if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = [];
+            
+            buildSidebar();
+            buildAnalyteBar();
+            updateMonthBadges();
+            updateInstitutionDisplay();
+            updateDashboard();
+            if (document.getElementById('spreadsheetView') && document.getElementById('spreadsheetView').classList.contains('active')) {
+                populateSpreadsheet();
+            }
 applyUserPermissions();
-applyAssistantUI();
+if (!silent) showNotification('✅ Data loaded from Cloud!');
+} else {
+if (!silent) showNotification('⚠️ No cloud data found.');
 }
+} catch (e) {
+console.error("Error loading from cloud: ", e);
+if (!silent) showNotification('❌ Error loading from cloud: ' + e.message);
+}
+};
+// ===== END OF CLOUD SYNC FUNCTIONS =====
+
+
+
+window.saveToLocal = async () => {
+    try {
+        const db = await openIndexedDB();
+        const cleanAppData = cleanData(appData);
+        const transaction = db.transaction(IDB_STORE, 'readwrite');
+        const store = transaction.objectStore(IDB_STORE);
+        const request = store.put(cleanAppData, 'main_instance');
+        
+        await new Promise((resolve, reject) => {
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => reject(e.target.error);
+        });
+        
+        const handle = await getBackendFileHandle();
+        if (handle) await syncToFile(handle);
+    } catch (e) {
+        console.error("Error saving: ", e);
+    }
+};
+
+window.triggerAutoSave = () => {
+clearTimeout(autoSaveTimeout);
+autoSaveTimeout = setTimeout(() => { 
+    if (appData.autoSaveToCloud !== false) {
+        window.saveToCloud(); 
+    }
+}, 2000);
+};
+
+async function fetchLocalData() {
+    const db = await openIndexedDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(IDB_STORE, 'readonly');
+        const store = transaction.objectStore(IDB_STORE);
+        const request = store.get('main_instance');
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+function applyLoadedData(localData) {
+    if (!localData) return false;
+    Object.assign(appData, localData);
+    
+    if (!appData.users) appData.users = {};
+    if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
+    if (!appData.reportSettings) appData.reportSettings = {};
+    if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) {
+        if (appData.reportSettings.highlightDayOfWeek && appData.reportSettings.highlightDayOfWeek !== 'none') {
+            appData.reportSettings.highlightDaysOfWeek = [parseInt(appData.reportSettings.highlightDayOfWeek)];
+        } else {
+            appData.reportSettings.highlightDaysOfWeek = [];
+        }
+        delete appData.reportSettings.highlightDayOfWeek;
+    }
+    if (!appData.customEquations) appData.customEquations = [];
+    if (!appData.customWebResources) appData.customWebResources = [];
+    if (!appData.customChatQA) appData.customChatQA = [];
+    
+    // ✅ CRITICAL FIX: Initialize and Restore TEa Database
+    // ✅ CRITICAL FIX: Initialize and Restore TEa Database
+if (!appData.teaDatabase) appData.teaDatabase = {};
+if (typeof TEA_DATABASE !== 'undefined') {
+    for (const key in appData.teaDatabase) {
+        if (TEA_DATABASE[key]) {
+            // Overwrite default values with saved values
+            TEA_DATABASE[key].clia = appData.teaDatabase[key].clia;
+            TEA_DATABASE[key].bv = appData.teaDatabase[key].bv;
+            TEA_DATABASE[key].rlb = appData.teaDatabase[key].rlb;
+            TEA_DATABASE[key].rcpa = appData.teaDatabase[key].rcpa;
+        } else {
+            TEA_DATABASE[key] = appData.teaDatabase[key];
+        }
+    }
+}
+return true;
+}
+
+
+window.checkBackendForChanges = async function() {
+    if (window.isSyncingBackend) return;
+    const handle = await getBackendFileHandle();
+    if (!handle) return;
+    
+    try {
+        const opts = { mode: 'readwrite' };
+        let perm = await handle.queryPermission(opts);
+        if (perm !== 'granted') return; 
+        
+        const file = await handle.getFile();
+        if (file.lastModified <= lastSaveTimestamp) return; 
+        
+        window.isSyncingBackend = true;
+        const text = await file.text();
+        const fileData = JSON.parse(text);
+        
+        if (fileData.devices) {
+            for (const devId in fileData.devices) {
+                if (appData.devices[devId] && fileData.devices[devId].data) {
+                    appData.devices[devId].data = fileData.devices[devId].data;
+                }
+            }
+        }
+        if (fileData.excludedValues) appData.excludedValues = fileData.excludedValues;
+        if (fileData.institution) appData.institution = fileData.institution;
+        if (fileData.meanType) appData.meanType = fileData.meanType;
+        
+        updateDashboard();
+        if (document.getElementById('spreadsheetView') && document.getElementById('spreadsheetView').classList.contains('active')) {
+            populateSpreadsheet();
+        }
+        
+        lastSaveTimestamp = Date.now();
+        window.isSyncingBackend = false;
+    } catch (e) {
+        window.isSyncingBackend = false;
+    }
+}
+
+window.loadFromLocalSilent = async () => {
+    try {
+        let loadedData = null;
+        const handle = await getBackendFileHandle();
+        
+        if (handle) {
+            const opts = { mode: 'readwrite' };
+            let perm = await handle.queryPermission(opts);
+            if (perm === 'granted') {
+                const file = await handle.getFile();
+                const text = await file.text();
+                loadedData = JSON.parse(text);
+            }
+        }
+        
+        if (loadedData) {
+			applyLoadedData(loadedData);
+			window.saveToLocal();
+		} else {
+			const localData = await fetchLocalData();
+			if (localData) {
+                applyLoadedData(localData);
+            } else {
+                initTeaDatabase();
+            }
+		}
+
+        buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard();
+        if (document.getElementById('spreadsheetView') && document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+        applyUserPermissions();
+setupAutoRefresh();
 } catch (e) { console.error("Error loading: ", e); }
 };
-window.loadFromCloud = async () => {
-try {
-const docRef = doc(db, "qmsap_data", "main");
-const docSnap = await getDoc(docRef);
-if (docSnap.exists()) {
-Object.assign(appData, docSnap.data());
-if (!appData.users) appData.users = {};
-if (!appData.users['Hunter']) appData.users['Hunter'] = { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] };
-if (!appData.reportSettings) appData.reportSettings = {};
-if (!Array.isArray(appData.reportSettings.highlightDaysOfWeek)) appData.reportSettings.highlightDaysOfWeek = [];
-if (!appData.customEquations) appData.customEquations = [];
-if (!appData.customWebResources) appData.customWebResources = [];
-if (!appData.customChatQA) appData.customChatQA = [];
-if (!appData.chatWidgetSettings) appData.chatWidgetSettings = { width: 380, height: 520, toggleIcon: '💬', headerIcon: '🤖', welcomeMsg: "Hello!", quickReplies: "", bgColor: '#1a1a2e', headerBg: '#9b59b6', textColor: '#e0e0e0' };
-buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateInstitutionDisplay(); updateDashboard(); populateSpreadsheet();
-applyUserPermissions();
-applyAssistantUI();
-showNotification('QMSAP Data loaded from Cloud! 📂');
-} else { showNotification('No cloud data found.'); }
-} catch (e) { console.error("Error loading: ", e); showNotification('Error loading from cloud'); }
+
+
+window.loadFromLocal = async () => {
+    await window.loadFromLocalSilent();
+    showNotification('QMSAP Data loaded! 📂');
 };
-window.addEventListener('load', () => { setTimeout(() => window.loadFromCloudSilent(), 1000); });
+
+window.addEventListener('load', () => { setTimeout(() => window.loadFromLocalSilent(), 500); });
 </script>
+
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
@@ -169,7 +625,7 @@ input[type="number"] { -moz-appearance: textfield; }
 .day-checkbox-actions button { flex: 1; padding: 7px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s; }
 .day-checkbox-actions button:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
 .top-bar { background: #16213e; display: flex; align-items: center; padding: 8px 15px; gap: 10px; border-bottom: 2px solid #e74c3c; flex-wrap: wrap; min-height: 70px; }
-.fixed-action-bar { display: flex; gap: 5px; align-items: center; background: #16213e; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; }
+.fixed-action-bar { display: flex; gap: 5px; align-items: center; background: #16213e; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; flex-wrap: wrap; }
 .action-icon-btn { background: #0f3460; border: 1px solid #333; color: #e74c3c; cursor: pointer; border-radius: 4px; font-size: 11px; padding: 5px 9px; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
 .action-icon-btn:hover { background: #e74c3c; color: #fff; }
 .action-icon-btn .icon { font-size: 16px; }
@@ -334,25 +790,8 @@ input[type="number"] { -moz-appearance: textfield; }
 .fullscreen-ctrl-btn { background: #0f3460; border: 1px solid #333; color: #e74c3c; cursor: pointer; border-radius: 4px; font-size: 14px; padding: 4px 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
 .fullscreen-ctrl-btn:hover { background: #e74c3c; color: #fff; }
 .fullscreen-ctrl-btn.active { background: #e74c3c; color: #fff; }
-.assistant-btn {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: #fff;
-    border: none;
-    padding: 4px 9px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.2s;
-}
-.assistant-btn:hover {
-    background: linear-gradient(135deg, #8e44ad, #7d3c98);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(155,89,182,0.4);
-}
+.assistant-btn { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+.assistant-btn:hover { background: linear-gradient(135deg, #8e44ad, #7d3c98); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(155,89,182,0.4); }
 .assistant-modal { min-width: 800px; max-width: 95vw; max-height: 92vh; }
 .assistant-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 8px; flex-wrap: wrap; }
 .assistant-tab { padding: 8px 16px; background: #0f3460; border: 1px solid #333; color: #e0e0e0; cursor: pointer; border-radius: 6px 6px 0 0; font-size: 12px; font-weight: bold; transition: all 0.2s; }
@@ -415,67 +854,249 @@ input[type="number"] { -moz-appearance: textfield; }
 @media (max-width: 1400px) { .dashboard-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; height: auto; max-height: none; } .qc-results-panel { grid-column: 1; } .westgard-panel { grid-column: 2; } .stats-panel { grid-column: 1; } .sigma-qgi-combined-panel { grid-column: 2; } .lj-charts-panel { grid-column: 1 / -1; } }
 @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; } .qc-results-panel, .westgard-panel, .stats-panel, .sigma-qgi-combined-panel, .lj-charts-panel { grid-column: 1; } }
 
-/* Floating Chat Styles */
-.floating-chat-toggle {
-position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%;
-background: linear-gradient(135deg, #9b59b6, #8e44ad); border: none; cursor: pointer; z-index: 9998;
-display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(155, 89, 182, 0.5);
-transition: all 0.3s ease; animation: pulse 2s infinite; font-size: 24px; color: #fff;
+/* Floating Chat Widget */
+.floating-chat-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(155, 89, 182, 0.5);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
 }
-.floating-chat-toggle:hover { transform: scale(1.1); box-shadow: 0 12px 35px rgba(155, 89, 182, 0.7); }
-@keyframes pulse { 0% { box-shadow: 0 8px 25px rgba(155, 89, 182, 0.5); } 50% { box-shadow: 0 8px 35px rgba(155, 89, 182, 0.8); } 100% { box-shadow: 0 8px 25px rgba(155, 89, 182, 0.5); } }
-.floating-chat-widget {
-position: fixed; bottom: 100px; right: 25px; width: 380px; height: 520px; max-width: 90vw; max-height: 70vh;
-background: #1a1a2e; border-radius: 16px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); z-index: 9999;
-display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 0.3s ease; border: 2px solid #9b59b6;
-}
-.floating-chat-widget.active { display: flex; }
-@keyframes chatSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.chat-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); padding: 15px 20px; display: flex; align-items: center; gap: 12px; }
-.chat-header-avatar { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.chat-header-info { flex: 1; }
-.chat-header-name { color: #fff; font-size: 16px; font-weight: bold; }
-.chat-header-status { color: rgba(255,255,255,0.8); font-size: 11px; display: flex; align-items: center; gap: 5px; }
-.chat-header-status .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; display: inline-block; }
-.chat-header-actions { display: flex; gap: 8px; }
-.chat-header-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-.chat-header-btn:hover { background: rgba(255,255,255,0.3); }
-.chat-body { flex: 1; overflow-y: auto; padding: 15px; background: #16213e; display: flex; flex-direction: column; gap: 10px; }
-.chat-body::-webkit-scrollbar { width: 6px; }
-.chat-body::-webkit-scrollbar-track { background: transparent; }
-.chat-body::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
-.chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; line-height: 1.5; position: relative; animation: bubbleFade 0.3s ease; }
-@keyframes bubbleFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.chat-bubble.bot { background: #0f3460; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); border: 1px solid #333; }
-.chat-bubble.user { background: linear-gradient(135deg, #9b59b6, #8e44ad); align-self: flex-end; border-bottom-right-radius: 2px; }
-.chat-bubble .bubble-time { font-size: 10px; opacity: 0.6; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-.chat-bubble.user .bubble-time { justify-content: flex-end; }
-.chat-bubble .bubble-time .read-check { color: #2ecc71; font-size: 12px; }
-.typing-indicator { display: flex; gap: 4px; padding: 12px 16px; background: #0f3460; border-radius: 12px; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.2); border: 1px solid #333; }
-.typing-indicator span { width: 8px; height: 8px; border-radius: 50%; background: #9b59b6; animation: typingBounce 1.4s infinite; }
-.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-8px); opacity: 1; } }
-.chat-quick-replies { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 15px; background: #16213e; border-top: 1px solid #333; }
-.quick-reply-btn { padding: 6px 12px; background: rgba(155, 89, 182, 0.2); border: 1px solid #9b59b6; border-radius: 20px; font-size: 11px; color: #9b59b6; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-.quick-reply-btn:hover { background: #9b59b6; color: #fff; }
-.chat-input-area { display: flex; gap: 8px; padding: 12px 15px; background: #16213e; border-top: 1px solid #333; align-items: center; }
-.chat-input { flex: 1; padding: 10px 14px; border: 1px solid #333; border-radius: 25px; font-size: 13px; outline: none; transition: border-color 0.2s; background: #0f3460; color: #e0e0e0; }
-.chat-input:focus { border-color: #9b59b6; }
-.chat-send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #9b59b6, #8e44ad); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: transform 0.2s; }
-.chat-send-btn:hover { transform: scale(1.1); }
 
-/* Assistant Settings Styles */
-.assistant-settings-section { margin-bottom: 20px; border: 1px solid #333; border-radius: 6px; padding: 10px; background: #16213e; }
-.assistant-settings-section h5 { color: #9b59b6; margin-bottom: 10px; font-size: 12px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-.qa-list-container { max-height: 150px; overflow-y: auto; margin-bottom: 10px; border: 1px solid #333; border-radius: 4px; padding: 5px; background: #0f3460; }
-.qa-item { display: flex; justify-content: space-between; align-items: center; padding: 5px; border-bottom: 1px solid #222; font-size: 11px; }
-.qa-item:last-child { border-bottom: none; }
-.qa-item-content { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
-.qa-item-trigger { color: #9b59b6; font-weight: bold; }
-.qa-delete-btn { background: #e74c3c; color: #fff; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 10px; }
-.qa-add-form { display: flex; gap: 5px; flex-wrap: wrap; }
-.qa-add-form input { flex: 1; min-width: 100px; padding: 6px; background: #0f3460; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 11px; }
+.floating-chat-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(155, 89, 182, 0.7);
+}
+
+.floating-chat-box {
+    position: fixed;
+    bottom: 100px;
+    right: 25px;
+    width: 380px;
+    max-height: 520px;
+    background: #1a1a2e;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #9b59b6;
+}
+
+.floating-chat-box.active {
+    display: flex;
+}
+
+.floating-chat-header {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px 16px 0 0;
+}
+
+.floating-chat-header .chat-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.floating-chat-header .chat-title .chat-icon {
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.floating-chat-header .chat-title h3 {
+    color: #fff;
+    font-size: 16px;
+    margin: 0;
+    font-weight: bold;
+}
+
+.floating-chat-header .chat-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 12px;
+}
+
+.floating-chat-header .chat-status .status-dot {
+    width: 8px;
+    height: 8px;
+    background: #2ecc71;
+    border-radius: 50%;
+}
+
+.floating-chat-header .close-chat-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.floating-chat-header .close-chat-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.floating-chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.floating-chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.floating-chat-messages::-webkit-scrollbar-track {
+    background: #16213e;
+}
+
+.floating-chat-messages::-webkit-scrollbar-thumb {
+    background: #9b59b6;
+    border-radius: 3px;
+}
+
+.floating-chat-msg {
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: 85%;
+    line-height: 1.5;
+    font-size: 13px;
+    animation: fadeIn 0.3s ease;
+    word-wrap: break-word;
+}
+
+.floating-chat-msg.bot {
+    background: #1a3a5c;
+    color: #e0e0e0;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+    border: 1px solid #333;
+}
+
+.floating-chat-msg.user {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+.floating-chat-msg .msg-header {
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.floating-chat-msg .msg-time {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.floating-chat-quick-actions {
+    padding: 10px 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-top: 1px solid #333;
+}
+
+.quick-action-btn {
+    padding: 8px 14px;
+    background: rgba(155, 89, 182, 0.15);
+    border: 1px solid #9b59b6;
+    color: #e0e0e0;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.quick-action-btn:hover {
+    background: rgba(155, 89, 182, 0.3);
+    color: #fff;
+}
+
+.floating-chat-input-area {
+    padding: 12px 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-top: 1px solid #333;
+    background: #16213e;
+}
+
+.floating-chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    background: #0f3460;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 25px;
+    font-size: 13px;
+    outline: none;
+}
+
+.floating-chat-input:focus {
+    border-color: #9b59b6;
+}
+
+.floating-chat-send-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.floating-chat-send-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(155,89,182,0.5);
+}
+
 </style>
 </head>
 <body>
@@ -546,7 +1167,7 @@ display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 
 </div>
 <div class="fullscreen-btn-group"><button class="fullscreen-ctrl-btn" id="fullscreenExpandBtn" onclick="toggleFullscreen()" title="Full Browser (F11)">⛶</button></div>
 <button class="nav-btn" id="settingsBtn" onclick="openSettings()" style="font-size:18px" title="Settings">⚙️</button>
-<button class="assistant-btn" onclick="toggleFloatingChat()" title="Lab Assistant">🧪 Assistant</button>
+<button class="assistant-btn" id="assistantBtn" onclick="openAssistant()" title="Lab Assistant">🧪 Assistant</button>
 <button class="nav-btn" id="userMgmtBtn" onclick="openUserManagement()" style="font-size:18px; display:none;" title="User Management">👥</button>
 <button class="nav-btn" onclick="openAbout()" style="font-size:18px" title="About Developer">ℹ️</button>
 <div class="user-session-bar" id="userSessionBar">
@@ -555,7 +1176,7 @@ display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 
 <div class="user-session-name" id="userSessionName">Hunter</div>
 <div class="user-session-role" id="userSessionRole">ADMIN</div>
 </div>
-<button class="logout-btn" onclick="logoutUser()"> Logout</button>
+<button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
 </div>
 <div class="analyte-bar" id="analyteBar"></div>
 </div>
@@ -647,12 +1268,12 @@ display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 
 <div class="spreadsheet-view" id="spreadsheetView">
 <div class="toolbar">
 <button class="toolbar-btn primary" onclick="calcStats()">Calculate Stats</button>
-<button class="toolbar-btn" onclick="saveToCloud()">️ Save to Cloud</button>
-<button class="toolbar-btn" onclick="loadFromCloud()">☁️ Load from Cloud</button>
+<button class="toolbar-btn" onclick="window.saveToCloud()" style="background:#3498db; color:#fff; border-color:#2980b9;">☁️ Save to Cloud</button>
+<button class="toolbar-btn" onclick="window.loadFromCloud()" style="background:#2ecc71; color:#fff; border-color:#27ae60;">☁️ Load from Cloud</button>
 <button class="toolbar-btn" onclick="clearCurrentData()">🗑️ Clear All Device Data</button>
 <button class="toolbar-btn" onclick="copyFromPreviousMonth()">📋 Copy Params from Previous Month</button>
 <button class="toolbar-btn" onclick="copyFromPreviousYear()">📋 Copy from Same Month Last Year</button>
-<button class="toolbar-btn" onclick="clearAllExclusions()"> Clear All Exclusions</button>
+<button class="toolbar-btn" onclick="clearAllExclusions()">🔄 Clear All Exclusions</button>
 <select id="levelSelect" style="padding:6px; background:#0f3460; color:#e0e0e0; border:1px solid #333; border-radius:4px;"><option value="2">2 Levels</option><option value="3">3 Levels</option></select>
 <span id="dayHighlightBadge" class="day-highlight-indicator" style="display:none;"></span>
 <span style="color:#aaa; font-size:11px; margin-left:10px;">💡 Double-click a value to exclude it from calculations</span>
@@ -673,31 +1294,6 @@ display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 
 <div class="dev-info"><strong>Developer: Lab.SP Mohammed al Desoqy</strong><br><strong>Email: M.i.y.d@hotmail.com</strong></div>
 <div class="rules-info" id="rulesInfo">LEVEL 1: -<br>LEVEL 2: -</div>
 </div>
-
-<!-- Floating Chat Widget -->
-<button class="floating-chat-toggle" id="floatingChatToggle" onclick="toggleFloatingChat()" title="Open Lab Assistant">💬</button>
-
-<div class="floating-chat-widget" id="floatingChatWidget">
-<div class="chat-header" id="chatHeader">
-<div class="chat-header-avatar" id="chatHeaderAvatar"></div>
-<div class="chat-header-info">
-<div class="chat-header-name">QMSAP Assistant</div>
-<div class="chat-header-status"><span class="online-dot"></span> Online</div>
-</div>
-<div class="chat-header-actions">
-<button class="chat-header-btn" onclick="toggleFloatingChat()" title="Close">✕</button>
-</div>
-</div>
-<div class="chat-body" id="floatingChatBody">
-<!-- Messages will appear here -->
-</div>
-<div class="chat-quick-replies" id="floatingQuickReplies"></div>
-<div class="chat-input-area">
-<input type="text" class="chat-input" id="floatingChatInput" placeholder="Type your message here..." onkeypress="if(event.key==='Enter') sendFloatingChat()">
-<button class="chat-send-btn" id="floatingSendBtn" onclick="sendFloatingChat()">➤</button>
-</div>
-</div>
-
 <div class="modal-overlay" id="aboutModal">
 <div class="modal" style="min-width:400px; max-width:500px; text-align:center;">
 <h3>ℹ️ About the Developer</h3>
@@ -730,7 +1326,7 @@ display: none; flex-direction: column; overflow: hidden; animation: chatSlideUp 
 <div style="display:flex; flex-direction:column; height:65vh;">
 <div id="chatMessages" class="chat-messages" style="flex:1; overflow-y:auto; background:#0f3460; border-radius:8px; padding:15px; margin-bottom:10px; border:1px solid #333;">
 <div class="chat-msg bot">
-<strong> Lab Assistant:</strong> Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.<br><br>
+<strong>🧪 Lab Assistant:</strong> Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.<br><br>
 Try asking:<br>
 • "QMSAP"<br>
 • "What is the TEa for Glucose?"<br>
@@ -753,7 +1349,7 @@ Try asking:<br>
 <div style="display:flex; gap:5px;">
 <input type="text" id="newQATriggers" placeholder="Local Triggers (comma separated)" style="flex:1; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
 <input type="text" id="newQAResponse" placeholder="Local Response (HTML allowed)" style="flex:2; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
-<button class="apply-tea-btn" onclick="addCustomChatQA()" style="background:#9b59b6; padding:6px 12px;"> Add</button>
+<button class="apply-tea-btn" onclick="addCustomChatQA()" style="background:#9b59b6; padding:6px 12px;">➕ Add</button>
 </div>
 </div>
 <div style="display:flex; gap:10px;">
@@ -771,7 +1367,7 @@ Try asking:<br>
 <div class="equation-desc">The average of all QC values. Used as the <strong>lab mean</strong> for performance evaluation.</div>
 </div>
 <div class="equation-card">
-<h4> Standard Deviation (SD)</h4>
+<h4>📏 Standard Deviation (SD)</h4>
 <div class="equation-formula">SD = √[ Σ(xᵢ - x̄)² / (n - 1) ]</div>
 <div class="equation-desc">Measures the dispersion of values around the mean. Uses <strong>sample SD</strong> (n-1 denominator).</div>
 </div>
@@ -781,7 +1377,7 @@ Try asking:<br>
 <div class="equation-desc">Expresses imprecision as a percentage. <strong>Lower CV = better precision</strong>. Compared against permissible CV and factory CV.</div>
 </div>
 <div class="equation-card">
-<h4>️ Bias%</h4>
+<h4>⚖️ Bias%</h4>
 <div class="equation-formula">Bias% = | (Lab Mean − Target Mean) / Target Mean | × 100</div>
 <div class="equation-desc">Measures <strong>systematic error (accuracy)</strong>. Target can be factory mean or peer group mean.</div>
 </div>
@@ -794,7 +1390,7 @@ Combines bias and imprecision into a single quality metric.<br>
 </div>
 </div>
 <div class="equation-card">
-<h4> Quality Goal Index (QGI)</h4>
+<h4>🔍 Quality Goal Index (QGI)</h4>
 <div class="equation-formula">QGI = |Bias%| / (1.65 × CV%)</div>
 <div class="equation-desc">
 Diagnoses the type of error when σ &lt; 6:<br>
@@ -815,7 +1411,7 @@ Diagnoses the type of error when σ &lt; 6:<br>
 </div>
 </div>
 <div class="equation-card">
-<h4>️ Total Allowable Error (TEa)</h4>
+<h4>🎚️ Total Allowable Error (TEa)</h4>
 <div class="equation-formula">TEa = Maximum acceptable error for clinical decision</div>
 <div class="equation-desc">
 Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biological Variation</strong> data (EFLM). Used in Sigma calculation. Sources:<br>
@@ -895,7 +1491,7 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <a href="https://www.westgard.com/teaspec.htm" target="_blank" class="web-resource-link">Open →</a>
 </div>
 <div class="web-resource-card">
-<div class="web-resource-icon">🇩</div>
+<div class="web-resource-icon">🇩🇪</div>
 <div class="web-resource-info">
 <h4>Rilibak Guidelines (Germany)</h4>
 <p>German guidelines for quality assurance in laboratory medicine.</p>
@@ -903,7 +1499,7 @@ Set by regulatory bodies (CLIA, Rilibak, RCPA) or derived from <strong>Biologica
 <a href="https://www.bundesaerztekammer.de" target="_blank" class="web-resource-link">Open →</a>
 </div>
 <div class="web-resource-card">
-<div class="web-resource-icon">🇺</div>
+<div class="web-resource-icon">🇦🇺</div>
 <div class="web-resource-info">
 <h4>RCPA — Quality Assurance Programs</h4>
 <p>Royal College of Pathologists of Australasia TEa recommendations.</p>
@@ -973,7 +1569,7 @@ Download the current TEa database as CSV for backup or sharing.
 </div>
 <div class="modal-overlay" id="userMgmtModal">
 <div class="modal" style="min-width:650px; max-width:800px;">
-<h3> User Management & Permissions</h3>
+<h3>👥 User Management & Permissions</h3>
 <div class="add-user-form">
 <h4>➕ Create New User</h4>
 <div class="add-user-grid">
@@ -984,7 +1580,7 @@ Download the current TEa database as CSV for backup or sharing.
 <div style="margin-top:10px;">
 <label style="font-size:11px; color:#aaa;">Role</label>
 <select id="newUserRole" style="padding:7px; background:#16213e; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:200px;">
-<option value="user"> Normal User (Selected Devices)</option>
+<option value="user">🔹 Normal User (Selected Devices)</option>
 <option value="manager">🔸 Lab Manager (All Devices)</option>
 </select>
 </div>
@@ -1006,12 +1602,12 @@ Download the current TEa database as CSV for backup or sharing.
 </div>
 <div class="modal-overlay" id="editUserModal">
 <div class="modal" style="min-width:450px;">
-<h3>️ Edit User: <span id="editUserName"></span></h3>
+<h3>✏️ Edit User: <span id="editUserName"></span></h3>
 <div style="margin-bottom:12px;">
 <label style="font-size:11px; color:#aaa;">Role</label>
 <select id="editUserRole" style="padding:7px; background:#0f3460; border:1px solid #333; color:#e0e0e0; border-radius:4px; font-size:12px; width:100%;">
 <option value="user">🔹 Normal User (Selected Devices)</option>
-<option value="manager"> Lab Manager (All Devices)</option>
+<option value="manager">🔸 Lab Manager (All Devices)</option>
 </select>
 </div>
 <div id="editUserDeviceSection">
@@ -1024,7 +1620,7 @@ Download the current TEa database as CSV for backup or sharing.
 </div>
 <div class="modal-btns">
 <button class="modal-btn secondary" onclick="closeEditUser()">Cancel</button>
-<button class="modal-btn primary" onclick="saveEditUser()"> Save Changes</button>
+<button class="modal-btn primary" onclick="saveEditUser()">💾 Save Changes</button>
 </div>
 </div>
 </div>
@@ -1034,7 +1630,8 @@ Download the current TEa database as CSV for backup or sharing.
 <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
 <button class="modal-btn secondary" onclick="showSettingsTab('general')" id="tab-general" style="background:#e74c3c;">General</button>
 <button class="modal-btn secondary" onclick="showSettingsTab('report')" id="tab-report">Report Layout</button>
-<button class="modal-btn secondary admin-only" onclick="showSettingsTab('assistant')" id="tab-assistant">Assistant</button>
+<button class="modal-btn secondary" onclick="showSettingsTab('assistant')" id="tab-assistant">Assistant & TEa</button>
+<button class="modal-btn secondary" onclick="showSettingsTab('assistant')" id="tab-assistant">Assistant</button>
 </div>
 <div id="settings-general">
 <div class="settings-grid">
@@ -1062,7 +1659,7 @@ Select one or more days of the week. Rows in the spreadsheet matching any select
 <div class="day-checkbox-item"><input type="checkbox" id="dayCheck3" value="3"><label for="dayCheck3"><span class="day-emoji">💧</span>Wed</label></div>
 <div class="day-checkbox-item"><input type="checkbox" id="dayCheck4" value="4"><label for="dayCheck4"><span class="day-emoji">⚡</span>Thu</label></div>
 <div class="day-checkbox-item"><input type="checkbox" id="dayCheck5" value="5"><label for="dayCheck5"><span class="day-emoji">🕌</span>Fri</label></div>
-<div class="day-checkbox-item"><input type="checkbox" id="dayCheck6" value="6"><label for="dayCheck6"><span class="day-emoji"></span>Sat</label></div>
+<div class="day-checkbox-item"><input type="checkbox" id="dayCheck6" value="6"><label for="dayCheck6"><span class="day-emoji">🌟</span>Sat</label></div>
 </div>
 <div class="day-checkbox-actions">
 <button onclick="selectAllDays()">✅ Select All</button>
@@ -1075,26 +1672,80 @@ Select one or more days of the week. Rows in the spreadsheet matching any select
 <span id="highlightPreviewText">No days selected</span>
 </div>
 </div>
+
+<div class="settings-group" style="grid-column: 1 / -1; border: 1px dashed #2ecc71; background: linear-gradient(135deg, #0f3460 0%, #1a3a5c 100%);">
+    <h4 style="color:#2ecc71;">☁️ Auto-Refresh from Cloud</h4>
+    <p style="font-size:11px; color:#aaa; margin-bottom:10px; line-height:1.5;">
+        Automatically reload data from Firebase Cloud in the background.
+    </p>
+    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="setAutoRefreshEnable" style="width: 18px; height: 18px; cursor: pointer;">
+            <span style="font-size: 13px; color: #fff; font-weight: bold;">Enable Auto-Refresh</span>
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px; color: #aaa;">Interval:</span>
+            <select id="setAutoRefreshInterval" style="padding: 6px; background: #16213e; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 12px;">
+<option value="10">10 Seconds</option>
+<option value="30">30 Seconds</option>
+<option value="60">1 Minute</option>
+<option value="120">2 Minutes</option>
+<option value="300">5 Minutes</option>
+</select>
+        </div>
+    </div>
+</div>
+
+<div id="backendSettingsGroup" class="settings-group" style="grid-column: 1 / -1; border: 1px dashed #9b59b6; background: linear-gradient(135deg, #0f3460 0%, #1a3a5c 100%); display: none;">
+    <h4 style="color:#9b59b6;">🗄️ Local File Backend (Auto-Sync)</h4>
+    <p style="font-size:11px; color:#aaa; margin-bottom:10px; line-height:1.5;">
+        Link a local JSON file to act as your database. The app will silently auto-save to this file and auto-restore if modified externally when you select or update items.<br>
+        <strong style="color:#f39c12;">⚠️ Note:</strong> This feature requires <strong>Google Chrome, Microsoft Edge, or Brave</strong>.
+    </p>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+    <button class="modal-btn primary" onclick="selectBackendFile()" style="flex: 1; min-width: 200px; background:#9b59b6;">📁 Create / Overwrite DB</button>
+    <button class="modal-btn primary" onclick="openExistingBackendFile()" style="flex: 1; min-width: 200px; background:#3498db;">📂 Link Existing DB</button>
+</div>
+    <div id="backendStatus" style="font-size:12px; color:#aaa; margin-top:5px;">Status: Not linked</div>
+</div>
+
+<div class="settings-group" style="grid-column: 1 / -1; border: 1px dashed #3498db; background: linear-gradient(135deg, #0f3460 0%, #1a3a5c 100%); margin-top: 10px;">
+    <h4 style="color:#3498db;">☁️ Cloud Sync Settings</h4>
+    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 5px;">
+        <input type="checkbox" id="setAutoSaveCloud" style="width: 18px; height: 18px; cursor: pointer;">
+        <span style="font-size: 13px; color: #fff; font-weight: bold;">Enable Auto-Save to Cloud</span>
+    </label>
+    <p style="font-size: 11px; color: #aaa; margin-top: 5px; margin-left: 28px;">When enabled, the app will automatically save your changes to Firebase every 2 seconds.</p>
+</div>
 </div>
 </div>
 <div id="settings-assistant" style="display:none;">
-    <div class="settings-group" style="grid-column: 1 / -1;">
-        <h4>🎯 TEa Database Editor</h4>
-        <p style="font-size:11px; color:#aaa; margin-bottom:10px;">Edit TEa values directly. Changes are saved automatically to your database.</p>
-        <input type="text" id="settingsTeaSearch" placeholder="🔍 Search Analyte (e.g., Glucose, TSH)..." oninput="filterSettingsTea()" style="width:100%; margin-bottom:10px; padding:8px; background:#16213e; border:1px solid #333; color:#fff; border-radius:4px;">
-        <div style="max-height:400px; overflow-y:auto; border:1px solid #333; border-radius:6px;">
-            <table class="tea-table" id="settingsTeaTable">
-                <thead>
-                    <tr>
-                        <th>Analyte</th>
-                        <th>Name</th>
-                        <th>CLIA (%)</th>
-                        <th>Bio.Var. (%)</th>
-                        <th>Rilibak (%)</th>
-                        <th>RCPA (%)</th>
-                    </tr>
-                </thead>
-                <tbody id="settingsTeaBody"></tbody>
+    <div class="settings-grid">
+        <div class="settings-group">
+            <h4>Appearance</h4>
+            <label>Modal Width (px)</label><input type="number" id="setAssistWidth" value="800">
+            <label>Modal Height (vh)</label><input type="number" id="setAssistHeight" value="92">
+            <label>Font Size (px)</label><input type="number" id="setAssistFontSize" value="13">
+            <label>Background Color</label><input type="color" id="setAssistBgColor" value="#16213e">
+            <label>Text Color</label><input type="color" id="setAssistTextColor" value="#e0e0e0">
+        </div>
+        <div class="settings-group">
+            <h4>Knowledge Base (Q&A)</h4>
+            <div id="settingsQAList" style="max-height:150px; overflow-y:auto; margin-bottom:10px; border:1px solid #333; padding:5px; background:#16213e;"></div>
+            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                <input type="text" id="settingsQATriggers" placeholder="Triggers (comma separated)" style="flex:1; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+                <input type="text" id="settingsQAResponse" placeholder="Response" style="flex:2; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px; font-size:11px;">
+                <button class="modal-btn primary" onclick="addSettingsQA()" style="padding:6px 12px;">Add Q&A</button>
+            </div>
+        </div>
+    </div>
+    <div class="settings-group" style="margin-top:15px; grid-column: 1 / -1;">
+        <h4>TEa Database Editor</h4>
+        <input type="text" id="teaSearchEditor" placeholder="Search Analyte..." oninput="filterTeaEditor()" style="width:100%; margin-bottom:10px; padding:6px; background:#0f3460; border:1px solid #333; color:#fff; border-radius:4px;">
+        <div style="max-height:300px; overflow-y:auto;">
+            <table class="tea-table" id="teaEditorTable">
+                <thead><tr><th>Analyte</th><th>Name</th><th>CLIA</th><th>Bio.Var.</th><th>Rilibak</th><th>RCPA</th></tr></thead>
+                <tbody id="teaEditorBody"></tbody>
             </table>
         </div>
     </div>
@@ -1104,37 +1755,6 @@ Select one or more days of the week. Rows in the spreadsheet matching any select
 <div class="settings-group"><h4>QC Parameters Table</h4><label>Column Widths (mm) [Lvl, Mean, SD, Exp, Lot]</label><input type="text" id="setRepQcCols" placeholder="e.g. 25, 30, 40, 25, 20"><label>Font Size</label><input type="number" id="setRepQcFont" step="1"></div>
 <div class="settings-group"><h4>Daily Run Log Table</h4><label>Date Col Width (mm)</label><input type="number" id="setRepLogDateW" step="1"><label>Result Col Width (mm)</label><input type="number" id="setRepLogResW" step="1"><label>Font Size</label><input type="number" id="setRepLogFont" step="1"></div>
 <div class="settings-group"><h4>Levey-Jennings Charts</h4><label>Chart Width (mm)</label><input type="number" id="setRepChartW" step="1"><label>Chart Height (mm)</label><input type="number" id="setRepChartH" step="1"></div>
-</div>
-</div>
-<div id="settings-assistant" style="display:none;" class="admin-only">
-<div class="assistant-settings-section">
-<h5>🎨 Appearance</h5>
-<div class="settings-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-<div><label>Width (px)</label><input type="number" id="setChatWidth" value="380"></div>
-<div><label>Height (px)</label><input type="number" id="setChatHeight" value="520"></div>
-<div><label>Toggle Icon</label><input type="text" id="setChatToggleIcon" value="💬"></div>
-<div><label>Header Icon</label><input type="text" id="setChatHeaderIcon" value="🤖"></div>
-<div><label>Background Color</label><input type="color" id="setChatBgColor" value="#1a1a2e"></div>
-<div><label>Header Color</label><input type="color" id="setChatHeaderColor" value="#9b59b6"></div>
-</div>
-</div>
-<div class="assistant-settings-section">
-<h5>💬 Behavior</h5>
-<label>Welcome Message</label>
-<input type="text" id="setChatWelcomeMsg" value="Hello! I can help you with QC." style="margin-bottom: 10px;">
-<label>Quick Replies (comma separated)</label>
-<input type="text" id="setChatQuickReplies" value="What is QMSAP?, Find and correct, Rules based on sigma">
-</div>
-<div class="assistant-settings-section">
-<h5>🧠 Knowledge Base (Q&A)</h5>
-<div class="qa-list-container" id="assistantQAList">
-<!-- QA Items will be rendered here -->
-</div>
-<div class="qa-add-form">
-<input type="text" id="newQA_Triggers" placeholder="Triggers (comma separated)">
-<input type="text" id="newQA_Response" placeholder="Response">
-<button class="modal-btn primary" onclick="addAssistantQA()" style="padding: 6px 12px; font-size: 11px;">Add</button>
-</div>
 </div>
 </div>
 <div class="modal-btns"><button class="modal-btn secondary" onclick="closeSettings()">Cancel</button><button class="modal-btn primary" onclick="applySettings()">Apply</button></div>
@@ -1150,11 +1770,12 @@ currentDevice: 'hormones', currentAnalyte: 'E2', currentMonth: new Date().getMon
 meanType: { L1: 'lab', L2: 'lab', L3: 'lab' }, analyteLevels: {}, excludedValues: {},
 institution: { nameAr: 'نسخة تجريبية', nameEn: 'trial version', logo: '' },
 reportSettings: { qcColWidths: [25, 30, 40, 25, 20], qcFontSize: 7, logDateWidth: 16, logResWidth: 18, logFontSize: 6, chartWidth: 160, chartHeight: 35, highlightDaysOfWeek: [] },
+autoSaveToCloud: true,
 users: { 'Hunter': { password: '9128', role: 'admin', name: 'Hunter (Admin)', assignedDevices: [] } },
 customEquations: [],
 customWebResources: [],
 customChatQA: [],
-chatWidgetSettings: { width: 380, height: 520, toggleIcon: '💬', headerIcon: '🤖', welcomeMsg: "Hello! I can help you with QC.", quickReplies: "What is QMSAP?, Find and correct, Rules based on sigma", bgColor: '#1a1a2e', headerBg: '#9b59b6', textColor: '#e0e0e0' },
+autoRefreshSettings: { enabled: false, interval: 1 },
 devices: {
 hormones: { id: 'hormones', name: 'Hormones', analyzer: 'COBAS e411', analytes: ['E2', 'FSH', 'LH', 'PRL', 'TESTO', 'TSH', 'B-HCG'], numLevels: 2, labSP: 'Mohammed El Desoqy', designee: 'Mohammed El Desoqy', data: {} },
 chemistry: { id: 'chemistry', name: 'Chemistry', analyzer: 'AU5800', analytes: ['GLU', 'UREA', 'CREA', 'ALT', 'AST'], numLevels: 2, labSP: '', designee: '', data: {} },
@@ -1172,154 +1793,8 @@ device12: { id: 'device12', name: 'Device 12', analyzer: 'Analyzer 12', analytes
 };
 Object.values(appData.devices).forEach(dev => { dev.analytes.forEach(a => { appData.analyteLevels[a] = dev.numLevels; }); });
 
-// ===== Floating Chat Functions =====
-function toggleFloatingChat() {
-const widget = document.getElementById('floatingChatWidget');
-const isActive = widget.classList.toggle('active');
-if (isActive) {
-renderQuickReplies();
-document.getElementById('floatingChatInput').focus();
-const body = document.getElementById('floatingChatBody');
-if (body.children.length === 0) {
-const msg = appData.chatWidgetSettings.welcomeMsg || "Hello!";
-addFloatingChatBubble(`<strong> Lab Assistant:</strong> ${msg}`, 'bot');
-}
-}
-}
-
-function renderQuickReplies() {
-const container = document.getElementById('floatingQuickReplies');
-if (!container) return;
-container.innerHTML = '';
-const repliesStr = appData.chatWidgetSettings.quickReplies || "";
-const replies = repliesStr.split(',').map(r => r.trim()).filter(r => r);
-if (replies.length === 0) {
-// Default fallback
-replies.push("What is QMSAP?", "Find and correct", "Rules based on sigma");
-}
-replies.forEach(reply => {
-const btn = document.createElement('button');
-btn.className = 'quick-reply-btn';
-btn.textContent = reply;
-btn.onclick = () => {
-document.getElementById('floatingChatInput').value = reply;
-sendFloatingChat();
-};
-container.appendChild(btn);
-});
-}
-
-function sendFloatingChat() {
-const input = document.getElementById('floatingChatInput');
-const msg = input.value.trim();
-if (!msg) return;
-addFloatingChatBubble(msg, 'user');
-input.value = '';
-showTypingIndicator();
-setTimeout(() => {
-removeTypingIndicator();
-const response = generateChatResponse(msg);
-addFloatingChatBubble(response, 'bot');
-}, 800);
-}
-
-function addFloatingChatBubble(text, sender) {
-const body = document.getElementById('floatingChatBody');
-if (!body) return;
-const bubble = document.createElement('div');
-bubble.className = `chat-bubble ${sender}`;
-const now = new Date();
-const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-if (sender === 'bot') {
-bubble.innerHTML = `${text}<div class="bubble-time">${timeStr}</div>`;
-} else {
-bubble.innerHTML = `${text}<div class="bubble-time">${timeStr} <span class="read-check">✓✓</span></div>`;
-}
-body.appendChild(bubble);
-body.scrollTop = body.scrollHeight;
-}
-
-function showTypingIndicator() {
-const body = document.getElementById('floatingChatBody');
-if (!body) return;
-const typing = document.createElement('div');
-typing.className = 'typing-indicator';
-typing.id = 'typingIndicator';
-typing.innerHTML = '<span></span><span></span><span></span>';
-body.appendChild(typing);
-body.scrollTop = body.scrollHeight;
-}
-
-function removeTypingIndicator() {
-const typing = document.getElementById('typingIndicator');
-if (typing) typing.remove();
-}
-
 function applyAssistantUI() {
-const settings = appData.chatWidgetSettings || {};
-const widget = document.getElementById('floatingChatWidget');
-const toggleBtn = document.getElementById('floatingChatToggle');
-const header = document.getElementById('chatHeader');
-const avatar = document.getElementById('chatHeaderAvatar');
-const body = document.getElementById('floatingChatBody');
-const inputArea = document.querySelector('.chat-input-area');
-const repliesArea = document.getElementById('floatingQuickReplies');
-
-if (widget) {
-widget.style.width = (settings.width || 380) + 'px';
-widget.style.height = (settings.height || 520) + 'px';
-widget.style.backgroundColor = settings.bgColor || '#1a1a2e';
-}
-if (toggleBtn) toggleBtn.textContent = settings.toggleIcon || '💬';
-if (header) header.style.background = `linear-gradient(135deg, ${settings.headerBg || '#9b59b6'}, #8e44ad)`;
-if (avatar) avatar.textContent = settings.headerIcon || '';
-if (body) body.style.backgroundColor = settings.bgColor || '#1a1a2e'; // Slightly lighter than widget bg usually, but let's use setting
-if (inputArea) inputArea.style.backgroundColor = settings.bgColor || '#1a1a2e';
-if (repliesArea) repliesArea.style.backgroundColor = settings.bgColor || '#1a1a2e';
-}
-
-// ===== Assistant Settings Functions =====
-function renderAssistantQAList() {
-const container = document.getElementById('assistantQAList');
-if (!container) return;
-container.innerHTML = '';
-if (!appData.customChatQA || appData.customChatQA.length === 0) {
-container.innerHTML = '<div style="color:#888; text-align:center; padding:10px; font-size:11px;">No custom Q&A added yet.</div>';
-return;
-}
-appData.customChatQA.forEach((qa, idx) => {
-const div = document.createElement('div');
-div.className = 'qa-item';
-div.innerHTML = `
-<div class="qa-item-content">
-<span class="qa-item-trigger">[${qa.triggers.join(', ')}]</span>
-<span style="color:#aaa; margin-left:5px;">${qa.response.substring(0, 50)}...</span>
-</div>
-<button class="qa-delete-btn" onclick="deleteAssistantQA(${idx})">Delete</button>
-`;
-container.appendChild(div);
-});
-}
-
-function addAssistantQA() {
-const triggersStr = document.getElementById('newQA_Triggers').value.trim();
-const response = document.getElementById('newQA_Response').value.trim();
-if (!triggersStr || !response) { alert('Triggers and Response are required!'); return; }
-const triggers = triggersStr.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
-if (!appData.customChatQA) appData.customChatQA = [];
-appData.customChatQA.push({ triggers, response });
-document.getElementById('newQA_Triggers').value = '';
-document.getElementById('newQA_Response').value = '';
-renderAssistantQAList();
-showNotification('Q&A added to Assistant!');
-}
-
-function deleteAssistantQA(idx) {
-if (confirm('Delete this Q&A?')) {
-appData.customChatQA.splice(idx, 1);
-renderAssistantQAList();
-showNotification('Q&A deleted.');
-}
+    // Dummy function to prevent ReferenceError in the combined Local/Cloud version
 }
 
 function isAdmin() { return currentUser && currentUser.role === 'admin'; }
@@ -1343,7 +1818,7 @@ container.appendChild(div);
 container.scrollTop = container.scrollHeight;
 }
 function generateGlobalQcReport() {
-let html = "<strong> Global QC Violation & Performance Summary (All Devices & Tests)</strong><br>";
+let html = "<strong>📊 Global QC Violation & Performance Summary (All Devices & Tests)</strong><br>";
 html += `<em style="color:#aaa;">Period: ${getMonthName()} ${appData.currentYear}</em><br><br>`;
 let totalViolations = 0;
 let allSigmaIssues = [];
@@ -1433,6 +1908,7 @@ html += `<div style='background:rgba(243,156,18,0.1); border-left:3px solid #f39
 html += `<strong>🛠️ Recommended Corrective Actions:</strong><br><ul style='margin:5px 0 0 20px; padding:0; color:#e0e0e0;'><li><strong>For Range Exceedances:</strong> Check for new reagent lots, calibration drift, or instrument maintenance needs.</li><li><strong>For Random Errors (QGI < 0.8):</strong> Review pipetting techniques, reagent mixing, check for bubbles.</li><li><strong>For Systematic Errors (QGI > 1.2):</strong> Recalibrate using fresh calibrators. Verify calibration curve.</li><li><strong>For Combined Errors (0.8 ≤ QGI ≤ 1.2):</strong> Full preventive maintenance (PM).</li></ul>`;
 return html;
 }
+
 
 
 function generateChatResponse(input) {
@@ -2102,7 +2578,7 @@ status.innerHTML = `⚠️ Could not parse TEa values from the page. The website
 }
 } catch (e) {
 status.className = 'fetch-status error';
-status.innerHTML = ` Error fetching data: ${e.message}<br><br><strong>Alternative:</strong> Visit the sources directly in the "Web Resources" tab, or import a CSV file.`;
+status.innerHTML = `❌ Error fetching data: ${e.message}<br><br><strong>Alternative:</strong> Visit the sources directly in the "Web Resources" tab, or import a CSV file.`;
 }
 }
 function importTeaCsv(event) {
@@ -2180,6 +2656,7 @@ function applyUserPermissions() {
 if (!currentUser) return;
 document.getElementById('userMgmtBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
 document.getElementById('settingsBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+document.getElementById('assistantBtn').style.display = currentUser.username === 'Hunter' ? 'inline-block' : 'none'; // <-- ADD THIS LINE HERE
 if (!canAccessDevice(appData.currentDevice)) {
 const accessible = getAccessibleDevices();
 if (accessible.length > 0) { appData.currentDevice = accessible[0].id; appData.currentAnalyte = accessible[0].analytes[0] || ''; }
@@ -2235,7 +2712,7 @@ Object.entries(appData.users).forEach(([username, user]) => {
 const tr = document.createElement('tr');
 const isAdmin = user.role === 'admin';
 const roleBadgeClass = user.role === 'admin' ? 'admin' : user.role === 'manager' ? 'manager' : 'user';
-const roleLabel = user.role === 'admin' ? '️ Admin' : user.role === 'manager' ? '🔸 Manager' : '🔹 User';
+const roleLabel = user.role === 'admin' ? '🛡️ Admin' : user.role === 'manager' ? '🔸 Manager' : '🔹 User';
 let devicesHTML = '';
 if (user.role === 'admin' || user.role === 'manager') devicesHTML = '<span style="color:#2ecc71; font-size:10px;">✅ All Devices</span>';
 else if (user.assignedDevices && user.assignedDevices.length > 0) devicesHTML = user.assignedDevices.map(dId => { const dev = appData.devices[dId]; return `<span class="device-chip assigned">${dev ? dev.name : dId}</span>`; }).join('');
@@ -2320,6 +2797,33 @@ window.addEventListener('resize', resizeAllCharts);
 function getMonthData(device, analyte, year, month) { if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][year]) device.data[analyte][year] = {}; if (!device.data[analyte][year][month]) device.data[analyte][year][month] = createEmptyData(); return device.data[analyte][year][month]; }
 function getCurrentData() { return getMonthData(appData.devices[appData.currentDevice], appData.currentAnalyte, appData.currentYear, appData.currentMonth); }
 function createEmptyData() { return { dates: [], L1: [], L2: [], L3: [], factoryMean: { L1: 0, L2: 0, L3: 0 }, factorySD: { L1: 0, L2: 0, L3: 0 }, permissibleCV: { L1: 10, L2: 10, L3: 10 }, lot: { L1: '', L2: '', L3: '' }, exp: { L1: '', L2: '', L3: '' } }; }
+
+function initializeSingleAnalyte(device, analyte, year, month) {
+    const daysInMonth = getDaysInMonth(year, month);
+    const data = getMonthData(device, analyte, year, month);
+    if (!data.dates || data.dates.length === 0) {
+        const numLevels = getAnalyteLevels(analyte);
+        data.dates = [];
+        for (let d = 1; d <= daysInMonth; d++) {
+            data.dates.push(formatDate(d, month, year));
+        }
+        for (let l = 1; l <= numLevels; l++) {
+            data[`L${l}`] = new Array(daysInMonth).fill(null);
+        }
+    }
+}
+function initializeMonthForDevice(device, year, month) {
+    device.analytes.forEach(analyte => {
+        initializeSingleAnalyte(device, analyte, year, month);
+    });
+}
+function initializeAllDevicesForMonth(year, month) {
+    Object.values(appData.devices).forEach(device => {
+        initializeMonthForDevice(device, year, month);
+    });
+}
+
+
 function hasDataForMonth(device, analyte, year, month) { return device.data[analyte] && device.data[analyte][year] && device.data[analyte][year][month] && device.data[analyte][year][month].dates && device.data[analyte][year][month].dates.length > 0; }
 function getAnalyteLevels(analyte) { return appData.analyteLevels[analyte] || 2; }
 function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
@@ -2327,13 +2831,48 @@ function formatDate(day, month, year) { const months = ['Jan','Feb','Mar','Apr',
 function updateInstitutionDisplay() { const inst = appData.institution; const logoImg = document.getElementById('customLogoImg'); const nameEl = document.getElementById('institutionName'); const subEl = document.getElementById('institutionSub'); if (!logoImg || !nameEl || !subEl) return; if (inst.logo) { logoImg.src = inst.logo; logoImg.style.display = 'block'; } else { logoImg.style.display = 'none'; } nameEl.textContent = inst.nameAr || 'Institution Name'; subEl.textContent = inst.nameEn || ''; }
 function previewLogo(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { const base64 = e.target.result; const previewImg = document.getElementById('logoPreviewImg'); const previewText = document.getElementById('logoPreviewText'); if(!previewImg || !previewText) return; previewImg.src = base64; previewImg.style.display = 'block'; previewText.style.display = 'none'; previewImg.dataset.base64 = base64; }; reader.readAsDataURL(file); }
 function removeLogo() { const previewImg = document.getElementById('logoPreviewImg'); const previewText = document.getElementById('logoPreviewText'); if(!previewImg || !previewText) return; previewImg.src = ''; previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; delete previewImg.dataset.base64; document.getElementById('setLogoFile').value = ''; }
-document.addEventListener('DOMContentLoaded', () => { loadSampleData(); buildMonthGrid(); buildSidebar(); buildAnalyteBar(); initImprecision(); setupNavButtons(); setupLevelSelect(); updateDateDisplay(); updateInstitutionDisplay(); updateDashboard(); setupHighlightPreview(); applyAssistantUI(); });
+document.addEventListener('DOMContentLoaded', () => { loadSampleData(); buildMonthGrid(); buildSidebar(); buildAnalyteBar(); initImprecision(); setupNavButtons(); setupLevelSelect(); updateDateDisplay(); updateInstitutionDisplay(); updateDashboard(); setupHighlightPreview(); });
 function loadSampleData() { const h = appData.devices.hormones; if (!h.data['E2']) h.data['E2'] = {}; if (!h.data['E2'][2026]) h.data['E2'][2026] = {}; h.data['E2'][2026][7] = JSON.parse(JSON.stringify(sampleE2Aug2026)); appData.analyteLevels['E2'] = 2; const c = appData.devices.cbc; if (!c.data['WBC']) c.data['WBC'] = {}; if (!c.data['WBC'][2026]) c.data['WBC'][2026] = {}; c.data['WBC'][2026][7] = JSON.parse(JSON.stringify(sampleWBCAug2026)); appData.analyteLevels['WBC'] = 3; }
-function buildMonthGrid() { const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEPT','OCT','NOV','DEC']; const grid = document.getElementById('monthGrid'); if (!grid) return; grid.innerHTML = ''; [0,3,6,9,1,4,7,10,2,5,8,11].forEach(m => { const span = document.createElement('span'); span.dataset.month = m; span.textContent = months[m]; if (m === appData.currentMonth) span.classList.add('active'); updateMonthHasData(span, m); span.addEventListener('click', () => { document.querySelectorAll('.month-grid span').forEach(s => s.classList.remove('active')); span.classList.add('active'); appData.currentMonth = m; updateDateDisplay(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }); grid.appendChild(span); }); }
+function buildMonthGrid() {
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC'];
+  const grid = document.getElementById('monthGrid');
+  
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  
+  const monthOrder = [0, 3, 6, 9, 1, 4, 7, 10, 2, 5, 8, 11];
+  
+  monthOrder.forEach(m => {
+    const span = document.createElement('span');
+    span.dataset.month = m;
+    span.textContent = months[m];
+    
+    if (m === appData.currentMonth) {
+      span.classList.add('active');
+    }
+    
+    updateMonthHasData(span, m);
+    
+span.addEventListener('click', async () => { document.querySelectorAll('.month-grid span').forEach(s => s.classList.remove('active')); span.classList.add('active'); appData.currentMonth = m; initializeAllDevicesForMonth(appData.currentYear, appData.currentMonth);
+updateDateDisplay();
+updateMonthBadges();
+await window.loadFromCloud(true);
+updateDashboard();
+      
+      const spreadsheetView = document.getElementById('spreadsheetView');
+      if (spreadsheetView && spreadsheetView.classList.contains('active')) {
+        populateSpreadsheet();
+      }
+    });
+    
+    grid.appendChild(span);
+  });
+}
+
 function updateMonthBadges() { document.querySelectorAll('.month-grid span').forEach(span => updateMonthHasData(span, parseInt(span.dataset.month))); const badge = document.getElementById('periodBadge'); if (badge) badge.textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`; }
 function updateMonthHasData(span, month) { const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; span.classList.toggle('has-data', hasDataForMonth(device, analyte, appData.currentYear, month)); }
-function changeYear(delta) { appData.currentYear += delta; updateDateDisplay(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }
-function updateDateDisplay() { const yp = document.getElementById('yearPrev'); const yc = document.getElementById('yearCurr'); const pb = document.getElementById('periodBadge'); if (yp) yp.textContent = appData.currentYear - 1; if (yc) yc.textContent = appData.currentYear; if (pb) pb.textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`; }
+async function changeYear(delta) { appData.currentYear += delta; await window.checkBackendForChanges(); await window.loadFromCloud(true); updateDateDisplay(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }function updateDateDisplay() { const yp = document.getElementById('yearPrev'); const yc = document.getElementById('yearCurr'); const pb = document.getElementById('periodBadge'); if (yp) yp.textContent = appData.currentYear - 1; if (yc) yc.textContent = appData.currentYear; if (pb) pb.textContent = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]} ${appData.currentYear}`; }
 function buildSidebar() {
 const sidebar = document.getElementById('sidebar'); if (!sidebar) return; sidebar.innerHTML = '';
 const accessibleDevices = getAccessibleDevices();
@@ -2343,11 +2882,13 @@ const canModify = currentUser && (currentUser.role === 'admin' || currentUser.ro
 accessibleDevices.forEach(dev => {
 const item = document.createElement('div'); item.className = 'sidebar-item' + (dev.id === appData.currentDevice ? ' active' : ''); item.dataset.device = dev.id;
 const nameSpan = document.createElement('span'); nameSpan.className = 'device-name'; nameSpan.textContent = dev.name;
-nameSpan.addEventListener('click', () => {
+nameSpan.addEventListener('click', async () => {
 if (appData.currentDevice === dev.id) return;
 document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active')); item.classList.add('active');
 appData.currentDevice = dev.id; const d = appData.devices[dev.id];
 appData.currentAnalyte = d.analytes[0] || ''; appData.numLevels = d.numLevels || 2;
+await window.checkBackendForChanges();
+await window.loadFromCloud(true);
 buildAnalyteBar(); updateMonthBadges(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 });
@@ -2381,12 +2922,10 @@ buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); showN
 }
 }
 
+
 function buildAnalyteBar() {
-    const device = appData.devices[appData.currentDevice]; 
-    if (!device) return;
-    const bar = document.getElementById('analyteBar'); 
-    if (!bar) return; 
-    bar.innerHTML = '';
+    const device = appData.devices[appData.currentDevice]; if (!device) return;
+    const bar = document.getElementById('analyteBar'); if (!bar) return; bar.innerHTML = '';
     const canModify = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
     
     device.analytes.forEach(a => {
@@ -2396,24 +2935,20 @@ function buildAnalyteBar() {
         wrapper.style.alignItems = 'center';
         wrapper.style.gap = '3px';
         
-        const btn = document.createElement('button');
+        const btn = document.createElement('button'); 
         const lvl = getAnalyteLevels(a);
-        btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : '');
+        btn.className = 'analyte-btn' + (a === appData.currentAnalyte ? ' active' : ''); 
         btn.innerHTML = `${a}<span class="lvl-badge">${lvl}L</span>`;
         btn.style.flex = '1';
-        
-        // FIX: Removed 'async' and the undefined 'await window.checkBackendForChanges()'
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             if (appData.currentAnalyte === a) return;
-            document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.analyte-btn').forEach(b => b.classList.remove('active')); 
             btn.classList.add('active');
             appData.currentAnalyte = a;
-            
-            updateMonthBadges(); 
-            updateDashboard();
+            await window.checkBackendForChanges();
+            updateMonthBadges(); updateDashboard();
             if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
         });
-        
         wrapper.appendChild(btn);
         
         // Add edit button for admins/managers (just like devices)
@@ -2428,54 +2963,56 @@ function buildAnalyteBar() {
             editBtn.style.fontSize = '12px';
             editBtn.style.padding = '2px 4px';
             editBtn.style.borderRadius = '3px';
-            editBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openRename('test', a);
+            editBtn.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                openRename('test', a); 
             });
             editBtn.addEventListener('mouseenter', () => { editBtn.style.background = 'rgba(255,255,255,0.2)'; });
             editBtn.addEventListener('mouseleave', () => { editBtn.style.background = 'transparent'; });
             wrapper.appendChild(editBtn);
         }
+        
         bar.appendChild(wrapper);
     });
     
     if (canModify) {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'analyte-btn';
-        addBtn.textContent = '➕ Add Test';
-        addBtn.style.background = '#2ecc71';
+        const addBtn = document.createElement('button'); 
+        addBtn.className = 'analyte-btn'; 
+        addBtn.textContent = '➕ Add Test'; 
+        addBtn.style.background = '#2ecc71'; 
         addBtn.style.color = '#fff';
         addBtn.addEventListener('click', () => {
-            document.getElementById('newTestName').value = '';
-            document.getElementById('newTestLevels').value = '2';
+            document.getElementById('newTestName').value = ''; 
+            document.getElementById('newTestLevels').value = '2'; 
             document.getElementById('newTestTEa').value = '10';
-            document.getElementById('addTestModal').classList.add('active');
+            document.getElementById('addTestModal').classList.add('active'); 
             setTimeout(() => document.getElementById('newTestName').focus(), 100);
         });
         bar.appendChild(addBtn);
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-test-btn';
+        const removeBtn = document.createElement('button'); 
+        removeBtn.className = 'remove-test-btn'; 
         removeBtn.textContent = '🗑️ Remove Test';
         removeBtn.addEventListener('click', () => {
             const device = appData.devices[appData.currentDevice];
             if (device.analytes.length <= 1) { alert('Cannot remove the last test!'); return; }
             if (confirm(`Remove "${appData.currentAnalyte}"?`)) {
-                const idx = device.analytes.indexOf(appData.currentAnalyte);
+                const idx = device.analytes.indexOf(appData.currentAnalyte); 
                 device.analytes.splice(idx, 1);
-                delete device.data[appData.currentAnalyte];
+                delete device.data[appData.currentAnalyte]; 
                 delete appData.analyteLevels[appData.currentAnalyte];
-                appData.currentAnalyte = device.analytes[0];
-                buildAnalyteBar();
-                updateMonthBadges();
-                updateDashboard();
-                showNotification('Test removed!');
+                appData.currentAnalyte = device.analytes[0]; 
+                buildAnalyteBar(); 
+                updateMonthBadges(); 
+                updateDashboard(); 
+                showNotification('Test removed!'); 
                 window.triggerAutoSave();
             }
         });
         bar.appendChild(removeBtn);
     }
 }
+
+
 
 function closeAddTest() { document.getElementById('addTestModal').classList.remove('active'); }
 function confirmAddTest() {
@@ -2486,15 +3023,34 @@ if (!name) { alert('Please enter a test name!'); return; }
 const device = appData.devices[appData.currentDevice]; if (!device) { alert('No device selected!'); return; }
 if (device.analytes.includes(name)) { alert('Test already exists!'); return; }
 device.analytes.push(name); appData.analyteLevels[name] = levels; device.data[name] = {};
-appData.currentAnalyte = name; appData.numLevels = levels; closeAddTest();
+initializeSingleAnalyte(device, name, appData.currentYear, appData.currentMonth);
+appData.currentAnalyte = name;
+appData.numLevels = levels; closeAddTest();
 buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard();
 if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
 showNotification(`✅ Test "${name}" added with ${levels} level(s)!`); window.triggerAutoSave();
 }
 function setupNavButtons() { document.querySelectorAll('.nav-btn[data-view]').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); showView(btn.dataset.view); }); }); }
 function setupLevelSelect() { document.getElementById('levelSelect').addEventListener('change', function() { const nl = parseInt(this.value); appData.numLevels = nl; appData.devices[appData.currentDevice].numLevels = nl; appData.analyteLevels[appData.currentAnalyte] = nl; if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); }); }
-function showView(view) { document.getElementById('dashboardView').classList.remove('active'); document.getElementById('spreadsheetView').classList.remove('active'); document.getElementById('imprecisionView').classList.remove('active'); if (view === 'dashboard') { document.getElementById('dashboardView').classList.add('active'); updateDashboard(); } else if (view === 'spreadsheet') { document.getElementById('spreadsheetView').classList.add('active'); populateSpreadsheet(); } else { document.getElementById('imprecisionView').classList.add('active'); } }
-function toggleMeanType(level) { const key = `L${level}`; if (appData.meanType[key] === 'lab') { appData.meanType[key] = 'factory'; document.getElementById(`labelL${level}`).textContent = `FACTORY Mean L${level}`; } else { appData.meanType[key] = 'lab'; document.getElementById(`labelL${level}`).textContent = `LAB Mean L${level}`; } updateDashboard(); }
+async function showView(view) { 
+document.getElementById('dashboardView').classList.remove('active'); 
+document.getElementById('spreadsheetView').classList.remove('active'); 
+document.getElementById('imprecisionView').classList.remove('active'); 
+await window.checkBackendForChanges();
+if (view === 'dashboard') { document.getElementById('dashboardView').classList.add('active'); updateDashboard(); } 
+else if (view === 'spreadsheet') { document.getElementById('spreadsheetView').classList.add('active'); populateSpreadsheet(); } 
+else { document.getElementById('imprecisionView').classList.add('active'); } 
+}
+async function toggleMeanType(level) {
+const key = `L${level}`;
+const newType = appData.meanType[key] === 'lab' ? 'factory' : 'lab';
+await window.checkBackendForChanges();
+await window.loadFromCloud(true); // Fetch latest data first
+appData.meanType[key] = newType; // Re-apply your click so it doesn't get overwritten
+if (newType === 'factory') { document.getElementById(`labelL${level}`).textContent = `FACTORY Mean L${level}`; }
+else { document.getElementById(`labelL${level}`).textContent = `LAB Mean L${level}`; }
+updateDashboard();
+}
 function openRename(type, id) { appData.renameTarget = { type, id }; document.getElementById('renameTitle').textContent = type === 'device' ? 'Rename Device' : 'Rename Test'; document.getElementById('renameInput').value = type === 'device' ? appData.devices[id].name : id; document.getElementById('renameModal').classList.add('active'); setTimeout(() => document.getElementById('renameInput').focus(), 100); }
 function closeRename() { document.getElementById('renameModal').classList.remove('active'); }
 function applyRename() { const { type, id } = appData.renameTarget; const newName = document.getElementById('renameInput').value.trim(); if (!newName) return; if (type === 'device') { appData.devices[id].name = newName; buildSidebar(); } else { const device = appData.devices[appData.currentDevice]; const idx = device.analytes.indexOf(id); if (idx >= 0) { device.analytes[idx] = newName; if (device.data[id]) { device.data[newName] = device.data[id]; delete device.data[id]; } if (appData.analyteLevels[id] !== undefined) { appData.analyteLevels[newName] = appData.analyteLevels[id]; delete appData.analyteLevels[id]; } if (appData.currentAnalyte === id) appData.currentAnalyte = newName; buildAnalyteBar(); updateMonthBadges(); updateDashboard(); } } closeRename(); showNotification('Renamed!'); window.triggerAutoSave(); }
@@ -3042,211 +3598,10 @@ body.appendChild(tr);
 });
 }
 function calcStats() { autoUpdateSpreadsheet(); showView('dashboard'); document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.remove('active')); document.querySelector('.nav-btn[data-view="dashboard"]').classList.add('active'); showNotification('Statistics calculated!'); }
-function clearCurrentData() {
-const device = appData.devices[appData.currentDevice]; const year = appData.currentYear; const month = appData.currentMonth; const monthName = getMonthName();
-if (!confirm(`⚠️ Clear ALL QC RESULTS for ALL tests in "${device.name}" for ${monthName} ${year}?
-Parameters (Mean, SD, TEa, Lot, Exp) will be kept for all tests.`)) return;
-let clearedCount = 0;
-device.analytes.forEach(analyte => {
-if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][year]) device.data[analyte][year] = {};
-const currentData = getMonthData(device, analyte, year, month);
-const savedParams = { factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 }, factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 }, permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 }, lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' }, exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' } };
-device.data[analyte][year][month] = createEmptyData(); device.data[analyte][year][month].factoryMean = savedParams.factoryMean; device.data[analyte][year][month].factorySD = savedParams.factorySD; device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV; device.data[analyte][year][month].lot = savedParams.lot; device.data[analyte][year][month].exp = savedParams.exp;
-const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`; Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
-clearedCount++;
-});
-updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device.name}! Parameters retained.`); window.triggerAutoSave();
-}
-function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
-function copyFromPreviousMonth() {
-const device = appData.devices[appData.currentDevice]; let pm = appData.currentMonth - 1, py = appData.currentYear; if (pm < 0) { pm = 11; py--; }
-const prevMonthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm];
-let copiedCount = 0, skippedCount = 0;
-device.analytes.forEach(analyte => {
-if (hasDataForMonth(device, analyte, py, pm)) {
-const sourceData = device.data[analyte][py][pm];
-if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
-if (!device.data[analyte][appData.currentYear][appData.currentMonth]) device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
-const targetData = device.data[analyte][appData.currentYear][appData.currentMonth];
-if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
-if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
-if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringify(sourceData.permissibleCV));
-if (sourceData.lot) targetData.lot = JSON.parse(JSON.stringify(sourceData.lot));
-if (sourceData.exp) targetData.exp = JSON.parse(JSON.stringify(sourceData.exp));
-copiedCount++;
-} else skippedCount++;
-});
-if (copiedCount === 0) { alert(`⚠️ No data found for ANY test in "${device.name}" for ${prevMonthName} ${py}.`); return; }
-updateMonthBadges(); updateDashboard(); populateSpreadsheet();
-let msg = `✅ Copied Mean & SD parameters for ${copiedCount} test(s) from ${prevMonthName} ${py}.`;
-if (skippedCount > 0) msg += ` (${skippedCount} test(s) had no data to copy)`;
-showNotification(msg); window.triggerAutoSave();
-}
-function copyFromPreviousYear() {
-const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const py = appData.currentYear - 1;
-if (hasDataForMonth(device, analyte, py, appData.currentMonth)) {
-Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth])));
-updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${getMonthName()} ${py}!`); window.triggerAutoSave();
-} else alert(`No data for ${getMonthName()} ${py}`);
-}
-function initImprecision() { const tbody = document.getElementById('imprecisionBody'); if (!tbody) return; tbody.innerHTML = ''; for (let i = 1; i <= 20; i++) { const tr = document.createElement('tr'); tr.innerHTML = `<td>Run ${i}</td><td><input type="number" step="0.01" class="imp-l1"></td><td><input type="number" step="0.01" class="imp-l2"></td><td style="display:none"><input type="number" step="0.01" class="imp-l3"></td>`; tbody.appendChild(tr); } }
-function calcImprecision() { const l1 = Array.from(document.querySelectorAll('.imp-l1')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l2 = Array.from(document.querySelectorAll('.imp-l2')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l3 = Array.from(document.querySelectorAll('.imp-l3')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const div = document.getElementById('imprecisionResults'); if (!div) return; div.innerHTML = ''; [{ name: 'Level 1', v: l1 }, { name: 'Level 2', v: l2 }, { name: 'Level 3', v: l3 }].forEach(level => { if (level.v.length < 2) return; const mean = calcMean(level.v), sd = calcSD(level.v, mean), cv = calcCV(sd, mean); const box = document.createElement('div'); box.className = 'imp-box'; box.innerHTML = `<h4>${level.name}</h4><div>N: ${level.v.length}</div><div>Mean: <strong>${mean.toFixed(4)}</strong></div><div>SD: <strong>${sd.toFixed(4)}</strong></div><div>CV: <strong>${cv.toFixed(2)}%</strong></div><div>Min: ${Math.min(...level.v).toFixed(4)}</div><div>Max: ${Math.max(...level.v).toFixed(4)}</div>`; div.appendChild(box); }); showNotification('Imprecision calculated!'); }
-function openSettings() {
-    const device = appData.devices[appData.currentDevice]; const data = getCurrentData();
-    document.getElementById('setInstNameAr').value = appData.institution.nameAr || ''; document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
-    const previewImg = document.getElementById('logoPreviewImg'); const previewText = document.getElementById('logoPreviewText');
-    if (previewImg && previewText) { if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; } else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; } }
-    document.getElementById('setLogoFile').value = ''; document.getElementById('setLabSP').value = device.labSP || ''; document.getElementById('setDesignee').value = device.designee || '';
-    document.getElementById('setBranch').value = ''; document.getElementById('setUser').value = ''; document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
-    document.getElementById('setLot1').value = (data.lot && data.lot.L1) || ''; document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
-    document.getElementById('setLot2').value = (data.lot && data.lot.L2) || ''; document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
-    document.getElementById('setLot3').value = (data.lot && data.lot.L3) || ''; document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
-    const highlightDays = getHighlightDaysArray(); for (let i = 0; i < 7; i++) { document.getElementById('dayCheck' + i).checked = highlightDays.includes(i); }
-    updateHighlightPreview(); const rs = appData.reportSettings;
-    document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', '); document.getElementById('setRepQcFont').value = rs.qcFontSize;
-    document.getElementById('setRepLogDateW').value = rs.logDateWidth; document.getElementById('setRepLogResW').value = rs.logResWidth; document.getElementById('setRepLogFont').value = rs.logFontSize;
-    document.getElementById('setRepChartW').value = rs.chartWidth; document.getElementById('setRepChartH').value = rs.chartHeight;
 
-    // --- FIX: Force Assistant Tab to show for Admins ---
-    const tabAssistant = document.getElementById('tab-assistant');
-    const contentAssistant = document.getElementById('settings-assistant');
-    
-    if (isAdmin()) {
-        if (tabAssistant) tabAssistant.classList.add('show-inline');
-        if (contentAssistant) contentAssistant.classList.add('show');
-    } else {
-        if (tabAssistant) tabAssistant.classList.remove('show-inline');
-        if (contentAssistant) contentAssistant.classList.remove('show');
-    }
-    // --------------------------------------------------
-
-    document.getElementById('settingsModal').classList.add('active');
-}
-function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
-// 1. Updated Tab Switcher
-function showSettingsTab(tab) {
-    document.getElementById('settings-general').style.display = tab === 'general' ? 'block' : 'none';
-    document.getElementById('settings-report').style.display = tab === 'report' ? 'block' : 'none';
-    document.getElementById('settings-assistant').style.display = tab === 'assistant' ? 'block' : 'none';
-    
-    document.getElementById('tab-general').style.background = tab === 'general' ? '#e74c3c' : '#0f3460';
-    document.getElementById('tab-report').style.background = tab === 'report' ? '#e74c3c' : '#0f3460';
-    document.getElementById('tab-assistant').style.background = tab === 'assistant' ? '#e74c3c' : '#0f3460';
-    
-    if (tab === 'assistant') {
-        renderSettingsTeaEditor();
-    }
-}
-
-// 2. Render the Editable Table
-function renderSettingsTeaEditor() {
-    const tbody = document.getElementById('settingsTeaBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    Object.keys(TEA_DATABASE).sort().forEach(code => {
-        const d = TEA_DATABASE[code];
-        const tr = document.createElement('tr');
-        tr.dataset.analyte = code;
-        tr.dataset.name = d.name.toLowerCase();
-        
-        tr.innerHTML = `
-            <td><strong style="color:#9b59b6;">${code}</strong></td>
-            <td>${d.name}</td>
-            <td><input type="number" step="0.1" value="${d.clia !== null ? d.clia : ''}" onchange="updateSettingsTea('${code}', 'clia', this.value)" style="width:60px; background:#16213e; color:#fff; border:1px solid #333; padding:4px; border-radius:3px;"></td>
-            <td><input type="number" step="0.1" value="${d.bv !== null ? d.bv : ''}" onchange="updateSettingsTea('${code}', 'bv', this.value)" style="width:60px; background:#16213e; color:#fff; border:1px solid #333; padding:4px; border-radius:3px;"></td>
-            <td><input type="number" step="0.1" value="${d.rlb !== null ? d.rlb : ''}" onchange="updateSettingsTea('${code}', 'rlb', this.value)" style="width:60px; background:#16213e; color:#fff; border:1px solid #333; padding:4px; border-radius:3px;"></td>
-            <td><input type="number" step="0.1" value="${d.rcpa !== null ? d.rcpa : ''}" onchange="updateSettingsTea('${code}', 'rcpa', this.value)" style="width:60px; background:#16213e; color:#fff; border:1px solid #333; padding:4px; border-radius:3px;"></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// 3. Save Changes & Persist to Backend
-function updateSettingsTea(code, source, value) {
-    const val = value === '' ? null : parseFloat(value);
-    if (TEA_DATABASE[code]) {
-        TEA_DATABASE[code][source] = val;
-        
-        // Sync to appData so it gets saved to your JSON file
-        if (!appData.teaDatabase) appData.teaDatabase = {};
-        appData.teaDatabase[code] = { ...TEA_DATABASE[code] };
-        
-        window.triggerAutoSave(); 
-        
-        // Refresh the Assistant modal table if it's open
-        if (document.getElementById('assistantModal').classList.contains('active')) {
-            populateTeaTable();
-        }
-    }
-}
-
-// 4. Search/Filter Function
-function filterSettingsTea() {
-    const q = document.getElementById('settingsTeaSearch').value.toLowerCase().trim();
-    document.querySelectorAll('#settingsTeaBody tr').forEach(tr => {
-        const matchText = (tr.dataset.analyte + ' ' + tr.dataset.name).includes(q);
-        tr.style.display = matchText ? '' : 'none';
-    });
-}
-function applySettings() {
-const device = appData.devices[appData.currentDevice];
-appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim(); appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
-const previewImg = document.getElementById('logoPreviewImg'); if (previewImg && previewImg.dataset.base64) appData.institution.logo = previewImg.dataset.base64;
-updateInstitutionDisplay(); device.labSP = document.getElementById('setLabSP').value; device.designee = document.getElementById('setDesignee').value;
-const nl = parseInt(document.getElementById('setNumLevels').value); appData.analyteLevels[appData.currentAnalyte] = nl; appData.numLevels = nl;
-const data = getCurrentData(); data.lot.L1 = document.getElementById('setLot1').value; data.exp.L1 = document.getElementById('setExp1').value;
-data.lot.L2 = document.getElementById('setLot2').value; data.exp.L2 = document.getElementById('setExp2').value; data.lot.L3 = document.getElementById('setLot3').value; data.exp.L3 = document.getElementById('setExp3').value;
-const selectedDays = []; for (let i = 0; i < 7; i++) { if (document.getElementById('dayCheck' + i).checked) selectedDays.push(i); }
-appData.reportSettings.highlightDaysOfWeek = selectedDays;
-const qcColsStr = document.getElementById('setRepQcCols').value; appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value) || 7; appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value) || 16;
-appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value) || 18; appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value) || 6;
-appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value) || 160; appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value) || 35;
-
-// Save Assistant Settings
-appData.chatWidgetSettings = {
-width: parseInt(document.getElementById('setChatWidth').value) || 380,
-height: parseInt(document.getElementById('setChatHeight').value) || 520,
-toggleIcon: document.getElementById('setChatToggleIcon').value || '💬',
-headerIcon: document.getElementById('setChatHeaderIcon').value || '🤖',
-welcomeMsg: document.getElementById('setChatWelcomeMsg').value || 'Hello!',
-quickReplies: document.getElementById('setChatQuickReplies').value,
-bgColor: document.getElementById('setChatBgColor').value || '#1a1a2e',
-headerBg: document.getElementById('setChatHeaderColor').value || '#9b59b6',
-textColor: '#e0e0e0'
-};
-applyAssistantUI();
-
-closeSettings(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
-if (selectedDays.length > 0) { const dayNames = selectedDays.map(d => DAY_NAMES[d]).join(', '); showNotification(`✅ Settings applied! ${dayNames} rows will be highlighted.`); } else { showNotification('Settings applied!'); }
-window.triggerAutoSave();
-}
-function openAbout() { document.getElementById('aboutModal').classList.add('active'); }
-function closeAbout() { document.getElementById('aboutModal').classList.remove('active'); }
-function printCurrent() { const itemsToPrint = [{ device: appData.devices[appData.currentDevice], analyte: appData.currentAnalyte }]; generatePDFReport(itemsToPrint); }
-function printAll() { const itemsToPrint = []; Object.values(appData.devices).forEach(dev => { if (!canAccessDevice(dev.id)) return; dev.analytes.forEach(a => { const data = getMonthData(dev, a, appData.currentYear, appData.currentMonth); if (data && data.dates && data.dates.length > 0) itemsToPrint.push({ device: dev, analyte: a }); }); }); if (itemsToPrint.length === 0) { alert('No data available for this period across any device!'); return; } generatePDFReport(itemsToPrint); }
-async function generatePDFReport(itemsToPrint) {
-const { jsPDF } = window.jspdf; const periodStr = `${getMonthName()} ${appData.currentYear}`;
-const pdf = new jsPDF('p', 'mm', 'a4'); const pageWidth = pdf.internal.pageSize.getWidth(); const pageHeight = pdf.internal.pageSize.getHeight();
-for (let idx = 0; idx < itemsToPrint.length; idx++) {
-const item = itemsToPrint[idx]; const device = item.device; const analyte = item.analyte; const numLevels = getAnalyteLevels(analyte);
-const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
-if (!data || !data.dates || data.dates.length === 0) continue;
-if (idx > 0) pdf.addPage();
-const prevDevice = appData.currentDevice; const prevAnalyte = appData.currentAnalyte;
-appData.currentDevice = device.id; appData.currentAnalyte = analyte; let currentY = 8; const rs = appData.reportSettings;
-function drawHeader() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('EVALUATION SUMMARY & CONFIGURATION', 12, currentY + 4); currentY += 6; pdf.rect(10, currentY, pageWidth - 20, 20); pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.text('Test Analyte:', 12, currentY + 4); pdf.text('Analyzer System:', 12, currentY + 8); pdf.text('Evaluation Date:', 12, currentY + 12); pdf.text('Lab Manager:', 12, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(`${analyte}`, 60, currentY + 4); pdf.text(device.analyzer || 'N/A', 60, currentY + 8); pdf.text(`24/08/${appData.currentYear}`, 60, currentY + 12); pdf.text(device.designee || '-', 60, currentY + 16); pdf.setFont('helvetica', 'bold'); pdf.text('Evaluator / Lab SP:', 110, currentY + 4); pdf.text('Hospital Name:', 110, currentY + 8); pdf.text('Mean Type:', 110, currentY + 12); pdf.text('Specifications:', 110, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(device.labSP || '-', 155, currentY + 4); pdf.text(appData.institution.nameEn || '-', 155, currentY + 8); const meanTypeText = Object.values(appData.meanType).every(t => t === 'lab') ? 'LAB Mean' : Object.values(appData.meanType).every(t => t === 'factory') ? 'FACTORY Mean' : 'Mixed Mean'; pdf.text(meanTypeText, 155, currentY + 12); pdf.text('Manufacturer Specifications', 155, currentY + 16); currentY += 22; }
-function drawQCParameters() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION', 12, currentY + 4); currentY += 6; const colWidths = rs.qcColWidths.length === 5 ? rs.qcColWidths : [25, 30, 40, 25, 20]; const startX = 10; pdf.setFillColor(230, 230, 230); let x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 6, 'F'); x += w; } pdf.setFontSize(rs.qcFontSize); pdf.setFont('helvetica', 'bold'); pdf.text('Control Level', startX + 2, currentY + 4); pdf.text('Target QC Mean', startX + colWidths[0] + colWidths[1]/2, currentY + 4, { align: 'center' }); pdf.text('Standard Deviation (SD)', startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 4, { align: 'center' }); pdf.text('Expiration Date', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 4, { align: 'center' }); pdf.text('Lot Number', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 4, { align: 'center' }); currentY += 6; pdf.setFont('helvetica', 'normal'); pdf.setFontSize(rs.qcFontSize); for (let l = 1; l <= numLevels; l++) { x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 5); x += w; } const mean = (data.factoryMean && data.factoryMean[`L${l}`]) ? data.factoryMean[`L${l}`].toFixed(3) : '0.000'; const sd = (data.factorySD && data.factorySD[`L${l}`]) ? data.factorySD[`L${l}`].toFixed(3) : '0.000'; const exp = (data.exp && data.exp[`L${l}`]) || 'N/A'; const lot = (data.lot && data.lot[`L${l}`]) || 'N/A'; pdf.text(`Level ${l} (L${l})`, startX + 2, currentY + 3.5); pdf.text(mean, startX + colWidths[0] + colWidths[1]/2, currentY + 3.5, { align: 'center' }); pdf.text(sd, startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 3.5, { align: 'center' }); pdf.text(exp, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 3.5, { align: 'center' }); pdf.text(lot, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 3.5, { align: 'center' }); currentY += 5; } currentY += 4; }
-function drawDataTable() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4); currentY += 6; const startX = 10; const dateColWidth = 15; const dayCellWidth = (pageWidth - 20 - dateColWidth) / 31; const rowHeight = 6; const unifiedFontSize = 6; const getFontSizeForCell = (text, cellWidth, cellHeight, baseFontSize) => { if (!text) return baseFontSize; let fontSize = baseFontSize; pdf.setFontSize(fontSize); const textWidth = pdf.getTextWidth(text); while (textWidth > (cellWidth - 1) && fontSize > 3) { fontSize -= 0.5; pdf.setFontSize(fontSize); } while ((fontSize * 1.2) > (cellHeight - 0.5) && fontSize > 3) { fontSize -= 0.5; } return Math.max(3, fontSize); }; pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.setFillColor(255, 255, 255); pdf.rect(startX, currentY, pageWidth - 20, rowHeight, 'FD'); pdf.text(`${device.name} - ${analyte} (${periodStr.toUpperCase()})`, startX + (pageWidth - 20) / 2, currentY + 4, { align: 'center' }); currentY += rowHeight; pdf.setFontSize(unifiedFontSize); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.text('Date', startX + 2, currentY + 4); for (let d = 1; d <= 31; d++) { pdf.setFillColor(211, 211, 211); pdf.rect(startX + dateColWidth + (d - 1) * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); pdf.text(d.toString(), startX + dateColWidth + (d - 1) * dayCellWidth + dayCellWidth / 2, currentY + 4, { align: 'center' }); } currentY += rowHeight; const drawLevelRows = (level) => { if (numLevels < level) return; pdf.setFont('helvetica', 'bold'); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.setFontSize(unifiedFontSize); pdf.text(`LVL ${level}`, startX + 2, currentY + 4); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(0, 0, 0); for (let d = 1; d <= 31; d++) { const idx = d - 1; const val = data[`L${level}`] && data[`L${level}`][idx] !== undefined && data[`L${level}`][idx] !== null && data[`L${level}`][idx] !== 0 ? data[`L${level}`][idx].toFixed(1) : ''; pdf.setFillColor(255, 255, 255); pdf.rect(startX + dateColWidth + idx * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); if (val) { const fSize = getFontSizeForCell(val, dayCellWidth, rowHeight, 7); pdf.setFontSize(fSize); pdf.text(val, startX + dateColWidth + idx * dayCellWidth + dayCellWidth / 2, currentY + (rowHeight/2) + (fSize*0.3), { align: 'center', baseline: 'middle' }); } } currentY += rowHeight; currentY += 2; }; drawLevelRows(1); drawLevelRows(2); drawLevelRows(3); currentY += 5; }
-function drawLJCharts() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS', 12, currentY + 4); currentY += 9.8; const chartWidth = rs.chartWidth; const chartHeight = rs.chartHeight; const startX = 20; for (let l = 1; l <= numLevels; l++) { try { const values = getNonExcludedValues(analyte, l, appData.currentYear, appData.currentMonth); let mean, sd; if (appData.meanType[`L${l}`] === 'factory' && data.factoryMean[`L${l}`] && data.factorySD[`L${l}`]) { mean = data.factoryMean[`L${l}`]; sd = data.factorySD[`L${l}`]; } else { mean = calcMean(values); sd = calcSD(values, mean); } pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.text(`${analyte} - Level ${l} (Target: ${mean.toFixed(2)} ± ${sd.toFixed(2)})`, 12, currentY); currentY += 2; pdf.setDrawColor(0); pdf.setLineWidth(0.2); pdf.rect(startX, currentY, chartWidth, chartHeight); const minY = mean - 3 * sd; const maxY = mean + 3 * sd; const yRange = maxY - minY || 1; const mapY = (val) => currentY + chartHeight - ((val - minY) / yRange) * chartHeight; pdf.setLineWidth(0.1); pdf.setDrawColor(0); pdf.line(startX, mapY(mean), startX + chartWidth, mapY(mean)); pdf.setDrawColor(100); pdf.setLineDashPattern([2, 2], 0); pdf.line(startX, mapY(mean + sd), startX + chartWidth, mapY(mean + sd)); pdf.line(startX, mapY(mean - sd), startX + chartWidth, mapY(mean - sd)); pdf.line(startX, mapY(mean + 2*sd), startX + chartWidth, mapY(mean + 2*sd)); pdf.line(startX, mapY(mean - 2*sd), startX + chartWidth, mapY(mean - 2*sd)); pdf.setLineDashPattern([1, 1], 0); pdf.line(startX, mapY(mean + 3*sd), startX + chartWidth, mapY(mean + 3*sd)); pdf.line(startX, mapY(mean - 3*sd), startX + chartWidth, mapY(mean - 3*sd)); pdf.setLineDashPattern([], 0); const levelData = data[`L${l}`]; if (levelData && levelData.length > 0) { pdf.setDrawColor(0); pdf.setLineWidth(0.3); pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); let prevX = null; let prevY = null; for (let i = 0; i < levelData.length; i++) { const val = levelData[i]; if (val === undefined || val === null || val === 0 || isNaN(val)) continue; const x = startX + (i / (levelData.length - 1 || 1)) * chartWidth; const y = mapY(val); if (prevX !== null) pdf.line(prevX, prevY, x, y); pdf.circle(x, y, 0.8, 'F'); prevX = x; prevY = y; } } pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); for (let i = 0; i < data.dates.length; i++) { const x = startX + (i / (data.dates.length - 1 || 1)) * chartWidth; const dateStr = data.dates[i] || ''; const day = dateStr.substring(0, 2); if (i === 0 || i === data.dates.length - 1 || i % 2 === 0) pdf.text(day, x - 2, currentY + chartHeight + 3); } currentY += chartHeight + 8; } catch (e) { console.error('Error drawing chart:', e); } } }
-function drawFooter() { pdf.setFontSize(8); pdf.setFont('helvetica', 'italic'); pdf.text('QC Management By LAB SP. Mohammed Al Desoqy', pageWidth - 50, pageHeight - 10, { align: 'right' }); }
-drawHeader(); drawQCParameters(); drawDataTable(); drawLJCharts(); drawFooter();
-appData.currentDevice = prevDevice; appData.currentAnalyte = prevAnalyte;
-}
-const filename = `QC_Report_All_${periodStr.replace(' ', '_')}.pdf`; pdf.save(filename); showNotification('PDF report generated!');
-}
+// ==========================================
+// UPDATED EXPORT & IMPORT FUNCTIONS
+// ==========================================
 function exportExcel() { 
     const wb = XLSX.utils.book_new(); 
     const device = appData.devices[appData.currentDevice]; 
@@ -3300,13 +3655,544 @@ function exportExcel() {
     XLSX.writeFile(wb, filename); 
     showNotification('Excel exported with Parameters!'); 
 }
-function importExcel(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const wb = XLSX.read(e.target.result, { type: 'array' }); const device = appData.devices[appData.currentDevice]; let importedCount = 0; wb.SheetNames.forEach(sheetName => { const ws = wb.Sheets[sheetName]; const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }); if (jsonData.length < 2) return; const header = jsonData[0].map(h => String(h).trim()); const analyteCols = {}; header.forEach((h, idx) => { if (idx === 0) return; const match = h.match(/^(.+)\.L(\d+)$/); if (match) { const analyteName = match[1]; const level = parseInt(match[2]); if (!analyteCols[analyteName]) analyteCols[analyteName] = {}; analyteCols[analyteName][level] = idx; if (!device.analytes.includes(analyteName)) { device.analytes.push(analyteName); appData.analyteLevels[analyteName] = 2; } } }); for (let i = 1; i < jsonData.length; i++) { const row = jsonData[i]; if (!row || row.length === 0) continue; const dateVal = String(row[0] || '').trim(); if (!dateVal) continue; Object.keys(analyteCols).forEach(analyteName => { const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth); const levels = analyteCols[analyteName]; if (!data.dates.includes(dateVal)) data.dates.push(dateVal); const dateIndex = data.dates.indexOf(dateVal); Object.keys(levels).forEach(lvl => { const colIdx = levels[lvl]; const val = parseFloat(row[colIdx]); if (!data[`L${lvl}`]) data[`L${lvl}`] = []; while (data[`L${lvl}`].length <= dateIndex) data[`L${lvl}`].push(null); if (!isNaN(val) && val !== 0) data[`L${lvl}`][dateIndex] = val; else data[`L${lvl}`][dateIndex] = null; }); const maxLvl = Math.max(...Object.keys(levels).map(Number)); appData.analyteLevels[analyteName] = maxLvl; }); } importedCount++; }); if (importedCount === 0) { alert('No valid data found in the Excel file!'); return; } buildSidebar(); buildAnalyteBar(); updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); showNotification(`Excel imported! (${importedCount} sheet(s))`); window.triggerAutoSave(); } catch (err) { console.error('Import error:', err); alert('Error importing file: ' + err.message); } }; reader.readAsArrayBuffer(file); event.target.value = ''; }
+
+function importExcel(event) { 
+    const file = event.target.files[0]; 
+    if (!file) return; 
+    const reader = new FileReader(); 
+    reader.onload = (e) => { 
+        try { 
+            const wb = XLSX.read(e.target.result, { type: 'array' }); 
+            const device = appData.devices[appData.currentDevice]; 
+            let importedCount = 0; 
+            
+            // 1. Import Parameters if the sheet exists
+            if (wb.SheetNames.includes('Parameters')) {
+                const paramWs = wb.Sheets['Parameters'];
+                const paramJson = XLSX.utils.sheet_to_json(paramWs, { header: 1, defval: '' });
+                for (let i = 1; i < paramJson.length; i++) {
+                    const row = paramJson[i];
+                    if (!row || row.length < 7) continue;
+                    const analyteName = String(row[0]).trim();
+                    const levelStr = String(row[1]).trim(); // e.g., 'L1'
+                    const mean = parseFloat(row[2]);
+                    const sd = parseFloat(row[3]);
+                    const lot = String(row[4]).trim();
+                    const exp = String(row[5]).trim();
+                    const tea = parseFloat(row[6]);
+                    
+                    if (!analyteName || !levelStr) continue;
+                    
+                    if (!device.analytes.includes(analyteName)) {
+                        device.analytes.push(analyteName);
+                        appData.analyteLevels[analyteName] = parseInt(levelStr.replace('L', ''));
+                    } else {
+                        const currentLevels = getAnalyteLevels(analyteName);
+                        const newLevel = parseInt(levelStr.replace('L', ''));
+                        if (newLevel > currentLevels) {
+                            appData.analyteLevels[analyteName] = newLevel;
+                        }
+                    }
+                    
+                    const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth);
+                    if (!data.factoryMean) data.factoryMean = {};
+                    if (!data.factorySD) data.factorySD = {};
+                    if (!data.lot) data.lot = {};
+                    if (!data.exp) data.exp = {};
+                    if (!data.permissibleCV) data.permissibleCV = {};
+                    
+                    if (!isNaN(mean)) data.factoryMean[levelStr] = mean;
+                    if (!isNaN(sd)) data.factorySD[levelStr] = sd;
+                    if (lot) data.lot[levelStr] = lot;
+                    if (exp) data.exp[levelStr] = exp;
+                    if (!isNaN(tea)) data.permissibleCV[levelStr] = tea;
+                }
+            }
+
+            // 2. Import QC Data from other sheets
+            wb.SheetNames.forEach(sheetName => { 
+                if (sheetName === 'Parameters') return; // Skip parameters sheet for data import
+                const ws = wb.Sheets[sheetName]; 
+                const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }); 
+                if (jsonData.length < 2) return; 
+                
+                const header = jsonData[0].map(h => String(h).trim()); 
+                const analyteCols = {}; 
+                header.forEach((h, idx) => { 
+                    if (idx === 0) return; 
+                    const match = h.match(/^(.+)\.L(\d+)$/); 
+                    if (match) { 
+                        const analyteName = match[1]; 
+                        const level = parseInt(match[2]); 
+                        if (!analyteCols[analyteName]) analyteCols[analyteName] = {}; 
+                        analyteCols[analyteName][level] = idx; 
+                        if (!device.analytes.includes(analyteName)) { 
+                            device.analytes.push(analyteName); 
+                            appData.analyteLevels[analyteName] = 2; 
+                        } 
+                    } 
+                }); 
+                
+                for (let i = 1; i < jsonData.length; i++) { 
+                    const row = jsonData[i]; 
+                    if (!row || row.length === 0) continue; 
+                    const dateVal = String(row[0] || '').trim(); 
+                    if (!dateVal) continue; 
+                    
+                    Object.keys(analyteCols).forEach(analyteName => { 
+                        const data = getMonthData(device, analyteName, appData.currentYear, appData.currentMonth); 
+                        const levels = analyteCols[analyteName]; 
+                        if (!data.dates.includes(dateVal)) data.dates.push(dateVal); 
+                        const dateIndex = data.dates.indexOf(dateVal); 
+                        
+                        Object.keys(levels).forEach(lvl => { 
+                            const colIdx = levels[lvl]; 
+                            const val = parseFloat(row[colIdx]); 
+                            if (!data[`L${lvl}`]) data[`L${lvl}`] = []; 
+                            while (data[`L${lvl}`].length <= dateIndex) data[`L${lvl}`].push(null); 
+                            if (!isNaN(val) && val !== 0) data[`L${lvl}`][dateIndex] = val; 
+                            else data[`L${lvl}`][dateIndex] = null; 
+                        }); 
+                        
+                        const maxLvl = Math.max(...Object.keys(levels).map(Number)); 
+                        if (maxLvl > appData.analyteLevels[analyteName]) {
+                            appData.analyteLevels[analyteName] = maxLvl; 
+                        }
+                    }); 
+                } 
+                importedCount++; 
+            }); 
+            
+            if (importedCount === 0 && !wb.SheetNames.includes('Parameters')) { 
+                alert('No valid data found in the Excel file!'); 
+                return; 
+            } 
+            
+            buildSidebar(); 
+            buildAnalyteBar(); 
+            updateMonthBadges(); 
+            updateDashboard(); 
+            if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet(); 
+            showNotification(`Excel imported successfully! (Data & Parameters)`); 
+            window.triggerAutoSave(); 
+        } catch (err) { 
+            console.error('Import error:', err); 
+            alert('Error importing file: ' + err.message); 
+        } 
+    }; 
+    reader.readAsArrayBuffer(file); 
+    event.target.value = ''; 
+}
+// ==========================================
+
+function clearCurrentData() {
+const device = appData.devices[appData.currentDevice]; const year = appData.currentYear; const month = appData.currentMonth; const monthName = getMonthName();
+if (!confirm(`⚠️ Clear ALL QC RESULTS for ALL tests in "${device.name}" for ${monthName} ${year}?
+Parameters (Mean, SD, TEa, Lot, Exp) will be kept for all tests.`)) return;
+let clearedCount = 0;
+device.analytes.forEach(analyte => {
+if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][year]) device.data[analyte][year] = {};
+const currentData = getMonthData(device, analyte, year, month);
+const savedParams = { factoryMean: currentData.factoryMean ? JSON.parse(JSON.stringify(currentData.factoryMean)) : { L1: 0, L2: 0, L3: 0 }, factorySD: currentData.factorySD ? JSON.parse(JSON.stringify(currentData.factorySD)) : { L1: 0, L2: 0, L3: 0 }, permissibleCV: currentData.permissibleCV ? JSON.parse(JSON.stringify(currentData.permissibleCV)) : { L1: 10, L2: 10, L3: 10 }, lot: currentData.lot ? JSON.parse(JSON.stringify(currentData.lot)) : { L1: '', L2: '', L3: '' }, exp: currentData.exp ? JSON.parse(JSON.stringify(currentData.exp)) : { L1: '', L2: '', L3: '' } };
+device.data[analyte][year][month] = createEmptyData(); device.data[analyte][year][month].factoryMean = savedParams.factoryMean; device.data[analyte][year][month].factorySD = savedParams.factorySD; device.data[analyte][year][month].permissibleCV = savedParams.permissibleCV; device.data[analyte][year][month].lot = savedParams.lot; device.data[analyte][year][month].exp = savedParams.exp;
+const prefix = `${appData.currentDevice}_${analyte}_${year}_${month}_`; Object.keys(appData.excludedValues).forEach(key => { if (key.startsWith(prefix)) delete appData.excludedValues[key]; });
+clearedCount++;
+});
+updateMonthBadges(); updateDashboard(); if (document.getElementById('spreadsheetView').classList.contains('active')) populateSpreadsheet();
+showNotification(`✅ Cleared QC results for ${clearedCount} test(s) in ${device.name}! Parameters retained.`); window.triggerAutoSave();
+}
+function getMonthName() { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][appData.currentMonth]; }
+function copyFromPreviousMonth() {
+const device = appData.devices[appData.currentDevice]; let pm = appData.currentMonth - 1, py = appData.currentYear; if (pm < 0) { pm = 11; py--; }
+const prevMonthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pm];
+let copiedCount = 0, skippedCount = 0;
+device.analytes.forEach(analyte => {
+if (hasDataForMonth(device, analyte, py, pm)) {
+const sourceData = device.data[analyte][py][pm];
+if (!device.data[analyte]) device.data[analyte] = {}; if (!device.data[analyte][appData.currentYear]) device.data[analyte][appData.currentYear] = {};
+if (!device.data[analyte][appData.currentYear][appData.currentMonth]) device.data[analyte][appData.currentYear][appData.currentMonth] = createEmptyData();
+const targetData = device.data[analyte][appData.currentYear][appData.currentMonth];
+if (sourceData.factoryMean) targetData.factoryMean = JSON.parse(JSON.stringify(sourceData.factoryMean));
+if (sourceData.factorySD) targetData.factorySD = JSON.parse(JSON.stringify(sourceData.factorySD));
+if (sourceData.permissibleCV) targetData.permissibleCV = JSON.parse(JSON.stringify(sourceData.permissibleCV));
+if (sourceData.lot) targetData.lot = JSON.parse(JSON.stringify(sourceData.lot));
+if (sourceData.exp) targetData.exp = JSON.parse(JSON.stringify(sourceData.exp));
+copiedCount++;
+} else skippedCount++;
+});
+if (copiedCount === 0) { alert(`⚠️ No data found for ANY test in "${device.name}" for ${prevMonthName} ${py}.`); return; }
+updateMonthBadges(); updateDashboard(); populateSpreadsheet();
+let msg = `✅ Copied Mean & SD parameters for ${copiedCount} test(s) from ${prevMonthName} ${py}.`;
+if (skippedCount > 0) msg += ` (${skippedCount} test(s) had no data to copy)`;
+showNotification(msg); window.triggerAutoSave();
+}
+function copyFromPreviousYear() {
+const device = appData.devices[appData.currentDevice]; const analyte = appData.currentAnalyte; const py = appData.currentYear - 1;
+if (hasDataForMonth(device, analyte, py, appData.currentMonth)) {
+Object.assign(getCurrentData(), JSON.parse(JSON.stringify(device.data[analyte][py][appData.currentMonth])));
+updateMonthBadges(); updateDashboard(); populateSpreadsheet(); showNotification(`Copied from ${getMonthName()} ${py}!`); window.triggerAutoSave();
+} else alert(`No data for ${getMonthName()} ${py}`);
+}
+function initImprecision() { const tbody = document.getElementById('imprecisionBody'); if (!tbody) return; tbody.innerHTML = ''; for (let i = 1; i <= 20; i++) { const tr = document.createElement('tr'); tr.innerHTML = `<td>Run ${i}</td><td><input type="number" step="0.01" class="imp-l1"></td><td><input type="number" step="0.01" class="imp-l2"></td><td style="display:none"><input type="number" step="0.01" class="imp-l3"></td>`; tbody.appendChild(tr); } }
+function calcImprecision() { const l1 = Array.from(document.querySelectorAll('.imp-l1')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l2 = Array.from(document.querySelectorAll('.imp-l2')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const l3 = Array.from(document.querySelectorAll('.imp-l3')).map(i => parseFloat(i.value)).filter(v => !isNaN(v)); const div = document.getElementById('imprecisionResults'); if (!div) return; div.innerHTML = ''; [{ name: 'Level 1', v: l1 }, { name: 'Level 2', v: l2 }, { name: 'Level 3', v: l3 }].forEach(level => { if (level.v.length < 2) return; const mean = calcMean(level.v), sd = calcSD(level.v, mean), cv = calcCV(sd, mean); const box = document.createElement('div'); box.className = 'imp-box'; box.innerHTML = `<h4>${level.name}</h4><div>N: ${level.v.length}</div><div>Mean: <strong>${mean.toFixed(4)}</strong></div><div>SD: <strong>${sd.toFixed(4)}</strong></div><div>CV: <strong>${cv.toFixed(2)}%</strong></div><div>Min: ${Math.min(...level.v).toFixed(4)}</div><div>Max: ${Math.max(...level.v).toFixed(4)}</div>`; div.appendChild(box); }); showNotification('Imprecision calculated!'); }
+function openSettings() {
+const device = appData.devices[appData.currentDevice]; const data = getCurrentData();
+document.getElementById('setInstNameAr').value = appData.institution.nameAr || ''; document.getElementById('setInstNameEn').value = appData.institution.nameEn || '';
+const previewImg = document.getElementById('logoPreviewImg'); const previewText = document.getElementById('logoPreviewText');
+if (previewImg && previewText) { if (appData.institution.logo) { previewImg.src = appData.institution.logo; previewImg.style.display = 'block'; previewImg.dataset.base64 = appData.institution.logo; previewText.style.display = 'none'; } else { previewImg.style.display = 'none'; previewText.style.display = 'block'; previewText.textContent = 'No logo uploaded'; } }
+document.getElementById('setLogoFile').value = ''; document.getElementById('setLabSP').value = device.labSP || ''; document.getElementById('setDesignee').value = device.designee || '';
+document.getElementById('setBranch').value = ''; document.getElementById('setUser').value = ''; document.getElementById('setNumLevels').value = getAnalyteLevels(appData.currentAnalyte);
+document.getElementById('setLot1').value = (data.lot && data.lot.L1) || ''; document.getElementById('setExp1').value = (data.exp && data.exp.L1) || '';
+document.getElementById('setLot2').value = (data.lot && data.lot.L2) || ''; document.getElementById('setExp2').value = (data.exp && data.exp.L2) || '';
+document.getElementById('setLot3').value = (data.lot && data.lot.L3) || ''; document.getElementById('setExp3').value = (data.exp && data.exp.L3) || '';
+const highlightDays = getHighlightDaysArray(); for (let i = 0; i < 7; i++) { document.getElementById('dayCheck' + i).checked = highlightDays.includes(i); }
+const arSettings = appData.autoRefreshSettings || { enabled: false, interval: 1 };
+document.getElementById('setAutoRefreshEnable').checked = arSettings.enabled;
+document.getElementById('setAutoRefreshInterval').value = arSettings.interval;
+updateHighlightPreview(); const rs = appData.reportSettings;
+document.getElementById('setRepQcCols').value = rs.qcColWidths.join(', '); document.getElementById('setRepQcFont').value = rs.qcFontSize;
+document.getElementById('setRepLogDateW').value = rs.logDateWidth; document.getElementById('setRepLogResW').value = rs.logResWidth; document.getElementById('setRepLogFont').value = rs.logFontSize;
+document.getElementById('setRepChartW').value = rs.chartWidth; document.getElementById('setRepChartH').value = rs.chartHeight;
+
+const backendGroup = document.getElementById('backendSettingsGroup');
+if (backendGroup) {
+    backendGroup.style.display = isAdmin() ? 'block' : 'none';
+}
+
+getBackendFileHandle().then(handle => {
+    if (handle) {
+        updateBackendStatus(handle.name);
+    } else {
+        const el = document.getElementById('backendStatus');
+        if(el) {
+            el.innerText = 'Status: Not linked';
+            el.style.color = '#aaa';
+        }
+    }
+});
+
+document.getElementById('setAutoSaveCloud').checked = appData.autoSaveToCloud !== false;
+document.getElementById('settingsModal').classList.add('active');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+function showSettingsTab(tab) { document.getElementById('settings-general').style.display = tab === 'general' ? 'block' : 'none'; document.getElementById('settings-report').style.display = tab === 'report' ? 'block' : 'none'; document.getElementById('tab-general').style.background = tab === 'general' ? '#e74c3c' : '#0f3460'; document.getElementById('tab-report').style.background = tab === 'report' ? '#e74c3c' : '#0f3460'; }
+
+
+function applySettings() {
+    const device = appData.devices[appData.currentDevice];
+    const data = getCurrentData();
+    
+    // 1. Institution Settings
+    appData.institution.nameAr = document.getElementById('setInstNameAr').value.trim();
+    appData.institution.nameEn = document.getElementById('setInstNameEn').value.trim();
+    const previewImg = document.getElementById('logoPreviewImg');
+    if (previewImg && previewImg.dataset.base64) {
+        appData.institution.logo = previewImg.dataset.base64;
+    }
+    updateInstitutionDisplay();
+    
+    // 2. Device & Analyte Metadata
+    device.labSP = document.getElementById('setLabSP').value;
+    device.designee = document.getElementById('setDesignee').value;
+    const numLevels = parseInt(document.getElementById('setNumLevels').value, 10);
+    appData.analyteLevels[appData.currentAnalyte] = numLevels;
+    appData.numLevels = numLevels;
+    
+    // 3. Lot and Expiration Data (L1 - L3)
+    data.lot.L1 = document.getElementById('setLot1').value;
+    data.exp.L1 = document.getElementById('setExp1').value;
+    data.lot.L2 = document.getElementById('setLot2').value;
+    data.exp.L2 = document.getElementById('setExp2').value;
+    data.lot.L3 = document.getElementById('setLot3').value;
+    data.exp.L3 = document.getElementById('setExp3').value;
+    
+    // 4. Report Settings: Highlight Days
+    const selectedDays = [];
+    for (let i = 0; i < 7; i++) {
+        if (document.getElementById(`dayCheck${i}`).checked) {
+            selectedDays.push(i);
+        }
+    }
+  appData.reportSettings.highlightDaysOfWeek = selectedDays;
+// Save Auto-Refresh Settings
+appData.autoRefreshSettings = {
+    enabled: document.getElementById('setAutoRefreshEnable').checked,
+    interval: parseInt(document.getElementById('setAutoRefreshInterval').value) || 1
+};
+setupAutoRefresh();
+// Save Auto-Save to Cloud Setting
+appData.autoSaveToCloud = document.getElementById('setAutoSaveCloud').checked;
+// 5. Report Settings: Styling & Dimensions
+    
+    // 5. Report Settings: Styling & Dimensions
+    const qcColsStr = document.getElementById('setRepQcCols').value;
+    appData.reportSettings.qcColWidths = qcColsStr.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
+    appData.reportSettings.qcFontSize = parseInt(document.getElementById('setRepQcFont').value, 10) || 7;
+    appData.reportSettings.logDateWidth = parseInt(document.getElementById('setRepLogDateW').value, 10) || 16;
+    appData.reportSettings.logResWidth = parseInt(document.getElementById('setRepLogResW').value, 10) || 18;
+    appData.reportSettings.logFontSize = parseInt(document.getElementById('setRepLogFont').value, 10) || 6;
+    appData.reportSettings.chartWidth = parseInt(document.getElementById('setRepChartW').value, 10) || 160;
+    appData.reportSettings.chartHeight = parseInt(document.getElementById('setRepChartH').value, 10) || 35;
+    
+    // 6. UI Refreshes & Conditional Views
+if (typeof applyAssistantSettings === 'function') {
+    applyAssistantSettings();
+}
+closeSettings();
+updateDashboard();
+const spreadsheetView = document.getElementById('spreadsheetView');
+if (spreadsheetView && spreadsheetView.classList.contains('active')) {
+    populateSpreadsheet();
+}
+if (selectedDays.length > 0) { const dayNames = selectedDays.map(d => DAY_NAMES[d]).join(', '); showNotification(`✅ Settings applied! ${dayNames} rows will be highlighted.`); } else { showNotification('Settings applied!'); }
+
+// Save Auto-Refresh Settings & Restart Timer
+appData.autoRefreshSettings = {
+    enabled: document.getElementById('setAutoRefreshEnable').checked,
+    interval: parseInt(document.getElementById('setAutoRefreshInterval').value) || 1
+};
+setupAutoRefresh();
+
+window.triggerAutoSave();
+}
+
+
+function openAbout() { document.getElementById('aboutModal').classList.add('active'); }
+function closeAbout() { document.getElementById('aboutModal').classList.remove('active'); }
+function printCurrent() { const itemsToPrint = [{ device: appData.devices[appData.currentDevice], analyte: appData.currentAnalyte }]; generatePDFReport(itemsToPrint); }
+function printAll() { const itemsToPrint = []; Object.values(appData.devices).forEach(dev => { if (!canAccessDevice(dev.id)) return; dev.analytes.forEach(a => { const data = getMonthData(dev, a, appData.currentYear, appData.currentMonth); if (data && data.dates && data.dates.length > 0) itemsToPrint.push({ device: dev, analyte: a }); }); }); if (itemsToPrint.length === 0) { alert('No data available for this period across any device!'); return; } generatePDFReport(itemsToPrint); }
+async function generatePDFReport(itemsToPrint) {
+const { jsPDF } = window.jspdf; const periodStr = `${getMonthName()} ${appData.currentYear}`;
+const pdf = new jsPDF('p', 'mm', 'a4'); const pageWidth = pdf.internal.pageSize.getWidth(); const pageHeight = pdf.internal.pageSize.getHeight();
+for (let idx = 0; idx < itemsToPrint.length; idx++) {
+const item = itemsToPrint[idx]; const device = item.device; const analyte = item.analyte; const numLevels = getAnalyteLevels(analyte);
+const data = getMonthData(device, analyte, appData.currentYear, appData.currentMonth);
+if (!data || !data.dates || data.dates.length === 0) continue;
+if (idx > 0) pdf.addPage();
+const prevDevice = appData.currentDevice; const prevAnalyte = appData.currentAnalyte;
+appData.currentDevice = device.id; appData.currentAnalyte = analyte; let currentY = 8; const rs = appData.reportSettings;
+function drawHeader() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('EVALUATION SUMMARY & CONFIGURATION', 12, currentY + 4); currentY += 6; pdf.rect(10, currentY, pageWidth - 20, 20); pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.text('Test Analyte:', 12, currentY + 4); pdf.text('Analyzer System:', 12, currentY + 8); pdf.text('Evaluation Date:', 12, currentY + 12); pdf.text('Lab Manager:', 12, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(`${analyte}`, 60, currentY + 4); pdf.text(device.analyzer || 'N/A', 60, currentY + 8); pdf.text(`24/08/${appData.currentYear}`, 60, currentY + 12); pdf.text(device.designee || '-', 60, currentY + 16); pdf.setFont('helvetica', 'bold'); pdf.text('Evaluator / Lab SP:', 110, currentY + 4); pdf.text('Hospital Name:', 110, currentY + 8); pdf.text('Mean Type:', 110, currentY + 12); pdf.text('Specifications:', 110, currentY + 16); pdf.setFont('helvetica', 'normal'); pdf.text(device.labSP || '-', 155, currentY + 4); pdf.text(appData.institution.nameEn || '-', 155, currentY + 8); const meanTypeText = Object.values(appData.meanType).every(t => t === 'lab') ? 'LAB Mean' : Object.values(appData.meanType).every(t => t === 'factory') ? 'FACTORY Mean' : 'Mixed Mean'; pdf.text(meanTypeText, 155, currentY + 12); pdf.text('Manufacturer Specifications', 155, currentY + 16); currentY += 22; }
+function drawQCParameters() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('QUALITY CONTROL TARGET PARAMETERS & LOT VERIFICATION', 12, currentY + 4); currentY += 6; const colWidths = rs.qcColWidths.length === 5 ? rs.qcColWidths : [25, 30, 40, 25, 20]; const startX = 10; pdf.setFillColor(230, 230, 230); let x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 6, 'F'); x += w; } pdf.setFontSize(rs.qcFontSize); pdf.setFont('helvetica', 'bold'); pdf.text('Control Level', startX + 2, currentY + 4); pdf.text('Target QC Mean', startX + colWidths[0] + colWidths[1]/2, currentY + 4, { align: 'center' }); pdf.text('Standard Deviation (SD)', startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 4, { align: 'center' }); pdf.text('Expiration Date', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 4, { align: 'center' }); pdf.text('Lot Number', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 4, { align: 'center' }); currentY += 6; pdf.setFont('helvetica', 'normal'); pdf.setFontSize(rs.qcFontSize); for (let l = 1; l <= numLevels; l++) { x = startX; for (let w of colWidths) { pdf.rect(x, currentY, w, 5); x += w; } const mean = (data.factoryMean && data.factoryMean[`L${l}`]) ? data.factoryMean[`L${l}`].toFixed(3) : '0.000'; const sd = (data.factorySD && data.factorySD[`L${l}`]) ? data.factorySD[`L${l}`].toFixed(3) : '0.000'; const exp = (data.exp && data.exp[`L${l}`]) || 'N/A'; const lot = (data.lot && data.lot[`L${l}`]) || 'N/A'; pdf.text(`Level ${l} (L${l})`, startX + 2, currentY + 3.5); pdf.text(mean, startX + colWidths[0] + colWidths[1]/2, currentY + 3.5, { align: 'center' }); pdf.text(sd, startX + colWidths[0] + colWidths[1] + colWidths[2]/2, currentY + 3.5, { align: 'center' }); pdf.text(exp, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, currentY + 3.5, { align: 'center' }); pdf.text(lot, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4]/2, currentY + 3.5, { align: 'center' }); currentY += 5; } currentY += 4; }
+function drawDataTable() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text(`DAILY RUN LOG DATA (${periodStr.toUpperCase()})`, 12, currentY + 4); currentY += 6; const startX = 10; const dateColWidth = 15; const dayCellWidth = (pageWidth - 20 - dateColWidth) / 31; const rowHeight = 6; const unifiedFontSize = 6; const getFontSizeForCell = (text, cellWidth, cellHeight, baseFontSize) => { if (!text) return baseFontSize; let fontSize = baseFontSize; pdf.setFontSize(fontSize); const textWidth = pdf.getTextWidth(text); while (textWidth > (cellWidth - 1) && fontSize > 3) { fontSize -= 0.5; pdf.setFontSize(fontSize); } while ((fontSize * 1.2) > (cellHeight - 0.5) && fontSize > 3) { fontSize -= 0.5; } return Math.max(3, fontSize); }; pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.setFillColor(255, 255, 255); pdf.rect(startX, currentY, pageWidth - 20, rowHeight, 'FD'); pdf.text(`${device.name} - ${analyte} (${periodStr.toUpperCase()})`, startX + (pageWidth - 20) / 2, currentY + 4, { align: 'center' }); currentY += rowHeight; pdf.setFontSize(unifiedFontSize); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.text('Date', startX + 2, currentY + 4); for (let d = 1; d <= 31; d++) { pdf.setFillColor(211, 211, 211); pdf.rect(startX + dateColWidth + (d - 1) * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); pdf.text(d.toString(), startX + dateColWidth + (d - 1) * dayCellWidth + dayCellWidth / 2, currentY + 4, { align: 'center' }); } currentY += rowHeight; const drawLevelRows = (level) => { if (numLevels < level) return; pdf.setFont('helvetica', 'bold'); pdf.setFillColor(211, 211, 211); pdf.rect(startX, currentY, dateColWidth, rowHeight, 'FD'); pdf.setFontSize(unifiedFontSize); pdf.text(`LVL ${level}`, startX + 2, currentY + 4); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(0, 0, 0); for (let d = 1; d <= 31; d++) { const idx = d - 1; const val = data[`L${level}`] && data[`L${level}`][idx] !== undefined && data[`L${level}`][idx] !== null && data[`L${level}`][idx] !== 0 ? data[`L${level}`][idx].toFixed(1) : ''; pdf.setFillColor(255, 255, 255); pdf.rect(startX + dateColWidth + idx * dayCellWidth, currentY, dayCellWidth, rowHeight, 'FD'); if (val) { const fSize = getFontSizeForCell(val, dayCellWidth, rowHeight, 7); pdf.setFontSize(fSize); pdf.text(val, startX + dateColWidth + idx * dayCellWidth + dayCellWidth / 2, currentY + (rowHeight/2) + (fSize*0.3), { align: 'center', baseline: 'middle' }); } } currentY += rowHeight; currentY += 2; }; drawLevelRows(1); drawLevelRows(2); drawLevelRows(3); currentY += 5; }
+function drawLJCharts() { pdf.setFillColor(220, 220, 220); pdf.rect(10, currentY, pageWidth - 20, 6, 'F'); pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.text('LEVEY-JENNINGS EVALUATION GRAPHS & STATISTICS', 12, currentY + 4); currentY += 9.8; const chartWidth = rs.chartWidth; const chartHeight = rs.chartHeight; const startX = 20; for (let l = 1; l <= numLevels; l++) { try { const values = getNonExcludedValues(analyte, l, appData.currentYear, appData.currentMonth); let mean, sd; if (appData.meanType[`L${l}`] === 'factory' && data.factoryMean[`L${l}`] && data.factorySD[`L${l}`]) { mean = data.factoryMean[`L${l}`]; sd = data.factorySD[`L${l}`]; } else { mean = calcMean(values); sd = calcSD(values, mean); } pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.text(`${analyte} - Level ${l} (Target: ${mean.toFixed(2)} ± ${sd.toFixed(2)})`, 12, currentY); currentY += 2; pdf.setDrawColor(0); pdf.setLineWidth(0.2); pdf.rect(startX, currentY, chartWidth, chartHeight); const minY = mean - 3 * sd; const maxY = mean + 3 * sd; const yRange = maxY - minY || 1; const mapY = (val) => currentY + chartHeight - ((val - minY) / yRange) * chartHeight; pdf.setLineWidth(0.1); pdf.setDrawColor(0); pdf.line(startX, mapY(mean), startX + chartWidth, mapY(mean)); pdf.setDrawColor(100); pdf.setLineDashPattern([2, 2], 0); pdf.line(startX, mapY(mean + sd), startX + chartWidth, mapY(mean + sd)); pdf.line(startX, mapY(mean - sd), startX + chartWidth, mapY(mean - sd)); pdf.line(startX, mapY(mean + 2*sd), startX + chartWidth, mapY(mean + 2*sd)); pdf.line(startX, mapY(mean - 2*sd), startX + chartWidth, mapY(mean - 2*sd)); pdf.setLineDashPattern([1, 1], 0); pdf.line(startX, mapY(mean + 3*sd), startX + chartWidth, mapY(mean + 3*sd)); pdf.line(startX, mapY(mean - 3*sd), startX + chartWidth, mapY(mean - 3*sd)); pdf.setLineDashPattern([], 0); const levelData = data[`L${l}`]; if (levelData && levelData.length > 0) { pdf.setDrawColor(0); pdf.setLineWidth(0.3); pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); let prevX = null; let prevY = null; for (let i = 0; i < levelData.length; i++) { const val = levelData[i]; if (val === undefined || val === null || val === 0 || isNaN(val)) continue; const x = startX + (i / (levelData.length - 1 || 1)) * chartWidth; const y = mapY(val); if (prevX !== null) pdf.line(prevX, prevY, x, y); pdf.circle(x, y, 0.8, 'F'); prevX = x; prevY = y; } } pdf.setFontSize(6); pdf.setFont('helvetica', 'normal'); for (let i = 0; i < data.dates.length; i++) { const x = startX + (i / (data.dates.length - 1 || 1)) * chartWidth; const dateStr = data.dates[i] || ''; const day = dateStr.substring(0, 2); if (i === 0 || i === data.dates.length - 1 || i % 2 === 0) pdf.text(day, x - 2, currentY + chartHeight + 3); } currentY += chartHeight + 8; } catch (e) { console.error('Error drawing chart:', e); } } }
+function drawFooter() { pdf.setFontSize(8); pdf.setFont('helvetica', 'italic'); pdf.text('QC Management By LAB SP. Mohammed Al Desoqy', pageWidth - 50, pageHeight - 10, { align: 'right' }); }
+drawHeader(); drawQCParameters(); drawDataTable(); drawLJCharts(); drawFooter();
+appData.currentDevice = prevDevice; appData.currentAnalyte = prevAnalyte;
+}
+const filename = `QC_Report_All_${periodStr.replace(' ', '_')}.pdf`; pdf.save(filename); showNotification('PDF report generated!');
+}
 function showNotification(msg) { const n = document.getElementById('notification'); if (!n) return; n.textContent = msg; n.style.display = 'block'; setTimeout(() => { n.style.display = 'none'; }, 3000); }
 function exitApp() { if (confirm('Exit?')) document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#e74c3c;font-size:24px;background:#1a1a2e;">Application Closed</div>'; }
 
+// Floating Chat Widget Functions
+function toggleFloatingChat() {
+    const chatBox = document.getElementById('floatingChatBox');
+    chatBox.classList.toggle('active');
+    if (chatBox.classList.contains('active')) {
+        document.getElementById('floatingChatInput').focus();
+        updateFloatingChatTime();
+    }
+}
+
+function updateFloatingChatTime() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const timeEl = document.getElementById('floatingChatTime');
+    if (timeEl) timeEl.textContent = `${displayHours}:${minutes} ${ampm}`;
+}
+
+function sendFloatingChatMessage() {
+    const input = document.getElementById('floatingChatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    addFloatingChatMessage(msg, 'user');
+    input.value = '';
+    setTimeout(() => {
+        const response = generateChatResponse(msg);
+        addFloatingChatMessage(response, 'bot');
+    }, 600);
+}
+
+function sendQuickAction(msg) {
+    addFloatingChatMessage(msg, 'user');
+    setTimeout(() => {
+        const response = generateChatResponse(msg);
+        addFloatingChatMessage(response, 'bot');
+    }, 600);
+}
+
+function addFloatingChatMessage(text, sender) {
+    const container = document.getElementById('floatingChatMessages');
+    const div = document.createElement('div');
+    div.className = `floating-chat-msg ${sender}`;
+    
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const timeStr = `${displayHours}:${minutes} ${ampm}`;
+    
+    if (sender === 'bot') {
+        div.innerHTML = `<div class="msg-header">🧪 Lab Assistant</div><div>${text}</div><div class="msg-time">${timeStr}</div>`;
+    } else {
+        div.innerHTML = `<div>${text}</div><div class="msg-time">${timeStr}</div>`;
+    }
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
 
 
+// Update showSettingsTab to handle the new tab
+function showSettingsTab(tab) {
+    document.getElementById('settings-general').style.display = tab === 'general' ? 'block' : 'none';
+    document.getElementById('settings-report').style.display = tab === 'report' ? 'block' : 'none';
+    document.getElementById('settings-assistant').style.display = tab === 'assistant' ? 'block' : 'none';
+    document.getElementById('tab-general').style.background = tab === 'general' ? '#e74c3c' : '#0f3460';
+    document.getElementById('tab-report').style.background = tab === 'report' ? '#e74c3c' : '#0f3460';
+    document.getElementById('tab-assistant').style.background = tab === 'assistant' ? '#e74c3c' : '#0f3460';
+    
+    if (tab === 'assistant') {
+        loadAssistantSettings();
+        renderSettingsQA();
+        renderTeaEditor();
+    }
+}
+
+// Load current settings into inputs
+function loadAssistantSettings() {
+    const s = appData.assistantSettings || {};
+    document.getElementById('setAssistWidth').value = s.width || 800;
+    document.getElementById('setAssistHeight').value = s.height || 92;
+    document.getElementById('setAssistFontSize').value = s.fontSize || 13;
+    document.getElementById('setAssistBgColor').value = s.bgColor || '#16213e';
+    document.getElementById('setAssistTextColor').value = s.textColor || '#e0e0e0';
+}
+
+// Apply and save assistant settings
+function applyAssistantSettings() {
+    appData.assistantSettings = {
+        width: document.getElementById('setAssistWidth').value,
+        height: document.getElementById('setAssistHeight').value,
+        fontSize: document.getElementById('setAssistFontSize').value,
+        bgColor: document.getElementById('setAssistBgColor').value,
+        textColor: document.getElementById('setAssistTextColor').value
+    };
+    
+    // Apply to modal immediately
+    const modal = document.getElementById('assistantModal').querySelector('.modal');
+    if (modal) {
+        modal.style.minWidth = appData.assistantSettings.width + 'px';
+        modal.style.maxHeight = appData.assistantSettings.height + 'vh';
+        modal.style.fontSize = appData.assistantSettings.fontSize + 'px';
+        modal.style.backgroundColor = appData.assistantSettings.bgColor;
+        modal.style.color = appData.assistantSettings.textColor;
+    }
+}
+
+// --- Knowledge Base (Q&A) Functions ---
+function renderSettingsQA() {
+    const container = document.getElementById('settingsQAList');
+    container.innerHTML = '';
+    if (!appData.customChatQA) appData.customChatQA = [];
+    appData.customChatQA.forEach((qa, idx) => {
+        container.innerHTML += `<div style="background:#0f3460; padding:5px; margin-bottom:5px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong style="color:#9b59b6;">[${qa.triggers.join(', ')}]</strong> ${qa.response.substring(0, 40)}...</div>
+            <button class="modal-btn danger" onclick="deleteSettingsQA(${idx})" style="padding:2px 6px; font-size:10px;">Delete</button>
+        </div>`;
+    });
+}
+function addSettingsQA() {
+    const triggers = document.getElementById('settingsQATriggers').value.split(',').map(t=>t.trim().toLowerCase()).filter(t=>t);
+    const response = document.getElementById('settingsQAResponse').value.trim();
+    if(triggers.length && response) {
+        appData.customChatQA.push({triggers, response});
+        document.getElementById('settingsQATriggers').value = '';
+        document.getElementById('settingsQAResponse').value = '';
+        renderSettingsQA();
+        window.triggerAutoSave();
+    }
+}
+function deleteSettingsQA(idx) {
+    if(confirm('Delete this Q&A?')) {
+        appData.customChatQA.splice(idx, 1);
+        renderSettingsQA();
+        window.triggerAutoSave();
+    }
+}
+
+// --- TEa Database Editor Functions ---
+function renderTeaEditor() {
+    const tbody = document.getElementById('teaEditorBody');
+    tbody.innerHTML = '';
+    Object.keys(TEA_DATABASE).sort().forEach(code => {
+        const d = TEA_DATABASE[code];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${code}</strong></td>
+            <td>${d.name}</td>
+            <td><input type="number" value="${d.clia||''}" onchange="updateTeaValue('${code}', 'clia', this.value)" style="width:50px; background:#16213e; color:#fff; border:1px solid #333; padding:2px;"></td>
+            <td><input type="number" value="${d.bv||''}" onchange="updateTeaValue('${code}', 'bv', this.value)" style="width:50px; background:#16213e; color:#fff; border:1px solid #333; padding:2px;"></td>
+            <td><input type="number" value="${d.rlb||''}" onchange="updateTeaValue('${code}', 'rlb', this.value)" style="width:50px; background:#16213e; color:#fff; border:1px solid #333; padding:2px;"></td>
+            <td><input type="number" value="${d.rcpa||''}" onchange="updateTeaValue('${code}', 'rcpa', this.value)" style="width:50px; background:#16213e; color:#fff; border:1px solid #333; padding:2px;"></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+function updateTeaValue(code, source, value) {
+    TEA_DATABASE[code][source] = value === '' ? null : parseFloat(value);
+    window.triggerAutoSave();
+}
+function filterTeaEditor() {
+    const q = document.getElementById('teaSearchEditor').value.toLowerCase();
+    document.querySelectorAll('#teaEditorBody tr').forEach(tr => {
+        const text = tr.textContent.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+    });
+}
 
 </script>
+
+<!-- Floating Chat Widget -->
+<button class="floating-chat-btn" id="floatingChatBtn" onclick="toggleFloatingChat()">💬</button>
+<div class="floating-chat-box" id="floatingChatBox">
+    <div class="floating-chat-header">
+        <div class="chat-title">
+            <div class="chat-icon">🤖</div>
+            <h3>QMSAP Assistant</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="chat-status">
+                <span class="status-dot"></span>
+                <span>Online</span>
+            </div>
+            <button class="close-chat-btn" onclick="toggleFloatingChat()">✕</button>
+        </div>
+    </div>
+    <div class="floating-chat-messages" id="floatingChatMessages">
+        <div class="floating-chat-msg bot">
+            <div class="msg-header">🧪 Lab Assistant</div>
+            <div>Hello! I can help you with QC equations, TEa values, Westgard rules, and general lab questions.</div>
+            <div class="msg-time" id="floatingChatTime"></div>
+        </div>
+    </div>
+    <div class="floating-chat-quick-actions">
+        <button class="quick-action-btn" onclick="sendQuickAction('What is QMSAP?')">What is QMSAP?</button>
+        <button class="quick-action-btn" onclick="sendQuickAction('Find and correct')">Find and correct</button>
+        <button class="quick-action-btn" onclick="sendQuickAction('Rules based on sigma')">Rules based on sigma</button>
+        <button class="quick-action-btn" onclick="sendQuickAction('TEa for Glucose')">TEa for Glucose</button>
+        <button class="quick-action-btn" onclick="sendQuickAction('How to calculate Sigma?')">How to calculate Sigma?</button>
+        <button class="quick-action-btn" onclick="sendQuickAction('Explain Westgard 1-3s rule')">Westgard 1-3s rule</button>
+    </div>
+    <div class="floating-chat-input-area">
+        <input type="text" class="floating-chat-input" id="floatingChatInput" placeholder="Type your message here..." onkeypress="if(event.key==='Enter') sendFloatingChatMessage()">
+        <button class="floating-chat-send-btn" onclick="sendFloatingChatMessage()">➤</button>
+    </div>
+</div>
+
 </body>
 </html>
