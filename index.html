@@ -2631,6 +2631,11 @@ document.getElementById('mainLayout').style.display = 'flex';
 document.getElementById('bottomBar').style.display = 'flex';
 updateUserSessionBar(); applyUserPermissions();
 showNotification(`Welcome, ${user.name}! 👋`);
+
+// ✅ AUTO-LOAD DATA FROM CLOUD AFTER LOGIN
+if (typeof window.loadFromCloud === 'function') {
+    window.loadFromCloud();
+}
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) attemptLogin(); });
 function logoutUser() {
